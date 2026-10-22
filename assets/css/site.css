@@ -1,0 +1,226 @@
+/* =========================================================
+   AZUL MARINHO — estilo comum a todas as páginas
+   Identidade: azul-marinho #0F1F47 + ciano #00ADEF + branco
+   ========================================================= */
+
+:root{
+    --marinho:#0F1F47;
+    --marinho-escuro:#08122E;
+    --marinho-medio:#24376B;
+    --ciano:#00ADEF;
+    --ciano-escuro:#0098D3;
+    --ciano-claro:#E6F7FE;
+    --texto:#3D4660;
+    --texto-claro:#6B7489;
+    --fundo-suave:#F4F7FC;
+    --borda:#E3E9F4;
+    --branco:#FFFFFF;
+    --raio:16px;
+}
+
+*{ margin:0; padding:0; box-sizing:border-box; }
+
+html{ scroll-behavior:smooth; }
+
+body{
+    font-family:"Ubuntu","Segoe UI",Arial,sans-serif;
+    color:var(--texto);
+    background:var(--branco);
+    line-height:1.6;
+    overflow-x:hidden;
+}
+
+img{ max-width:100%; display:block; }
+
+a{ color:inherit; }
+
+.wrap{ width:min(1180px, 100% - 32px); margin-inline:auto; }
+
+h1,h2,h3{
+    font-family:"Montserrat","Segoe UI",Arial,sans-serif;
+    color:var(--marinho);
+    line-height:1.2;
+}
+
+.oculto{ display:none !important; }
+
+/* ---------- Topo ---------- */
+
+.topo{
+    position:sticky; top:0; z-index:50;
+    background:rgba(255,255,255,.97);
+    backdrop-filter:blur(8px);
+    border-bottom:3px solid var(--ciano);
+}
+
+.topo .wrap{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:20px; padding:14px 0;
+}
+
+.topo .logo img{ height:36px; width:auto; }
+
+.menu{ display:flex; align-items:center; gap:26px; list-style:none; }
+
+.menu a{
+    text-decoration:none; font-weight:500; color:var(--marinho);
+    font-size:16px; transition:color .2s;
+}
+
+.menu a:hover, .menu a.ativo{ color:var(--ciano); }
+
+.menu .menu-destaque{
+    border:2px solid var(--marinho); border-radius:999px;
+    padding:6px 14px; font-size:14px;
+}
+
+.menu .menu-destaque:hover{ border-color:var(--ciano); }
+
+.btn-menu{
+    display:none; background:none; border:0; cursor:pointer;
+    width:42px; height:42px; color:var(--marinho);
+}
+
+.btn-menu svg{ width:28px; height:28px; }
+
+/* ---------- Botões ---------- */
+
+.btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:10px;
+    text-decoration:none; font-family:"Montserrat",sans-serif; font-weight:700;
+    font-size:17px; padding:14px 28px; border-radius:12px; border:0; cursor:pointer;
+    transition:transform .2s, background .2s, box-shadow .2s, color .2s, border-color .2s;
+}
+
+.btn:hover{ transform:translateY(-2px); }
+
+.btn-ciano{ background:var(--ciano); color:var(--branco); box-shadow:0 8px 24px rgba(0,173,239,.35); }
+.btn-ciano:hover{ background:var(--ciano-escuro); }
+
+.btn-contorno{ border:2px solid rgba(255,255,255,.7); color:var(--branco); background:transparent; }
+.btn-contorno:hover{ border-color:var(--ciano); color:var(--ciano); }
+
+.btn-marinho{ background:var(--marinho); color:var(--branco); }
+.btn-marinho:hover{ background:var(--marinho-medio); }
+
+.btn svg{ width:22px; height:22px; flex-shrink:0; }
+
+/* ---------- Seções ---------- */
+
+.secao{ padding:90px 0; }
+
+.secao-suave{ background:var(--fundo-suave); }
+
+.titulo-secao{ text-align:center; max-width:680px; margin:0 auto 50px; }
+
+.sobretitulo{
+    color:var(--ciano); font-weight:500; text-transform:uppercase;
+    letter-spacing:2px; font-size:14px;
+}
+
+.titulo-secao h2{ font-size:clamp(28px, 4vw, 38px); margin:8px 0 14px; }
+
+.titulo-secao p{ color:var(--texto-claro); font-size:18px; }
+
+/* ---------- Cartões ---------- */
+
+.card{
+    background:var(--branco); border-radius:var(--raio); padding:30px 26px;
+    border:1px solid var(--borda); transition:transform .2s, box-shadow .2s, border-color .2s;
+}
+
+.card:hover{ transform:translateY(-4px); box-shadow:0 14px 34px rgba(15,31,71,.10); border-color:var(--ciano); }
+
+.card .icone{
+    width:56px; height:56px; border-radius:14px; background:var(--ciano-claro);
+    color:var(--ciano); display:grid; place-items:center; margin-bottom:18px;
+}
+
+.card .icone svg{ width:30px; height:30px; }
+
+.card h3{ font-size:20px; margin-bottom:8px; }
+
+.card p{ color:var(--texto-claro); font-size:16px; }
+
+/* ---------- Contatos ---------- */
+
+.grade-contato{ display:grid; grid-template-columns:repeat(3, 1fr); gap:20px; max-width:900px; margin-inline:auto; }
+
+.contato-card{
+    display:flex; flex-direction:column; align-items:center; text-align:center; gap:10px;
+    padding:30px 18px; border-radius:var(--raio); border:1px solid var(--borda); background:var(--branco);
+    text-decoration:none; transition:transform .2s, border-color .2s, box-shadow .2s;
+}
+
+.contato-card:hover{ transform:translateY(-4px); border-color:var(--ciano); box-shadow:0 14px 34px rgba(15,31,71,.10); }
+
+.contato-card .icone{
+    width:58px; height:58px; border-radius:50%; background:var(--marinho);
+    color:var(--branco); display:grid; place-items:center;
+}
+
+.contato-card .icone svg{ width:28px; height:28px; }
+
+.contato-card strong{ font-family:"Montserrat",sans-serif; color:var(--marinho); font-size:17px; }
+
+.contato-card span{ color:var(--texto-claro); font-size:15px; word-break:break-word; }
+
+.contato-card.whats .icone{ background:var(--ciano); }
+
+/* ---------- Rodapé ---------- */
+
+.rodape{
+    background:var(--marinho); color:#AFC0DD; border-top:4px solid var(--ciano);
+    padding:40px 0 30px; text-align:center; font-size:15px;
+}
+
+.rodape .logo-rodape{
+    display:inline-block; background:var(--branco); border-radius:12px;
+    padding:12px 18px; margin-bottom:18px;
+}
+
+.rodape .logo-rodape img{ height:30px; width:auto; }
+
+.rodape nav{ display:flex; flex-wrap:wrap; justify-content:center; gap:8px 22px; margin-bottom:14px; }
+
+.rodape a{ color:var(--ciano); text-decoration:none; }
+
+.rodape a:hover{ text-decoration:underline; }
+
+/* ---------- WhatsApp flutuante ---------- */
+
+.whats-flutuante{
+    position:fixed; right:20px; bottom:20px; z-index:60;
+    width:60px; height:60px; border-radius:50%; background:var(--ciano); color:var(--branco);
+    display:grid; place-items:center; border:3px solid var(--branco);
+    box-shadow:0 10px 28px rgba(15,31,71,.35); transition:transform .2s;
+}
+
+.whats-flutuante:hover{ transform:scale(1.08); }
+
+.whats-flutuante svg{ width:32px; height:32px; }
+
+/* ---------- Celular e tablet ---------- */
+
+@media (max-width:900px){
+    .grade-contato{ grid-template-columns:1fr 1fr; }
+}
+
+@media (max-width:760px){
+    .btn-menu{ display:grid; place-items:center; }
+    .menu{
+        display:none; position:absolute; top:100%; left:0; right:0;
+        flex-direction:column; gap:0; background:var(--branco);
+        border-bottom:3px solid var(--ciano); box-shadow:0 12px 24px rgba(15,31,71,.12);
+    }
+    .menu.aberto{ display:flex; }
+    .menu li{ width:100%; text-align:center; border-top:1px solid #EEF2F8; }
+    .menu a{ display:block; padding:14px; }
+    .menu .menu-destaque{ border:0; border-radius:0; font-size:16px; }
+}
+
+@media (max-width:560px){
+    .secao{ padding:64px 0; }
+    .topo .logo img{ height:28px; }
+    .grade-contato{ grid-template-columns:1fr; }
+}

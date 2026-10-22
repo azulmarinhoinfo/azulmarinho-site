@@ -3,572 +3,405 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Azul Marinho | Suporte em Informática</title>
-<meta name="description" content="Azul Marinho Suporte em Informática: manutenção de computadores e notebooks, formatação, redes e Wi-Fi, atendimento remoto e suporte para empresas. Fale pelo WhatsApp (31) 98883-6857.">
-<meta property="og:title" content="Azul Marinho | Suporte em Informática">
-<meta property="og:description" content="Manutenção, formatação, redes e suporte para casa e empresa. Fale pelo WhatsApp.">
+<title>Azul Marinho | Informática, Eventos e Sports</title>
+<meta name="description" content="Azul Marinho: suporte em informática, eventos todo mês e a loja Azul Marinho Sports, com camisas de futebol e Fórmula 1. Fale pelo WhatsApp (31) 98883-6857.">
+<meta property="og:title" content="Azul Marinho">
+<meta property="og:description" content="Informática, eventos e a loja Azul Marinho Sports.">
 <meta property="og:image" content="https://azulmarinhoinfo.com.br/logo.png">
 <meta property="og:url" content="https://azulmarinhoinfo.com.br/">
 <meta name="theme-color" content="#0F1F47">
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Ubuntu:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/site.css">
 
 <style>
-:root{
-    --marinho:#0F1F47;
-    --marinho-escuro:#08122E;
-    --marinho-medio:#24376B;
-    --ciano:#00ADEF;
-    --ciano-claro:#E6F7FE;
-    --texto:#3D4660;
-    --texto-claro:#6B7489;
-    --fundo-suave:#F4F7FC;
-    --branco:#FFFFFF;
-    --raio:16px;
+/* ---------- Vitrine rotativa (estilo Netflix) ---------- */
+.vitrine{
+    position:relative; height:min(78vh, 680px); min-height:560px; overflow:hidden;
+    background:var(--marinho-escuro); color:#DCE6F7;
+}
+.slide{
+    position:absolute; inset:0; opacity:0; visibility:hidden;
+    transition:opacity .9s ease, visibility .9s;
+}
+.slide.ativo{ opacity:1; visibility:visible; }
+.slide .fundo{
+    position:absolute; inset:-4%; background-size:cover; background-position:center;
+    transform:scale(1); transition:transform 8s linear;
+}
+.slide.ativo .fundo{ transform:scale(1.06); }
+.slide .sombra{
+    position:absolute; inset:0;
+    background:linear-gradient(90deg, rgba(8,18,46,.9) 0%, rgba(8,18,46,.55) 45%, rgba(8,18,46,0) 80%),
+               linear-gradient(0deg, rgba(8,18,46,.9) 0%, transparent 30%);
+}
+.slide .wrap{
+    position:relative; height:100%; display:grid; grid-template-columns:1.05fr .95fr;
+    align-items:center; gap:30px; padding-bottom:60px;
+}
+.slide .texto{ max-width:560px; }
+.slide .tag{
+    display:inline-flex; align-items:center; gap:8px; color:var(--ciano);
+    font-family:"Montserrat",sans-serif; font-weight:800; font-size:14px; letter-spacing:3px; text-transform:uppercase;
+    margin-bottom:14px;
+}
+.slide .tag::before{ content:""; width:28px; height:3px; background:var(--ciano); border-radius:3px; }
+.slide h1, .slide h2{ color:var(--branco); font-size:clamp(32px, 5vw, 56px); font-weight:800; margin-bottom:16px; }
+.slide h2 span, .slide h1 span{ color:var(--ciano); }
+.slide p{ font-size:19px; margin-bottom:22px; }
+.slide .meta{ display:flex; flex-wrap:wrap; gap:8px 20px; font-size:17px; margin-bottom:14px; }
+.slide .contagem{ font-family:"Montserrat",sans-serif; font-weight:800; color:var(--ciano); font-size:20px; margin-bottom:24px; display:block; }
+.slide .botoes{ display:flex; flex-wrap:wrap; gap:12px; }
+.chips{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:26px; list-style:none; }
+.chips li{
+    background:rgba(0,173,239,.12); border:1px solid rgba(0,173,239,.4); color:#E6F7FE;
+    border-radius:999px; padding:6px 14px; font-size:14px;
 }
 
-*{ margin:0; padding:0; box-sizing:border-box; }
-
-html{ scroll-behavior:smooth; }
-
-body{
-    font-family:"Ubuntu","Segoe UI",Arial,sans-serif;
-    color:var(--texto);
-    background:var(--branco);
-    line-height:1.6;
+/* Arte do lado direito */
+.arte-evento{
+    justify-self:center; width:min(360px, 100%); aspect-ratio:1; border-radius:32px;
+    display:grid; place-items:center; font-size:150px; background-size:cover; background-position:center;
+    background-color:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14);
+    box-shadow:0 30px 80px rgba(0,0,0,.45), 0 0 0 10px rgba(0,173,239,.08);
 }
-
-img{ max-width:100%; display:block; }
-
-a{ color:inherit; }
-
-.wrap{ width:min(1120px, 100% - 32px); margin-inline:auto; }
-
-h1,h2,h3{
-    font-family:"Montserrat","Segoe UI",Arial,sans-serif;
-    color:var(--marinho);
-    line-height:1.2;
+.arte-camisas{ justify-self:center; display:flex; align-items:center; justify-content:center; width:100%; }
+.camisa-poster{
+    width:min(200px, 30%); background:var(--branco); border-radius:18px; overflow:hidden; text-decoration:none;
+    box-shadow:0 26px 60px rgba(0,0,0,.5); transition:transform .3s; flex-shrink:0;
 }
-
-/* ---------- Topo ---------- */
-
-.topo{
-    position:sticky; top:0; z-index:50;
-    background:rgba(255,255,255,.96);
-    backdrop-filter:blur(8px);
-    border-bottom:3px solid var(--ciano);
+.camisa-poster:nth-child(1){ transform:rotate(-7deg) translateY(16px); margin-right:-26px; }
+.camisa-poster:nth-child(2){ transform:scale(1.12); z-index:2; position:relative; }
+.camisa-poster:nth-child(3){ transform:rotate(7deg) translateY(16px); margin-left:-26px; }
+.camisa-poster:hover{ transform:scale(1.16) rotate(0); z-index:3; position:relative; }
+.camisa-poster img{ width:100%; aspect-ratio:1; object-fit:cover; background:#EEF2F8; }
+.camisa-poster span{
+    display:block; padding:9px 10px 11px; font-size:12px; font-weight:500; color:var(--marinho);
+    text-align:center; line-height:1.3;
 }
+.arte-power{ justify-self:center; width:min(340px, 100%); aspect-ratio:1; display:grid; place-items:center; border-radius:50%;
+    background:radial-gradient(circle, rgba(0,173,239,.22), transparent 70%); }
+.arte-power svg{ width:62%; height:62%; filter:drop-shadow(0 0 34px rgba(0,173,239,.6)); }
 
-.topo .wrap{
-    display:flex; align-items:center; justify-content:space-between;
-    gap:20px; padding:14px 0;
+/* Controles */
+.seta{
+    position:absolute; top:50%; transform:translateY(-50%); z-index:5; width:50px; height:50px; border-radius:50%;
+    border:1px solid rgba(255,255,255,.25); background:rgba(8,18,46,.45); color:#fff; font-size:28px; cursor:pointer;
+    display:grid; place-items:center; transition:background .2s, border-color .2s; line-height:1;
 }
-
-.topo .logo img{ height:38px; width:auto; }
-
-.menu{ display:flex; align-items:center; gap:26px; list-style:none; }
-
-.menu a{
-    text-decoration:none; font-weight:500; color:var(--marinho);
-    font-size:16px; transition:color .2s;
+.seta:hover{ background:var(--ciano); border-color:var(--ciano); }
+.seta-ant{ left:14px; } .seta-prox{ right:14px; }
+.indicadores{
+    position:absolute; left:0; right:0; bottom:26px; z-index:5;
+    display:flex; justify-content:center; gap:14px;
 }
-
-.menu a:hover{ color:var(--ciano); }
-
-.menu .menu-sports{
-    border:2px solid var(--marinho); border-radius:999px;
-    padding:6px 14px; font-size:14px;
+.indicadores button{
+    background:none; border:0; cursor:pointer; color:rgba(255,255,255,.65); font-family:"Montserrat",sans-serif;
+    font-size:13px; font-weight:600; text-align:left; width:min(180px, 28vw); padding:0;
 }
+.indicadores button.ativo{ color:var(--branco); }
+.indicadores .barra{ display:block; height:4px; border-radius:4px; background:rgba(255,255,255,.25); overflow:hidden; margin-bottom:8px; }
+.indicadores .barra i{ display:block; height:100%; width:0; background:var(--ciano); }
+.indicadores button.ativo .barra i{ animation:enche var(--tempo, 7s) linear forwards; }
+.vitrine.pausada .indicadores button.ativo .barra i{ animation-play-state:paused; }
+@keyframes enche{ to{ width:100%; } }
 
-.menu .menu-sports:hover{ border-color:var(--ciano); }
-
-.btn-menu{
-    display:none; background:none; border:0; cursor:pointer;
-    width:42px; height:42px; color:var(--marinho);
+/* ---------- Caminhos ---------- */
+.caminhos{ display:grid; grid-template-columns:repeat(3, 1fr); gap:24px; }
+.caminho{
+    position:relative; overflow:hidden; border-radius:22px; padding:34px 30px 30px; text-decoration:none;
+    background:linear-gradient(160deg, var(--marinho), var(--marinho-medio)); color:#DCE6F7;
+    min-height:280px; display:flex; flex-direction:column; transition:transform .25s, box-shadow .25s;
 }
-
-.btn-menu svg{ width:28px; height:28px; }
-
-/* ---------- Botões ---------- */
-
-.btn{
-    display:inline-flex; align-items:center; justify-content:center; gap:10px;
-    text-decoration:none; font-family:"Montserrat",sans-serif; font-weight:700;
-    font-size:17px; padding:15px 30px; border-radius:12px;
-    transition:transform .2s, background .2s, box-shadow .2s;
+.caminho:hover{ transform:translateY(-6px); box-shadow:0 24px 50px rgba(15,31,71,.3); }
+.caminho::after{
+    content:""; position:absolute; right:-60px; top:-60px; width:200px; height:200px; border-radius:50%;
+    background:radial-gradient(circle, rgba(0,173,239,.35), transparent 70%);
 }
-
-.btn:hover{ transform:translateY(-2px); }
-
-.btn-ciano{ background:var(--ciano); color:var(--branco); box-shadow:0 8px 24px rgba(0,173,239,.35); }
-.btn-ciano:hover{ background:#0098D3; }
-
-.btn-contorno{ border:2px solid rgba(255,255,255,.7); color:var(--branco); }
-.btn-contorno:hover{ border-color:var(--ciano); color:var(--ciano); }
-
-.btn svg{ width:22px; height:22px; flex-shrink:0; }
-
-/* ---------- Hero ---------- */
-
-.hero{
-    background:
-        radial-gradient(circle at 85% 20%, rgba(0,173,239,.28), transparent 45%),
-        linear-gradient(135deg, var(--marinho-escuro), var(--marinho) 60%, var(--marinho-medio));
-    color:#DCE6F7;
-    padding:90px 0 100px;
-    overflow:hidden;
+.caminho .ic{
+    width:62px; height:62px; border-radius:16px; background:var(--ciano); color:var(--branco);
+    display:grid; place-items:center; font-size:30px; margin-bottom:22px; position:relative; z-index:1;
 }
+.caminho .ic svg{ width:32px; height:32px; }
+.caminho h3{ color:var(--branco); font-size:24px; margin-bottom:10px; }
+.caminho p{ font-size:16px; flex:1; }
+.caminho .ir{ margin-top:22px; color:var(--ciano); font-family:"Montserrat",sans-serif; font-weight:700; }
+.caminho:hover .ir{ text-decoration:underline; }
 
-.hero .wrap{ display:grid; grid-template-columns:1.2fr .8fr; gap:40px; align-items:center; }
-
-.selo{
-    display:inline-block; background:rgba(0,173,239,.15); color:var(--ciano);
-    border:1px solid rgba(0,173,239,.4); border-radius:999px;
-    padding:6px 16px; font-size:14px; font-weight:500; margin-bottom:22px;
+/* ---------- Fileira de camisas ---------- */
+.fileira-topo{ display:flex; align-items:baseline; justify-content:space-between; gap:16px; margin-bottom:22px; }
+.fileira-topo h2{ font-size:clamp(24px, 3vw, 30px); }
+.fileira-topo a{ color:var(--ciano); text-decoration:none; font-weight:500; white-space:nowrap; }
+.fileira{
+    display:grid; grid-auto-flow:column; grid-auto-columns:clamp(150px, 18vw, 210px); gap:16px;
+    overflow-x:auto; scroll-snap-type:x mandatory; padding-bottom:12px; scrollbar-width:thin;
 }
-
-.hero h1{ color:var(--branco); font-size:clamp(32px, 5vw, 52px); font-weight:800; margin-bottom:20px; }
-
-.hero h1 span{ color:var(--ciano); }
-
-.hero p{ font-size:19px; max-width:560px; margin-bottom:34px; }
-
-.hero-botoes{ display:flex; flex-wrap:wrap; gap:14px; }
-
-.hero-icone{
-    justify-self:center; width:min(320px, 70vw); aspect-ratio:1;
-    border-radius:50%; display:grid; place-items:center;
-    background:radial-gradient(circle, rgba(0,173,239,.18), transparent 70%);
-}
-
-.hero-icone svg{ width:62%; height:62%; filter:drop-shadow(0 0 30px rgba(0,173,239,.5)); }
-
-/* ---------- Faixa de destaques ---------- */
-
-.destaques{ background:var(--ciano); color:var(--branco); }
-
-.destaques ul{
-    list-style:none; display:grid; grid-template-columns:repeat(4, 1fr);
-    gap:16px; padding:22px 0; text-align:center;
-    font-family:"Montserrat",sans-serif; font-weight:600; font-size:15px;
-}
-
-/* ---------- Seções ---------- */
-
-section{ padding:90px 0; }
-
-.titulo-secao{ text-align:center; max-width:680px; margin:0 auto 50px; }
-
-.titulo-secao .sobretitulo{
-    color:var(--ciano); font-weight:500; text-transform:uppercase;
-    letter-spacing:2px; font-size:14px;
-}
-
-.titulo-secao h2{ font-size:clamp(28px, 4vw, 38px); margin:8px 0 14px; }
-
-.titulo-secao p{ color:var(--texto-claro); font-size:18px; }
-
-/* Serviços */
-
-.servicos{ background:var(--fundo-suave); }
-
-.grade-servicos{ display:grid; grid-template-columns:repeat(3, 1fr); gap:22px; }
-
-.card{
-    background:var(--branco); border-radius:var(--raio); padding:30px 26px;
-    border:1px solid #E3E9F4; transition:transform .2s, box-shadow .2s, border-color .2s;
-}
-
-.card:hover{ transform:translateY(-4px); box-shadow:0 14px 34px rgba(15,31,71,.10); border-color:var(--ciano); }
-
-.card .icone{
-    width:56px; height:56px; border-radius:14px; background:var(--ciano-claro);
-    color:var(--ciano); display:grid; place-items:center; margin-bottom:18px;
-}
-
-.card .icone svg{ width:30px; height:30px; }
-
-.card h3{ font-size:20px; margin-bottom:8px; }
-
-.card p{ color:var(--texto-claro); font-size:16px; }
-
-/* Como atendemos */
-
-.grade-atendimento{ display:grid; grid-template-columns:repeat(3, 1fr); gap:22px; }
-
-.atendimento-item{
-    text-align:center; padding:34px 24px; border-radius:var(--raio);
-    background:linear-gradient(160deg, var(--marinho), var(--marinho-medio));
-    color:#DCE6F7;
-}
-
-.atendimento-item .numero{
-    width:52px; height:52px; border-radius:50%; margin:0 auto 18px;
-    display:grid; place-items:center; background:var(--ciano); color:var(--branco);
-    font-family:"Montserrat",sans-serif; font-weight:800; font-size:22px;
-}
-
-.atendimento-item h3{ color:var(--branco); font-size:20px; margin-bottom:10px; }
-
-/* Sobre */
-
-.sobre{ background:var(--fundo-suave); }
-
-.sobre .wrap{ display:grid; grid-template-columns:1fr 1fr; gap:50px; align-items:center; }
-
-.sobre .titulo-secao{ text-align:left; margin:0 0 20px; }
-
-.sobre p{ font-size:17px; margin-bottom:16px; }
-
-.lista-check{ list-style:none; display:grid; gap:14px; }
-
-.lista-check li{
-    display:flex; gap:12px; align-items:flex-start; background:var(--branco);
-    border-radius:12px; padding:16px 18px; border-left:4px solid var(--ciano);
-    font-size:16px;
-}
-
-.lista-check svg{ width:22px; height:22px; color:var(--ciano); flex-shrink:0; margin-top:2px; }
-
-/* Sports */
-
-.sports{
-    background:
-        radial-gradient(circle at 10% 80%, rgba(0,173,239,.30), transparent 45%),
-        var(--marinho-escuro);
-    color:#DCE6F7; text-align:center;
-}
-
-.sports h2{ color:var(--branco); font-size:clamp(26px, 4vw, 36px); margin-bottom:14px; }
-
-.sports h2 span{ color:var(--ciano); }
-
-.sports p{ max-width:620px; margin:0 auto 30px; font-size:18px; }
-
-/* Contato */
-
-.grade-contato{ display:grid; grid-template-columns:repeat(4, 1fr); gap:20px; }
-
-.contato-card{
-    display:flex; flex-direction:column; align-items:center; text-align:center; gap:10px;
-    padding:30px 18px; border-radius:var(--raio); border:1px solid #E3E9F4;
+.fileira a{
+    scroll-snap-align:start; background:var(--branco); border:1px solid var(--borda); border-radius:16px; overflow:hidden;
     text-decoration:none; transition:transform .2s, border-color .2s, box-shadow .2s;
 }
-
-.contato-card:hover{ transform:translateY(-4px); border-color:var(--ciano); box-shadow:0 14px 34px rgba(15,31,71,.10); }
-
-.contato-card .icone{
-    width:58px; height:58px; border-radius:50%; background:var(--marinho);
-    color:var(--branco); display:grid; place-items:center;
-}
-
-.contato-card .icone svg{ width:28px; height:28px; }
-
-.contato-card strong{ font-family:"Montserrat",sans-serif; color:var(--marinho); font-size:17px; }
-
-.contato-card span{ color:var(--texto-claro); font-size:15px; word-break:break-word; }
-
-.contato-card.whats .icone{ background:var(--ciano); }
-
-/* ---------- Rodapé ---------- */
-
-.rodape{
-    background:var(--marinho); color:#AFC0DD; border-top:4px solid var(--ciano);
-    padding:40px 0 30px; text-align:center; font-size:15px;
-}
-
-.rodape .logo-rodape{
-    display:inline-block; background:var(--branco); border-radius:12px;
-    padding:12px 18px; margin-bottom:18px;
-}
-
-.rodape .logo-rodape img{ height:30px; width:auto; }
-
-.rodape a{ color:var(--ciano); text-decoration:none; }
-
-/* ---------- WhatsApp flutuante ---------- */
-
-.whats-flutuante{
-    position:fixed; right:20px; bottom:20px; z-index:60;
-    width:60px; height:60px; border-radius:50%; background:var(--ciano); color:var(--branco);
-    display:grid; place-items:center; border:3px solid var(--branco); box-shadow:0 10px 28px rgba(15,31,71,.35);
-    transition:transform .2s;
-}
-
-.whats-flutuante:hover{ transform:scale(1.08); }
-
-.whats-flutuante svg{ width:32px; height:32px; }
-
-/* ---------- Celular e tablet ---------- */
+.fileira a:hover{ transform:translateY(-4px); border-color:var(--ciano); box-shadow:0 14px 30px rgba(15,31,71,.12); }
+.fileira img{ width:100%; aspect-ratio:1; object-fit:cover; background:#EEF2F8; }
+.fileira span{ display:block; padding:10px 12px 14px; font-size:14px; color:var(--marinho); font-weight:500; line-height:1.35; }
 
 @media (max-width:900px){
-    .hero .wrap, .sobre .wrap{ grid-template-columns:1fr; }
-    .hero-icone{ display:none; }
-    .grade-servicos, .grade-atendimento{ grid-template-columns:1fr 1fr; }
-    .grade-contato{ grid-template-columns:1fr 1fr; }
-    .destaques ul{ grid-template-columns:1fr 1fr; }
+    .vitrine{ height:auto; min-height:640px; }
+    .slide .wrap{ grid-template-columns:1fr; align-content:center; gap:22px; padding:40px 0 90px; }
+    .slide .sombra{ background:linear-gradient(0deg, rgba(8,18,46,.9) 0%, rgba(8,18,46,.4) 60%, rgba(8,18,46,.2) 100%); }
+    .arte-evento, .arte-power{ display:none; }
+    .arte-camisas{ order:2; }
+    .camisa-poster{ width:min(150px, 31%); }
+    .caminhos{ grid-template-columns:1fr; }
+    .caminho{ min-height:0; }
+    .seta{ display:none; }
 }
-
-@media (max-width:760px){
-    .btn-menu{ display:grid; place-items:center; }
-    .menu{
-        display:none; position:absolute; top:100%; left:0; right:0;
-        flex-direction:column; gap:0; background:var(--branco);
-        border-bottom:3px solid var(--ciano); box-shadow:0 12px 24px rgba(15,31,71,.12);
-    }
-    .menu.aberto{ display:flex; }
-    .menu li{ width:100%; text-align:center; border-top:1px solid #EEF2F8; }
-    .menu a{ display:block; padding:14px; }
-    .menu .menu-sports{ border:0; border-radius:0; font-size:16px; }
-}
-
 @media (max-width:560px){
-    section{ padding:64px 0; }
-    .hero{ padding:60px 0 70px; }
-    .hero p{ font-size:17px; }
-    .hero-botoes .btn{ width:100%; }
-    .topo .logo img{ height:28px; }
-    .grade-servicos, .grade-atendimento, .grade-contato{ grid-template-columns:1fr; }
-    .destaques ul{ font-size:14px; }
+    .vitrine{ min-height:680px; }
+    .slide p{ font-size:17px; }
+    .slide .botoes .btn{ flex:1 1 auto; }
+    .indicadores{ gap:8px; bottom:20px; }
+    .indicadores button{ font-size:11px; width:30%; }
+}
+@media (prefers-reduced-motion: reduce){
+    .slide, .slide .fundo{ transition:none; }
+    .slide.ativo .fundo{ transform:none; }
 }
 </style>
 </head>
 
-<body>
+<body data-pagina="inicio">
 
-<!-- ===================== TOPO ===================== -->
-<header class="topo">
-    <div class="wrap">
-        <a href="#inicio" class="logo"><img src="logo.png" alt="Azul Marinho Suporte em Informática"></a>
+<div id="topo"></div>
 
-        <button class="btn-menu" aria-label="Abrir menu" aria-expanded="false" aria-controls="menu">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-        </button>
+<!-- ===================== VITRINE ROTATIVA ===================== -->
+<section class="vitrine" id="vitrine" aria-roledescription="carrossel" aria-label="Destaques da Azul Marinho">
 
-        <ul class="menu" id="menu">
-            <li><a href="#servicos">Serviços</a></li>
-            <li><a href="#atendimento">Como atendemos</a></li>
-            <li><a href="#sobre">Sobre</a></li>
-            <li><a href="#contato">Contato</a></li>
-            <li><a href="https://sports.azulmarinhoinfo.com.br" class="menu-sports" target="_blank" rel="noopener">⚽ Sports</a></li>
-        </ul>
-    </div>
-</header>
+    <!-- 1. Próximo evento (preenchido com os dados de eventos/eventos.js) -->
+    <article class="slide" data-nome="Próximo evento" id="slide-evento">
+        <div class="fundo" style="background:radial-gradient(circle at 75% 40%, rgba(0,173,239,.35), transparent 50%), linear-gradient(135deg, #08122E, #0F1F47 55%, #24376B)"></div>
+        <div class="sombra"></div>
+        <div class="wrap" id="conteudo-evento"></div>
+    </article>
 
-<!-- ===================== INÍCIO ===================== -->
-<section class="hero" id="inicio">
-    <div class="wrap">
-        <div>
-            <span class="selo">Suporte em informática para casa e empresa</span>
-            <h1>Seu computador funcionando <span>do jeito certo.</span></h1>
-            <p>Manutenção, formatação, redes e suporte técnico com atendimento rápido, honesto e sem complicação. Fale com a gente pelo WhatsApp e receba um orçamento sem compromisso.</p>
-            <div class="hero-botoes">
-                <a class="btn btn-ciano" href="https://wa.me/5531988836857?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20gostaria%20de%20um%20or%C3%A7amento." target="_blank" rel="noopener">
-                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2zm5.82 14.1c-.25.69-1.44 1.32-1.99 1.37-.51.05-.99.24-3.34-.7-2.82-1.11-4.6-4-4.74-4.18-.14-.19-1.13-1.5-1.13-2.87s.71-2.03.97-2.31c.25-.28.55-.35.73-.35l.53.01c.17.01.4-.06.62.48.25.6.83 2.06.9 2.21.07.15.12.32.02.51-.09.19-.14.31-.28.48-.14.17-.3.37-.42.5-.14.14-.29.29-.12.57.17.28.73 1.2 1.57 1.95 1.08.96 1.99 1.26 2.27 1.4.28.14.45.12.61-.07.17-.19.71-.83.9-1.12.19-.28.38-.23.63-.14.26.09 1.63.77 1.91.91.28.14.47.21.54.33.07.12.07.69-.18 1.38z"/></svg>
-                    Pedir orçamento
-                </a>
-                <a class="btn btn-contorno" href="#servicos">Ver serviços</a>
+    <!-- 2. Azul Marinho Sports (camisas sorteadas a cada volta) -->
+    <article class="slide" data-nome="Azul Marinho Sports" id="slide-sports">
+        <div class="fundo" style="background:radial-gradient(circle at 70% 50%, rgba(0,173,239,.4), transparent 55%), linear-gradient(135deg, #08122E, #0F1F47)"></div>
+        <div class="sombra"></div>
+        <div class="wrap">
+            <div class="texto">
+                <span class="tag">Azul Marinho Sports</span>
+                <h2>Vista o <span>manto</span> do seu time</h2>
+                <p>Lançamentos 2026/27, retrôs, versão jogador, feminina, infantil e Fórmula 1. Escolha e peça pelo WhatsApp.</p>
+                <div class="botoes">
+                    <a class="btn btn-ciano" href="https://sports.azulmarinhoinfo.com.br" target="_blank" rel="noopener">⚽ Visitar a loja</a>
+                </div>
+            </div>
+            <div class="arte-camisas" id="arte-camisas"></div>
+        </div>
+    </article>
+
+    <!-- 3. Informática -->
+    <article class="slide" data-nome="Informática" id="slide-info">
+        <div class="fundo" style="background:radial-gradient(circle at 78% 45%, rgba(0,173,239,.32), transparent 50%), linear-gradient(135deg, #08122E, #0F1F47 60%, #24376B)"></div>
+        <div class="sombra"></div>
+        <div class="wrap">
+            <div class="texto">
+                <span class="tag">Azul Marinho Informática</span>
+                <h2>Suporte em informática <span>sem complicação</span></h2>
+                <ul class="chips" id="chips-servicos"></ul>
+                <div class="botoes">
+                    <a class="btn btn-ciano" href="/informatica/">Ver serviços</a>
+                    <a class="btn btn-contorno js-whats" data-texto="Olá! Vim pelo site e gostaria de um orçamento de informática." href="https://wa.me/5531988836857" target="_blank" rel="noopener">Pedir orçamento</a>
+                </div>
+            </div>
+            <div class="arte-power" aria-hidden="true">
+                <svg viewBox="0 0 100 100" fill="none" stroke="#00ADEF" stroke-width="9" stroke-linecap="round"><path d="M32 26a34 34 0 1 0 36 0"/><path d="M50 12v34"/></svg>
             </div>
         </div>
+    </article>
 
-        <div class="hero-icone" aria-hidden="true">
-            <svg viewBox="0 0 100 100" fill="none" stroke="#00ADEF" stroke-width="9" stroke-linecap="round">
-                <path d="M32 26a34 34 0 1 0 36 0"/>
-                <path d="M50 12v34"/>
-            </svg>
-        </div>
-    </div>
+    <button class="seta seta-ant" aria-label="Destaque anterior">‹</button>
+    <button class="seta seta-prox" aria-label="Próximo destaque">›</button>
+    <div class="indicadores" id="indicadores"></div>
 </section>
 
-<!-- ===================== DESTAQUES ===================== -->
-<div class="destaques">
-    <ul class="wrap">
-        <li>✔ Orçamento sem compromisso</li>
-        <li>✔ Atendimento em domicílio</li>
-        <li>✔ Suporte remoto</li>
-        <li>✔ Atendimento para empresas</li>
-    </ul>
-</div>
-
-<!-- ===================== SERVIÇOS ===================== -->
-<section class="servicos" id="servicos">
+<!-- ===================== CAMINHOS ===================== -->
+<section class="secao">
     <div class="wrap">
         <div class="titulo-secao">
-            <span class="sobretitulo">Serviços</span>
-            <h2>Como podemos ajudar</h2>
-            <p>Cuidamos da parte técnica para você não perder tempo com problemas no computador.</p>
+            <span class="sobretitulo">Azul Marinho</span>
+            <h2>Para onde você quer ir?</h2>
+            <p>Escolha um dos nossos espaços.</p>
         </div>
-
-        <div class="grade-servicos">
-            <div class="card">
-                <div class="icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18v3h3l6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg></div>
-                <h3>Manutenção de computadores</h3>
-                <p>Conserto, limpeza interna, troca de peças e upgrades em PCs e notebooks.</p>
-            </div>
-
-            <div class="card">
-                <div class="icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg></div>
-                <h3>Formatação e instalação</h3>
-                <p>Formatação com backup dos seus arquivos, Windows, Office e programas do dia a dia.</p>
-            </div>
-
-            <div class="card">
-                <div class="icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5a10 10 0 0 1 14 0"/><path d="M8.5 16a5 5 0 0 1 7 0"/><path d="M2 9a15 15 0 0 1 20 0"/><circle cx="12" cy="19.5" r="1"/></svg></div>
-                <h3>Redes e Wi-Fi</h3>
-                <p>Instalação e configuração de roteadores, cabeamento e melhora do sinal de internet.</p>
-            </div>
-
-            <div class="card">
-                <div class="icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg></div>
-                <h3>Remoção de vírus</h3>
-                <p>Limpeza de vírus e programas indesejados, com antivírus e proteção configurados.</p>
-            </div>
-
-            <div class="card">
-                <div class="icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
-                <h3>Suporte remoto</h3>
-                <p>Resolvemos muitos problemas pela internet, sem você precisar sair de casa.</p>
-            </div>
-
-            <div class="card">
-                <div class="icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></svg></div>
-                <h3>Suporte para empresas</h3>
-                <p>Manutenção preventiva e atendimento para escritórios e pequenos negócios.</p>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- ===================== COMO ATENDEMOS ===================== -->
-<section id="atendimento">
-    <div class="wrap">
-        <div class="titulo-secao">
-            <span class="sobretitulo">Como atendemos</span>
-            <h2>Simples do começo ao fim</h2>
-            <p>Você chama, a gente resolve, e você sabe o valor antes de qualquer serviço.</p>
-        </div>
-
-        <div class="grade-atendimento">
-            <div class="atendimento-item">
-                <div class="numero">1</div>
-                <h3>Fale com a gente</h3>
-                <p>Mande uma mensagem no WhatsApp contando o que está acontecendo.</p>
-            </div>
-            <div class="atendimento-item">
-                <div class="numero">2</div>
-                <h3>Receba o orçamento</h3>
-                <p>Avaliamos o problema e passamos o valor e o prazo, sem compromisso.</p>
-            </div>
-            <div class="atendimento-item">
-                <div class="numero">3</div>
-                <h3>Problema resolvido</h3>
-                <p>Atendimento remoto, em domicílio ou na sua empresa, como for melhor para você.</p>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- ===================== SOBRE ===================== -->
-<section class="sobre" id="sobre">
-    <div class="wrap">
-        <div>
-            <div class="titulo-secao">
-                <span class="sobretitulo">Sobre nós</span>
-                <h2>Azul Marinho Suporte em Informática</h2>
-            </div>
-            <p>A Azul Marinho nasceu para oferecer um suporte em informática próximo e de confiança. Explicamos tudo de forma clara, sem termos complicados, e só fazemos o serviço depois que você aprova o orçamento.</p>
-            <p>Atendemos residências, profissionais autônomos e pequenas empresas.</p>
-        </div>
-
-        <ul class="lista-check">
-            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Atendimento personalizado e direto com o técnico</li>
-            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Orçamento claro antes de começar</li>
-            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Cuidado com seus arquivos e sua privacidade</li>
-            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Suporte também depois do serviço</li>
-        </ul>
-    </div>
-</section>
-
-<!-- ===================== AZUL MARINHO SPORTS ===================== -->
-<section class="sports">
-    <div class="wrap">
-        <h2>Conheça também a <span>Azul Marinho Sports</span></h2>
-        <p>Nossa loja de camisas de futebol: clubes brasileiros, seleções e Fórmula 1, com pedido direto pelo WhatsApp.</p>
-        <a class="btn btn-ciano" href="https://sports.azulmarinhoinfo.com.br" target="_blank" rel="noopener">⚽ Visitar a loja</a>
-    </div>
-</section>
-
-<!-- ===================== CONTATO ===================== -->
-<section id="contato">
-    <div class="wrap">
-        <div class="titulo-secao">
-            <span class="sobretitulo">Contato</span>
-            <h2>Fale com a Azul Marinho</h2>
-            <p>Escolha o jeito mais fácil para você. Respondemos o mais rápido possível.</p>
-        </div>
-
-        <div class="grade-contato">
-            <a class="contato-card whats" href="https://wa.me/5531988836857?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20gostaria%20de%20um%20or%C3%A7amento." target="_blank" rel="noopener">
-                <div class="icone"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2zm5.82 14.1c-.25.69-1.44 1.32-1.99 1.37-.51.05-.99.24-3.34-.7-2.82-1.11-4.6-4-4.74-4.18-.14-.19-1.13-1.5-1.13-2.87s.71-2.03.97-2.31c.25-.28.55-.35.73-.35l.53.01c.17.01.4-.06.62.48.25.6.83 2.06.9 2.21.07.15.12.32.02.51-.09.19-.14.31-.28.48-.14.17-.3.37-.42.5-.14.14-.29.29-.12.57.17.28.73 1.2 1.57 1.95 1.08.96 1.99 1.26 2.27 1.4.28.14.45.12.61-.07.17-.19.71-.83.9-1.12.19-.28.38-.23.63-.14.26.09 1.63.77 1.91.91.28.14.47.21.54.33.07.12.07.69-.18 1.38z"/></svg></div>
-                <strong>WhatsApp</strong>
-                <span>(31) 98883-6857</span>
+        <div class="caminhos">
+            <a class="caminho" href="/informatica/">
+                <span class="ic"><svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round"><path d="M32 26a34 34 0 1 0 36 0"/><path d="M50 12v34"/></svg></span>
+                <h3>Informática</h3>
+                <p>Formatação, manutenção, redes, câmeras, peças e suporte remoto para casa e empresa.</p>
+                <span class="ir">Ver serviços →</span>
             </a>
-
-            <a class="contato-card" href="tel:+5531988836857">
-                <div class="icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg></div>
-                <strong>Telefone</strong>
-                <span>(31) 98883-6857</span>
+            <a class="caminho" href="/eventos/">
+                <span class="ic">🎉</span>
+                <h3>Eventos</h3>
+                <p>Todo mês um encontro novo. Veja o próximo evento, a playlist, quem vai e as fotos.</p>
+                <span class="ir">Ver eventos →</span>
             </a>
-
-            <a class="contato-card" href="mailto:azulmarinhoinfo@gmail.com">
-                <div class="icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg></div>
-                <strong>E-mail</strong>
-                <span>azulmarinhoinfo@gmail.com</span>
-            </a>
-
-            <a class="contato-card" href="https://www.facebook.com/azulmarinhoinfo" target="_blank" rel="noopener">
-                <div class="icone"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 8h3V4h-3c-2.8 0-4.5 1.8-4.5 4.6V11H7v4h2.5v7h4v-7h3l.5-4h-3.5V8.8c0-.5.3-.8.5-.8z"/></svg></div>
-                <strong>Facebook</strong>
-                <span>/azulmarinhoinfo</span>
+            <a class="caminho" href="https://sports.azulmarinhoinfo.com.br" target="_blank" rel="noopener">
+                <span class="ic">⚽</span>
+                <h3>Azul Marinho Sports</h3>
+                <p>Camisas de clubes brasileiros, retrôs e Fórmula 1, com pedido direto pelo WhatsApp.</p>
+                <span class="ir">Visitar a loja →</span>
             </a>
         </div>
     </div>
 </section>
 
-<!-- ===================== RODAPÉ ===================== -->
-<footer class="rodape">
+<!-- ===================== FILEIRA DE CAMISAS ===================== -->
+<section class="secao secao-suave" style="padding-top:70px;padding-bottom:70px">
     <div class="wrap">
-        <div class="logo-rodape"><img src="logo.png" alt="Azul Marinho Suporte em Informática"></div>
-        <p>Azul Marinho • Suporte em Informática</p>
-        <p>Conheça também a <a href="https://sports.azulmarinhoinfo.com.br" target="_blank" rel="noopener">Azul Marinho Sports</a></p>
-        <p>© <span id="ano">2026</span> Azul Marinho. Todos os direitos reservados.</p>
+        <div class="fileira-topo">
+            <h2>Em alta na Azul Marinho Sports</h2>
+            <a href="https://sports.azulmarinhoinfo.com.br" target="_blank" rel="noopener">Ver todas →</a>
+        </div>
+        <div class="fileira" id="fileira-camisas"></div>
     </div>
-</footer>
+</section>
 
-<!-- Botão flutuante do WhatsApp -->
-<a class="whats-flutuante" href="https://wa.me/5531988836857?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20gostaria%20de%20um%20or%C3%A7amento." target="_blank" rel="noopener" aria-label="Falar pelo WhatsApp">
-    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2zm5.82 14.1c-.25.69-1.44 1.32-1.99 1.37-.51.05-.99.24-3.34-.7-2.82-1.11-4.6-4-4.74-4.18-.14-.19-1.13-1.5-1.13-2.87s.71-2.03.97-2.31c.25-.28.55-.35.73-.35l.53.01c.17.01.4-.06.62.48.25.6.83 2.06.9 2.21.07.15.12.32.02.51-.09.19-.14.31-.28.48-.14.17-.3.37-.42.5-.14.14-.29.29-.12.57.17.28.73 1.2 1.57 1.95 1.08.96 1.99 1.26 2.27 1.4.28.14.45.12.61-.07.17-.19.71-.83.9-1.12.19-.28.38-.23.63-.14.26.09 1.63.77 1.91.91.28.14.47.21.54.33.07.12.07.69-.18 1.38z"/></svg>
-</a>
+<div id="rodape"></div>
 
+<script src="/assets/js/site.js"></script>
+<script src="/assets/data/servicos.js"></script>
+<script src="/assets/data/camisas.js"></script>
+<script src="/assets/js/eventos-comum.js"></script>
+<script src="/eventos/eventos.js"></script>
 <script>
-    // Menu do celular
-    var botaoMenu = document.querySelector('.btn-menu');
-    var menu = document.getElementById('menu');
-    botaoMenu.addEventListener('click', function () {
-        var aberto = menu.classList.toggle('aberto');
-        botaoMenu.setAttribute('aria-expanded', aberto);
-    });
-    menu.addEventListener('click', function (e) {
-        if (e.target.tagName === 'A') {
-            menu.classList.remove('aberto');
-            botaoMenu.setAttribute('aria-expanded', 'false');
+(function () {
+    var A = window.AZUL, esc = EV.esc;
+    var LOJA = A.sports;
+    var TEMPO = 7000; // tempo de cada destaque, em milissegundos
+
+    document.querySelectorAll(".js-whats").forEach(function (a) { a.href = A.linkWhats(a.getAttribute("data-texto")); });
+
+    /* ----- Camisas sorteadas ----- */
+    function sortear(n) {
+        var lista = (window.CAMISAS_DESTAQUE || []).slice();
+        for (var i = lista.length - 1; i > 0; i--) {
+            var j = Math.floor(Math.random() * (i + 1)), x = lista[i]; lista[i] = lista[j]; lista[j] = x;
         }
+        return lista.slice(0, n);
+    }
+    function cartaoCamisa(c, classe) {
+        return '<a class="' + (classe || "") + '" href="' + LOJA + '/#p=' + encodeURI(c.p) + '" target="_blank" rel="noopener">' +
+            '<img src="' + LOJA + '/img/' + encodeURI(c.p) + '/01t.jpg" alt="' + esc(c.titulo) + '" loading="lazy">' +
+            '<span>' + esc(c.titulo) + '</span></a>';
+    }
+    function trocarCamisas() {
+        document.getElementById("arte-camisas").innerHTML = sortear(3).map(function (c) { return cartaoCamisa(c, "camisa-poster"); }).join("");
+    }
+    trocarCamisas();
+    document.getElementById("fileira-camisas").innerHTML = sortear(12).map(function (c) { return cartaoCamisa(c); }).join("");
+
+    /* ----- Serviços ----- */
+    document.getElementById("chips-servicos").innerHTML = (window.SERVICOS || []).map(function (s) {
+        return "<li>" + esc(s.nome) + "</li>";
+    }).join("");
+
+    /* ----- Próximo evento ----- */
+    var grupos = EV.separar();
+    var ev = grupos.proximos[0], alvo = document.getElementById("conteudo-evento");
+    if (ev) {
+        var t = EV.tema(ev);
+        var capa = ev.capa ? "background-image:url('/eventos/" + esc(ev.capa) + "')" : "";
+        alvo.innerHTML =
+            '<div class="texto">' +
+                '<span class="tag">Próximo evento</span>' +
+                '<h1>' + esc(ev.titulo) + '</h1>' +
+                '<div class="meta"><span>📅 ' + EV.dataLonga(ev) + '</span>' +
+                    (ev.hora ? '<span>🕗 ' + esc(ev.hora) + '</span>' : "") +
+                    (ev.local ? '<span>📍 ' + esc(ev.local) + '</span>' : "") + '</div>' +
+                '<span class="contagem">' + EV.contagem(ev) + '</span>' +
+                '<div class="botoes">' +
+                    '<a class="btn btn-ciano" href="/eventos/evento.html?id=' + encodeURIComponent(ev.id) + '">Ver evento</a>' +
+                    '<a class="btn btn-contorno" href="/eventos/">Todos os eventos</a>' +
+                '</div>' +
+            '</div>' +
+            '<div class="arte-evento" style="' + capa + '">' + (ev.capa ? "" : t.emoji) + '</div>';
+    } else {
+        var ultimo = grupos.passados[0];
+        alvo.innerHTML =
+            '<div class="texto">' +
+                '<span class="tag">Eventos Azul Marinho</span>' +
+                '<h1>Novo evento <span>em breve</span></h1>' +
+                '<p>Todo mês um encontro novo.' + (ultimo ? " Enquanto isso, veja as fotos do " + esc(ultimo.titulo) + "." : "") + '</p>' +
+                '<div class="botoes"><a class="btn btn-ciano" href="/eventos/">Ver eventos</a></div>' +
+            '</div>' +
+            '<div class="arte-evento">🎉</div>';
+    }
+
+    /* ----- Rotação dos destaques ----- */
+    var vitrine = document.getElementById("vitrine");
+    var slides = Array.prototype.slice.call(vitrine.querySelectorAll(".slide"));
+    var ind = document.getElementById("indicadores");
+    vitrine.style.setProperty("--tempo", TEMPO / 1000 + "s");
+    ind.innerHTML = slides.map(function (s, i) {
+        return '<button data-i="' + i + '" aria-label="Mostrar ' + s.getAttribute("data-nome") + '"><span class="barra"><i></i></span>' + s.getAttribute("data-nome") + '</button>';
+    }).join("");
+    var botoes = Array.prototype.slice.call(ind.querySelectorAll("button"));
+    var atual = -1, timer = null, restante = TEMPO, inicio = 0, pausado = false;
+
+    function ir(i) {
+        i = (i + slides.length) % slides.length;
+        if (i === atual) return;
+        if (slides[i].id === "slide-sports" && atual !== -1) trocarCamisas();
+        slides.forEach(function (s, k) { s.classList.toggle("ativo", k === i); s.setAttribute("aria-hidden", k !== i); });
+        botoes.forEach(function (b, k) {
+            b.classList.remove("ativo");
+            if (k === i) { void b.offsetWidth; b.classList.add("ativo"); }
+        });
+        atual = i;
+        restante = TEMPO;
+        agendar();
+    }
+    function agendar() {
+        clearTimeout(timer);
+        if (pausado) return;
+        inicio = Date.now();
+        timer = setTimeout(function () { ir(atual + 1); }, restante);
+    }
+    function pausar() {
+        if (pausado) return;
+        pausado = true;
+        clearTimeout(timer);
+        restante -= Date.now() - inicio;
+        vitrine.classList.add("pausada");
+    }
+    function continuar() {
+        if (!pausado) return;
+        pausado = false;
+        vitrine.classList.remove("pausada");
+        agendar();
+    }
+
+    vitrine.querySelector(".seta-ant").onclick = function () { ir(atual - 1); };
+    vitrine.querySelector(".seta-prox").onclick = function () { ir(atual + 1); };
+    botoes.forEach(function (b) { b.onclick = function () { ir(+b.getAttribute("data-i")); }; });
+    vitrine.addEventListener("mouseenter", pausar);
+    vitrine.addEventListener("mouseleave", continuar);
+    document.addEventListener("visibilitychange", function () { document.hidden ? pausar() : continuar(); });
+
+    var x0 = null;
+    vitrine.addEventListener("touchstart", function (e) { x0 = e.touches[0].clientX; }, { passive: true });
+    vitrine.addEventListener("touchend", function (e) {
+        if (x0 == null) return;
+        var dx = e.changedTouches[0].clientX - x0;
+        if (Math.abs(dx) > 50) ir(atual + (dx < 0 ? 1 : -1));
+        x0 = null;
     });
 
-    // Ano atual no rodapé
-    document.getElementById('ano').textContent = new Date().getFullYear();
+    ir(0);
+})();
 </script>
 
 </body>

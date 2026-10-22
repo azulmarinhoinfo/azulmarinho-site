@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Informática | Azul Marinho</title>
+<meta name="description" content="Azul Marinho Suporte em Informática: formatação, manutenção de PC e notebook, redes e Wi-Fi, câmeras, suporte para empresas, venda de peças e atendimento remoto. WhatsApp (31) 98883-6857.">
+<meta property="og:title" content="Azul Marinho | Suporte em Informática">
+<meta property="og:description" content="Formatação, manutenção, redes, câmeras, peças e suporte remoto. Fale pelo WhatsApp.">
+<meta property="og:image" content="https://azulmarinhoinfo.com.br/logo.png">
+<meta name="theme-color" content="#0F1F47">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Ubuntu:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/site.css">
+
+<style>
+.hero{
+    background:
+        radial-gradient(circle at 85% 20%, rgba(0,173,239,.28), transparent 45%),
+        linear-gradient(135deg, var(--marinho-escuro), var(--marinho) 60%, var(--marinho-medio));
+    color:#DCE6F7; padding:80px 0 90px; overflow:hidden;
+}
+.hero .wrap{ display:grid; grid-template-columns:1.2fr .8fr; gap:40px; align-items:center; }
+.selo{
+    display:inline-block; background:rgba(0,173,239,.15); color:var(--ciano);
+    border:1px solid rgba(0,173,239,.4); border-radius:999px;
+    padding:6px 16px; font-size:14px; font-weight:500; margin-bottom:22px;
+}
+.hero h1{ color:var(--branco); font-size:clamp(32px, 5vw, 52px); font-weight:800; margin-bottom:20px; }
+.hero h1 span{ color:var(--ciano); }
+.hero p{ font-size:19px; max-width:560px; margin-bottom:34px; }
+.hero-botoes{ display:flex; flex-wrap:wrap; gap:14px; }
+.hero-icone{
+    justify-self:center; width:min(300px, 70vw); aspect-ratio:1; border-radius:50%;
+    display:grid; place-items:center; background:radial-gradient(circle, rgba(0,173,239,.18), transparent 70%);
+}
+.hero-icone svg{ width:62%; height:62%; filter:drop-shadow(0 0 30px rgba(0,173,239,.5)); }
+
+.destaques{ background:var(--ciano); color:var(--branco); }
+.destaques ul{
+    list-style:none; display:grid; grid-template-columns:repeat(4, 1fr); gap:16px;
+    padding:22px 0; text-align:center; font-family:"Montserrat",sans-serif; font-weight:600; font-size:15px;
+}
+
+.grade-servicos{ display:flex; flex-wrap:wrap; justify-content:center; gap:22px; }
+.grade-servicos .card{ flex:0 1 calc((100% - 66px) / 4); }
+
+@media (max-width:1000px){ .grade-servicos .card{ flex-basis:calc((100% - 44px) / 3); } }
+@media (max-width:900px){
+    .hero .wrap{ grid-template-columns:1fr; }
+    .hero-icone{ display:none; }
+    .destaques ul{ grid-template-columns:1fr 1fr; }
+    .grade-servicos .card{ flex-basis:calc((100% - 22px) / 2); }
+}
+@media (max-width:560px){
+    .hero{ padding:56px 0 64px; }
+    .hero p{ font-size:17px; }
+    .hero-botoes .btn{ width:100%; }
+    .grade-servicos .card{ flex-basis:100%; }
+    .destaques ul{ font-size:14px; }
+}
+</style>
+</head>
+
+<body data-pagina="informatica">
+
+<div id="topo"></div>
+
+<!-- ===================== INÍCIO ===================== -->
+<section class="hero">
+    <div class="wrap">
+        <div>
+            <span class="selo">Azul Marinho • Suporte em Informática</span>
+            <h1>Seu computador funcionando <span>do jeito certo.</span></h1>
+            <p>Manutenção, formatação, redes, câmeras e suporte técnico para casa e empresa, com atendimento rápido, honesto e sem complicação.</p>
+            <div class="hero-botoes">
+                <a class="btn btn-ciano js-whats" data-texto="Olá! Vim pelo site e gostaria de um orçamento de informática." href="https://wa.me/5531988836857" target="_blank" rel="noopener">
+                    <span class="js-icone-whats"></span> Pedir orçamento
+                </a>
+                <a class="btn btn-contorno" href="#servicos">Ver serviços</a>
+            </div>
+        </div>
+        <div class="hero-icone" aria-hidden="true">
+            <svg viewBox="0 0 100 100" fill="none" stroke="#00ADEF" stroke-width="9" stroke-linecap="round">
+                <path d="M32 26a34 34 0 1 0 36 0"/><path d="M50 12v34"/>
+            </svg>
+        </div>
+    </div>
+</section>
+
+<div class="destaques">
+    <ul class="wrap">
+        <li>✔ Orçamento sem compromisso</li>
+        <li>✔ Atendimento em domicílio</li>
+        <li>✔ Suporte remoto</li>
+        <li>✔ Atendimento para empresas</li>
+    </ul>
+</div>
+
+<!-- ===================== SERVIÇOS ===================== -->
+<section class="secao secao-suave" id="servicos">
+    <div class="wrap">
+        <div class="titulo-secao">
+            <span class="sobretitulo">Serviços</span>
+            <h2>Serviços disponíveis</h2>
+            <p>Escolha o serviço e chame no WhatsApp. O orçamento é sem compromisso.</p>
+        </div>
+        <div class="grade-servicos" id="grade-servicos"></div>
+    </div>
+</section>
+
+<!-- ===================== CONTATO ===================== -->
+<section class="secao" id="contato">
+    <div class="wrap">
+        <div class="titulo-secao">
+            <span class="sobretitulo">Contato</span>
+            <h2>Fale com a Azul Marinho</h2>
+            <p>Escolha o jeito mais fácil para você. Respondemos o mais rápido possível.</p>
+        </div>
+        <div class="grade-contato" id="grade-contato"></div>
+    </div>
+</section>
+
+<div id="rodape"></div>
+
+<script src="/assets/js/site.js"></script>
+<script src="/assets/data/servicos.js"></script>
+<script>
+(function () {
+    var A = window.AZUL, I = window.ICONES;
+
+    document.querySelectorAll(".js-whats").forEach(function (a) { a.href = A.linkWhats(a.getAttribute("data-texto")); });
+    document.querySelectorAll(".js-icone-whats").forEach(function (s) { s.outerHTML = I.whats; });
+
+    document.getElementById("grade-servicos").innerHTML = window.SERVICOS.map(function (s) {
+        return '<div class="card">' +
+            '<div class="icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + s.icone + '</svg></div>' +
+            '<h3>' + s.nome + '</h3><p>' + s.texto + '</p></div>';
+    }).join("");
+
+    document.getElementById("grade-contato").innerHTML =
+        '<a class="contato-card whats" href="' + A.linkWhats("Olá! Vim pelo site da Azul Marinho Informática.") + '" target="_blank" rel="noopener">' +
+            '<div class="icone">' + I.whats + '</div><strong>Telefone e WhatsApp</strong><span>' + A.telefone + '</span></a>' +
+        '<a class="contato-card" href="mailto:' + A.email + '">' +
+            '<div class="icone">' + I.email + '</div><strong>E-mail</strong><span>' + A.email + '</span></a>' +
+        '<a class="contato-card" href="' + A.facebook + '" target="_blank" rel="noopener">' +
+            '<div class="icone">' + I.facebook + '</div><strong>Facebook</strong><span>/azulmarinhoinfo</span></a>';
+})();
+</script>
+
+</body>
+</html>
