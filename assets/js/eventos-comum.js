@@ -21,7 +21,18 @@ window.TEMAS = {
     "sertanejo":     { nome: "Sertanejo",      emoji: "🤠", fundo: ["#3E2414", "#7C4A21"], destaque: "#F59E0B", texto: "#F7E8D5", titulo: "#FFFFFF" },
     "neon":          { nome: "Balada Neon",    emoji: "🪩", fundo: ["#07071F", "#1B0B3A"], destaque: "#FF2BD6", texto: "#D9E4FF", titulo: "#FFFFFF", padrao: "estrelas" },
     "futebol":       { nome: "Futebol",        emoji: "⚽", fundo: ["#0B4F2C", "#15803D"], destaque: "#FACC15", texto: "#E7F8EC", titulo: "#FFFFFF" },
-    "aniversario":   { nome: "Aniversário",    emoji: "🎂", fundo: ["#1E3A8A", "#7C3AED"], destaque: "#FDE047", texto: "#EEF2FF", titulo: "#FFFFFF", padrao: "confete" }
+    "aniversario":   { nome: "Aniversário",    emoji: "🎂", fundo: ["#1E3A8A", "#7C3AED"], destaque: "#FDE047", texto: "#EEF2FF", titulo: "#FFFFFF", padrao: "confete" },
+    "dinossauro":    { nome: "Dinossauros",    emoji: "🦕", fundo: ["#2F2A1E", "#4D5B2E"], destaque: "#A3C76D", texto: "#EEF0DD", titulo: "#FFFFFF" },
+    "copa":          { nome: "Seleção Brasileira", emoji: "🇧🇷", fundo: ["#00843D", "#0B5D2E"], destaque: "#FFDF00", texto: "#EAF7EE", titulo: "#FFFFFF", padrao: "confete" },
+    "piscina":       { nome: "Pool Party",     emoji: "🏖️", fundo: ["#0EA5E9", "#22D3EE"], destaque: "#FF4F9A", texto: "#05324A", titulo: "#06283D", claro: true },
+    "cruzeiro":      { nome: "Cruzeiro",       emoji: "🦊", fundo: ["#0B1F5C", "#1D3FA6"], destaque: "#FFFFFF", texto: "#DCE4FA", titulo: "#FFFFFF", padrao: "estrelas" },
+    "super-heroi":   { nome: "Super-heróis",   emoji: "🕷️", fundo: ["#B91C1C", "#1E3A8A"], destaque: "#FACC15", texto: "#FEE2E2", titulo: "#FFFFFF" },
+    "dragon-ball":   { nome: "Dragon Ball",    emoji: "🐉", fundo: ["#C2410C", "#1E3A8A"], destaque: "#FDE047", texto: "#FFF4E6", titulo: "#FFFFFF", padrao: "estrelas" },
+    "batizado":      { nome: "Batizado",       emoji: "🕊️", fundo: ["#FFFFFF", "#FCE7EF"], destaque: "#B8860B", texto: "#4B3B2A", titulo: "#6B4E16", claro: true, padrao: "flores" },
+    "toy-story":     { nome: "Toy Story",      emoji: "🤠", fundo: ["#1D4ED8", "#60A5FA"], destaque: "#FACC15", texto: "#EFF6FF", titulo: "#FFFFFF" },
+    "branca-de-neve": { nome: "Branca de Neve", emoji: "🍎", fundo: ["#1E3A8A", "#FDE68A"], destaque: "#DC2626", texto: "#F8FAFC", titulo: "#FFFFFF" },
+    "jardim":        { nome: "Jardim",         emoji: "🌷", fundo: ["#FDF2F8", "#FBCFE8"], destaque: "#DB2777", texto: "#4A2537", titulo: "#9D174D", claro: true, padrao: "flores" },
+    "polaroid":      { nome: "Álbum de memórias", emoji: "📸", fundo: ["#1F2937", "#4B5563"], destaque: "#F59E0B", texto: "#F3F4F6", titulo: "#FFFFFF" }
 };
 
 window.EV = (function () {

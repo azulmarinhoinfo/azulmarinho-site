@@ -16,12 +16,11 @@
    ========================================================= */
 window.CONVIDADOS = {
 
-    "halloween-2026": [
-        { nome: "Convidado de exemplo 1", whats: "31900000001" },
-        { nome: "Convidado de exemplo 2", whats: "31900000002" },
-        "Convidado de exemplo 3"
+    /* exemplo:
+    "heitor-1-mes": [
+        { nome: "Maria", whats: "31999998888" },
+        "João"
     ],
-
-    "primavera-2026": ["Convidado de exemplo 1", "Convidado de exemplo 2"]
+    */
 
 };

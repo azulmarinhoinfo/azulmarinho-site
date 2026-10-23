@@ -189,6 +189,7 @@ main, .rodape{ position:relative; z-index:1; }
         if (!url) return "";
         var m = url.match(/open\.spotify\.com\/(?:intl-[a-z]+\/)?(playlist|album|track|artist)\/([A-Za-z0-9]+)/);
         if (m) return '<iframe src="https://open.spotify.com/embed/' + m[1] + "/" + m[2] + '" loading="lazy" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" title="Playlist do evento"></iframe>';
+        if (/music\.apple\.com\//.test(url)) return '<iframe src="' + esc(url.replace("://music.apple.com/", "://embed.music.apple.com/")) + '" loading="lazy" allow="autoplay *; encrypted-media *; clipboard-write" sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-top-navigation-by-user-activation" title="Playlist do evento"></iframe>';
         m = url.match(/[?&]list=([A-Za-z0-9_-]+)/);
         if (m && /youtu/.test(url)) return '<iframe src="https://www.youtube.com/embed/videoseries?list=' + m[1] + '" loading="lazy" allowfullscreen title="Playlist do evento"></iframe>';
         return '<a class="btn btn-tema" href="' + esc(url) + '" target="_blank" rel="noopener">🎵 Abrir a playlist</a>';
@@ -235,8 +236,8 @@ main, .rodape{ position:relative; z-index:1; }
                     ? '<div class="album">' + fotos.map(function (f, i) {
                         return '<button data-i="' + i + '" aria-label="Abrir foto ' + (i + 1) + '"><img src="/eventos/' + esc(f) + '" loading="lazy" alt="Foto ' + (i + 1) + ' do evento"></button>';
                       }).join("") + '</div>'
-                    : '<p class="suave">' + (passado ? "As fotos deste evento vão aparecer aqui em breve." : "As fotos vão aparecer aqui depois do evento.") + '</p>') +
-                (ev.album ? '<a class="link-tema" href="' + esc(ev.album) + '" target="_blank" rel="noopener">Ver o álbum completo →</a>' : "") +
+                    : (ev.album ? "" : '<p class="suave">' + (passado ? "As fotos deste evento vão aparecer aqui em breve." : "As fotos vão aparecer aqui depois do evento.") + '</p>')) +
+                (ev.album ? '<a class="btn btn-tema" style="margin-top:14px" href="' + esc(ev.album) + '" target="_blank" rel="noopener">📸 Álbum de fotos</a>' : "") +
             '</div>' +
             '<p class="suave" style="grid-column:span 12;text-align:center;font-size:14px">👥 A lista de convidados é privada. ' +
                 '<a class="link-tema" style="margin:0" href="/privado/#' + encodeURIComponent(ev.id) + '">Área do organizador</a></p>' +
