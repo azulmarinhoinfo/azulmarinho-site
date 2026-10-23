@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Eventos | Azul Marinho</title>
+<meta name="description" content="Eventos da Azul Marinho: todo mês um encontro novo. Veja o próximo evento e as fotos dos que já aconteceram.">
+<meta property="og:title" content="Eventos | Azul Marinho">
+<meta property="og:image" content="https://azulmarinhoinfo.com.br/logo.png">
+<meta name="theme-color" content="#0F1F47">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Ubuntu:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/site.css">
+
+<style>
+.cabecalho{
+    background:
+        radial-gradient(circle at 80% 10%, rgba(0,173,239,.30), transparent 45%),
+        linear-gradient(135deg, var(--marinho-escuro), var(--marinho) 60%, var(--marinho-medio));
+    color:#DCE6F7; padding:70px 0 120px; text-align:center;
+}
+.cabecalho h1{ color:var(--branco); font-size:clamp(32px, 5vw, 50px); font-weight:800; margin:10px 0 12px; }
+.cabecalho h1 span{ color:var(--ciano); }
+.cabecalho p{ font-size:19px; max-width:620px; margin:auto; }
+
+/* Próximo evento */
+.proximo{ margin-top:-80px; position:relative; z-index:2; }
+.proximo-card{
+    display:grid; grid-template-columns:320px 1fr; border-radius:22px; overflow:hidden;
+    background:var(--branco); box-shadow:0 24px 60px rgba(15,31,71,.22); text-decoration:none;
+    border:1px solid var(--borda); transition:transform .2s;
+}
+.proximo-card:hover{ transform:translateY(-4px); }
+.proximo-arte{
+    position:relative; min-height:280px; display:grid; place-items:center;
+    background-size:cover; background-position:center;
+}
+.proximo-arte .emoji{ font-size:110px; filter:drop-shadow(0 10px 24px rgba(0,0,0,.35)); }
+.proximo-arte .data-bloco{
+    position:absolute; top:18px; left:18px; background:var(--branco); border-radius:14px;
+    padding:8px 14px; text-align:center; font-family:"Montserrat",sans-serif; color:var(--marinho);
+    box-shadow:0 8px 20px rgba(0,0,0,.2);
+}
+.data-bloco b{ display:block; font-size:30px; line-height:1; font-weight:800; }
+.data-bloco small{ font-size:13px; font-weight:700; letter-spacing:1px; }
+.proximo-info{ padding:36px 40px; display:flex; flex-direction:column; justify-content:center; gap:14px; }
+.etiqueta{
+    align-self:flex-start; background:var(--ciano); color:var(--branco); font-family:"Montserrat",sans-serif;
+    font-weight:700; font-size:13px; letter-spacing:1px; text-transform:uppercase; padding:6px 14px; border-radius:999px;
+}
+.proximo-info h2{ font-size:clamp(26px, 3.4vw, 36px); }
+.dados{ display:flex; flex-wrap:wrap; gap:10px 22px; color:var(--texto-claro); font-size:16px; }
+.contagem{ font-family:"Montserrat",sans-serif; font-weight:700; color:var(--ciano); font-size:18px; }
+.vazio{
+    text-align:center; padding:50px 24px; border-radius:22px; background:var(--branco);
+    box-shadow:0 24px 60px rgba(15,31,71,.18); border:1px solid var(--borda);
+}
+.vazio h2{ margin-bottom:8px; }
+
+/* Grades */
+.grade-eventos{ display:grid; grid-template-columns:repeat(3, 1fr); gap:24px; }
+.evento-card{
+    border-radius:var(--raio); overflow:hidden; background:var(--branco); border:1px solid var(--borda);
+    text-decoration:none; transition:transform .2s, box-shadow .2s, border-color .2s; display:flex; flex-direction:column;
+}
+.evento-card:hover{ transform:translateY(-4px); box-shadow:0 14px 34px rgba(15,31,71,.12); border-color:var(--ciano); }
+.evento-card .arte{
+    position:relative; aspect-ratio:16/10; display:grid; place-items:center;
+    background-size:cover; background-position:center;
+}
+.evento-card .arte .emoji{ font-size:64px; }
+.evento-card .arte .data-bloco{
+    position:absolute; top:12px; left:12px; background:var(--branco); border-radius:12px; padding:6px 11px;
+    text-align:center; font-family:"Montserrat",sans-serif; color:var(--marinho);
+}
+.evento-card .arte .data-bloco b{ font-size:22px; }
+.evento-card .arte .data-bloco small{ font-size:11px; }
+.evento-card .corpo{ padding:18px 20px 22px; }
+.evento-card h3{ font-size:19px; margin-bottom:6px; }
+.evento-card p{ color:var(--texto-claro); font-size:15px; }
+
+.titulo-lista{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:26px; }
+.titulo-lista h2{ font-size:clamp(24px, 3vw, 30px); }
+.titulo-lista span{ color:var(--texto-claro); }
+
+@media (max-width:900px){
+    .proximo-card{ grid-template-columns:1fr; }
+    .proximo-arte{ min-height:220px; }
+    .grade-eventos{ grid-template-columns:1fr 1fr; }
+}
+@media (max-width:560px){
+    .proximo-info{ padding:26px 22px; }
+    .grade-eventos{ grid-template-columns:1fr; }
+    .cabecalho{ padding:56px 0 110px; }
+}
+</style>
+</head>
+
+<body data-pagina="eventos">
+
+<div id="topo"></div>
+
+<header class="cabecalho">
+    <div class="wrap">
+        <span class="sobretitulo">Eventos Azul Marinho</span>
+        <h1>Todo mês um <span>encontro novo</span></h1>
+        <p>Confira o próximo evento, a previsão do tempo e a playlist. Depois, o álbum de fotos fica guardado aqui.</p>
+    </div>
+</header>
+
+<section class="proximo">
+    <div class="wrap" id="proximo"></div>
+</section>
+
+<section class="secao oculto" id="bloco-embreve" style="padding-bottom:0">
+    <div class="wrap">
+        <div class="titulo-lista"><h2>Também vem aí</h2></div>
+        <div class="grade-eventos" id="embreve"></div>
+    </div>
+</section>
+
+<section class="secao" id="bloco-passados">
+    <div class="wrap">
+        <div class="titulo-lista"><h2>Eventos que já aconteceram</h2><span id="qtd-passados"></span></div>
+        <div class="grade-eventos" id="passados"></div>
+    </div>
+</section>
+
+<div id="rodape"></div>
+
+<script src="/assets/js/site.js"></script>
+<script src="/assets/js/eventos-comum.js"></script>
+<script src="/eventos/dados"></script>
+<script>window.EVENTOS || document.write('<script src="/eventos/eventos.js"><\/script>')</script>
+<script>
+(function () {
+    var esc = EV.esc;
+    var grupos = EV.separar();
+
+    function fundoArte(ev, t) {
+        var foto = ev.capa || (ev.fotos && ev.fotos[0]);
+        if (foto) return "background-image:linear-gradient(rgba(0,0,0,.15), rgba(0,0,0,.35)), url('/eventos/" + esc(foto) + "')";
+        return "background:linear-gradient(135deg," + t.fundo1 + "," + t.fundo2 + ")";
+    }
+
+    function linkEvento(ev) { return "/eventos/evento.html?id=" + encodeURIComponent(ev.id); }
+
+    function cartao(ev, passado) {
+        var t = EV.tema(ev), dm = EV.diaMes(ev);
+        var qtdFotos = (ev.fotos || []).length;
+        var extra = passado
+            ? (qtdFotos ? qtdFotos + (qtdFotos === 1 ? " foto" : " fotos") : (ev.album ? "📸 Álbum de fotos" : "Fotos em breve"))
+            : EV.contagem(ev);
+        var temFoto = ev.capa || qtdFotos;
+        return '<a class="evento-card" href="' + linkEvento(ev) + '">' +
+            '<div class="arte" style="' + fundoArte(ev, t) + '">' +
+                '<div class="data-bloco"><b>' + dm.dia + '</b><small>' + dm.mes + '</small></div>' +
+                (temFoto ? "" : '<span class="emoji">' + t.emoji + '</span>') +
+            '</div>' +
+            '<div class="corpo"><h3>' + esc(ev.titulo) + '</h3>' +
+                '<p>' + EV.dataCurta(ev) + ' • ' + esc(ev.local || "") + '</p>' +
+                '<p style="color:var(--ciano);font-weight:500;margin-top:6px">' + extra + '</p>' +
+            '</div></a>';
+    }
+
+    var alvo = document.getElementById("proximo");
+    var prox = grupos.proximos[0];
+    if (prox) {
+        var t = EV.tema(prox), dm = EV.diaMes(prox);
+        alvo.innerHTML =
+            '<a class="proximo-card" href="' + linkEvento(prox) + '">' +
+                '<div class="proximo-arte" style="' + fundoArte(prox, t) + '">' +
+                    '<div class="data-bloco"><b>' + dm.dia + '</b><small>' + dm.mes + '</small></div>' +
+                    (prox.capa ? "" : '<span class="emoji">' + t.emoji + '</span>') +
+                '</div>' +
+                '<div class="proximo-info">' +
+                    '<span class="etiqueta">Próximo evento</span>' +
+                    '<h2>' + esc(prox.titulo) + '</h2>' +
+                    '<div class="dados"><span>📅 ' + EV.dataLonga(prox) + '</span>' +
+                        (prox.hora ? '<span>🕗 ' + esc(prox.hora) + '</span>' : "") +
+                        (prox.local ? '<span>📍 ' + esc(prox.local) + '</span>' : "") + '</div>' +
+                    '<span class="contagem">' + EV.contagem(prox) + '</span>' +
+                    '<span class="btn btn-ciano" style="align-self:flex-start">Ver detalhes do evento</span>' +
+                '</div>' +
+            '</a>';
+    } else {
+        alvo.innerHTML = '<div class="vazio"><h2>Novo evento em breve</h2><p>Estamos preparando o próximo encontro. Volte daqui a pouco!</p></div>';
+    }
+
+    var resto = grupos.proximos.slice(1);
+    if (resto.length) {
+        document.getElementById("bloco-embreve").classList.remove("oculto");
+        document.getElementById("embreve").innerHTML = resto.map(function (e) { return cartao(e, false); }).join("");
+    }
+
+    if (grupos.passados.length) {
+        document.getElementById("passados").innerHTML = grupos.passados.map(function (e) { return cartao(e, true); }).join("");
+        document.getElementById("qtd-passados").textContent = grupos.passados.length + (grupos.passados.length === 1 ? " evento" : " eventos");
+    } else {
+        document.getElementById("bloco-passados").classList.add("oculto");
+    }
+})();
+</script>
+
+</body>
+</html>

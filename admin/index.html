@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Painel do organizador | Azul Marinho</title>
+<meta name="theme-color" content="#0F1F47">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Ubuntu:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/site.css">
+
+<style>
+body{ background:var(--fundo-suave); }
+.cabecalho{
+    background:linear-gradient(135deg, var(--marinho-escuro), var(--marinho) 60%, var(--marinho-medio));
+    color:#DCE6F7; padding:34px 0 38px;
+}
+.cabecalho .wrap{ display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+.cabecalho h1{ color:var(--branco); font-size:clamp(24px, 3.4vw, 34px); margin:6px 0 0; }
+.cadeado{ display:inline-flex; gap:8px; align-items:center; background:rgba(0,173,239,.15); color:var(--ciano);
+    border:1px solid rgba(0,173,239,.4); border-radius:999px; padding:4px 13px; font-size:13px; }
+.quem{ font-size:14px; text-align:right; }
+.quem a{ color:var(--ciano); }
+
+.painel{ display:grid; grid-template-columns:300px 1fr; gap:24px; padding:28px 0 120px; align-items:start; }
+.caixa{ background:var(--branco); border:1px solid var(--borda); border-radius:var(--raio); }
+
+/* Lista de eventos */
+.lateral{ position:sticky; top:84px; max-height:calc(100vh - 110px); display:flex; flex-direction:column; overflow:hidden; }
+.lateral .topo-lista{ padding:16px; border-bottom:1px solid var(--borda); }
+.lateral .itens{ overflow:auto; padding:6px 0 10px; }
+.grupo{ font-family:"Montserrat",sans-serif; font-size:12px; font-weight:700; letter-spacing:1px; text-transform:uppercase;
+    color:var(--texto-claro); padding:14px 16px 6px; }
+.item{ display:flex; gap:12px; align-items:center; width:100%; text-align:left; border:0; background:none; cursor:pointer;
+    padding:10px 16px; font:inherit; color:var(--texto); border-left:3px solid transparent; }
+.item:hover{ background:var(--fundo-suave); }
+.item.ativo{ background:var(--ciano-claro); border-left-color:var(--ciano); }
+.item .emo{ font-size:24px; width:32px; text-align:center; flex-shrink:0; }
+.item b{ display:block; font-size:15px; font-weight:500; color:var(--marinho); line-height:1.25; }
+.item small{ color:var(--texto-claro); font-size:13px; }
+.selo{ display:inline-block; font-size:11px; font-weight:700; border-radius:999px; padding:1px 8px; margin-left:4px;
+    background:#FEF3C7; color:#92400E; vertical-align:middle; }
+
+/* Botões do painel */
+.b{ display:inline-flex; align-items:center; justify-content:center; gap:7px; border-radius:999px; padding:9px 18px; cursor:pointer;
+    font:500 15px "Ubuntu",sans-serif; border:1.5px solid var(--ciano); color:var(--ciano-escuro); background:var(--branco);
+    text-decoration:none; transition:background .15s, color .15s; }
+.b:hover{ background:var(--ciano); color:var(--branco); }
+.b.cheio{ background:var(--ciano); color:var(--branco); }
+.b.cheio:hover{ background:var(--ciano-escuro); }
+.b.perigo{ border-color:#E11D48; color:#BE123C; }
+.b.perigo:hover{ background:#E11D48; color:#fff; }
+.b.pequeno{ padding:5px 12px; font-size:13px; }
+.b svg{ width:16px; height:16px; }
+.b[disabled]{ opacity:.5; cursor:default; }
+.largo{ width:100%; }
+
+/* Editor */
+.editor-topo{ padding:22px 26px 0; display:flex; gap:18px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; }
+.editor-topo h2{ font-size:24px; }
+.editor-topo .acoes{ display:flex; gap:8px; flex-wrap:wrap; }
+.abas{ display:flex; gap:4px; padding:16px 26px 0; border-bottom:1px solid var(--borda); }
+.abas button{ border:0; background:none; font:600 15px "Montserrat",sans-serif; color:var(--texto-claro); padding:10px 16px;
+    border-bottom:3px solid transparent; cursor:pointer; margin-bottom:-1px; }
+.abas button.ativa{ color:var(--marinho); border-bottom-color:var(--ciano); }
+.conteudo-aba{ padding:24px 26px 30px; }
+
+.campos{ display:grid; grid-template-columns:repeat(6, 1fr); gap:16px 18px; }
+.campo{ display:flex; flex-direction:column; gap:6px; grid-column:span 6; }
+.campo.m3{ grid-column:span 3; } .campo.m2{ grid-column:span 2; }
+.campo label, .rotulo{ font-family:"Montserrat",sans-serif; font-weight:600; font-size:14px; color:var(--marinho); }
+.campo .dica{ font-size:13px; color:var(--texto-claro); }
+.campo input, .campo select, .campo textarea, .linha-conv input, .add-conv input, textarea.varios{
+    font:inherit; font-size:16px; color:var(--texto); border:1.5px solid var(--borda); border-radius:10px; padding:10px 12px;
+    background:var(--branco); width:100%;
+}
+.campo input:focus, .campo select:focus, .campo textarea:focus, .linha-conv input:focus, .add-conv input:focus, textarea.varios:focus{
+    outline:none; border-color:var(--ciano); box-shadow:0 0 0 3px rgba(0,173,239,.18);
+}
+.campo textarea{ min-height:150px; resize:vertical; }
+.campo input.erro{ border-color:#E11D48; }
+.secao-form{ grid-column:span 6; font-family:"Montserrat",sans-serif; font-weight:700; font-size:13px; letter-spacing:1px;
+    text-transform:uppercase; color:var(--ciano-escuro); padding-top:10px; border-top:1px solid var(--borda); margin-top:6px; }
+.secao-form:first-child{ border-top:0; padding-top:0; margin-top:0; }
+.check{ display:flex; gap:10px; align-items:center; font-size:15px; cursor:pointer; }
+.check input{ width:18px; height:18px; accent-color:var(--ciano); }
+.cores{ display:flex; gap:14px; flex-wrap:wrap; }
+.cores label{ display:flex; flex-direction:column; align-items:center; gap:4px; font-size:12px; color:var(--texto-claro); }
+.cores input[type=color]{ width:52px; height:38px; border:1px solid var(--borda); border-radius:8px; padding:2px; background:#fff; }
+
+.amostra{ grid-column:span 6; border-radius:14px; padding:22px 24px; display:flex; gap:16px; align-items:center; }
+.amostra .e{ font-size:46px; }
+.amostra b{ font-family:"Montserrat",sans-serif; font-size:20px; display:block; }
+.amostra span.btn-a{ display:inline-block; margin-top:8px; border-radius:999px; padding:4px 12px; font-size:13px; font-weight:700; }
+
+/* Convidados */
+.add-conv{ display:grid; grid-template-columns:1.4fr 1fr auto; gap:10px; }
+.linhas{ list-style:none; margin-top:18px; border-top:1px solid var(--borda); }
+.linha-conv{ display:grid; grid-template-columns:28px 1.4fr 1fr auto auto; gap:10px; align-items:center; padding:9px 0; border-bottom:1px dashed var(--borda); }
+.linha-conv .n{ color:var(--texto-claro); font-size:14px; text-align:right; }
+.linha-conv input{ padding:7px 10px; font-size:15px; }
+.convite{
+    display:inline-flex; align-items:center; gap:6px; text-decoration:none; font-size:13px; font-weight:500; white-space:nowrap;
+    color:var(--branco); background:#25D366; border-radius:999px; padding:6px 12px;
+}
+.convite svg{ width:15px; height:15px; }
+.convite.enviado{ background:var(--fundo-suave); color:var(--texto-claro); }
+.convite.inativo{ background:var(--fundo-suave); color:var(--texto-claro); pointer-events:none; }
+.remover{ border:0; background:none; cursor:pointer; color:var(--texto-claro); font-size:20px; line-height:1; padding:4px 6px; border-radius:8px; }
+.remover:hover{ color:#BE123C; background:#FFE4E6; }
+.resumo-conv{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; margin-top:18px; }
+.resumo-conv span{ color:var(--texto-claro); }
+details.varios-box{ margin-top:14px; }
+.contatos{ border:1px solid var(--borda); border-radius:12px; padding:14px; margin-top:10px; background:var(--fundo-suave); }
+.contatos .filtros{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.contatos .filtros input, .contatos .filtros select{ font:inherit; font-size:15px; border:1.5px solid var(--borda); border-radius:10px; padding:8px 10px; background:#fff; width:100%; }
+.lista-contatos{ list-style:none; max-height:320px; overflow:auto; margin:10px 0; background:#fff; border:1px solid var(--borda); border-radius:10px; }
+.lista-contatos li{ display:flex; align-items:center; border-bottom:1px solid var(--borda); }
+.lista-contatos li label{ flex:1; border-bottom:0 !important; }
+.lista-contatos .esquecer{ border:0; background:none; cursor:pointer; color:var(--texto-claro); font-size:16px; padding:6px 12px; border-radius:8px; }
+.lista-contatos .esquecer:hover{ color:#BE123C; background:#FFE4E6; }
+.lista-contatos label{ display:flex; gap:10px; align-items:center; padding:8px 12px; border-bottom:1px solid var(--borda); cursor:pointer; }
+.lista-contatos label:hover{ background:var(--ciano-claro); }
+.lista-contatos input{ width:18px; height:18px; accent-color:var(--ciano); flex-shrink:0; }
+.lista-contatos .nm{ flex:1; }
+.lista-contatos small{ color:var(--texto-claro); font-size:13px; white-space:nowrap; }
+.contatos .acoes-c{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+@media (max-width:600px){ .contatos .filtros{ grid-template-columns:1fr; } .lista-contatos small{ display:none; } }
+details.varios-box summary{ cursor:pointer; color:var(--ciano-escuro); font-weight:500; }
+textarea.varios{ min-height:120px; margin:10px 0; }
+
+/* Mensagens */
+.aviso{ padding:28px; }
+.aviso h2{ font-size:22px; margin-bottom:10px; }
+.aviso p{ margin-bottom:10px; }
+.aviso ol{ margin:10px 0 0 22px; }
+.aviso li{ margin-bottom:6px; }
+.entrar{ max-width:420px; margin:30px auto; display:flex; flex-direction:column; gap:12px; }
+.entrar input{ font:inherit; font-size:17px; border:1.5px solid var(--borda); border-radius:10px; padding:12px 14px; }
+.entrar input:focus{ outline:none; border-color:var(--ciano); box-shadow:0 0 0 3px rgba(0,173,239,.18); }
+.erro-senha{ color:#BE123C; min-height:1.4em; margin:0; }
+.faixa-aviso{ background:#FEF3C7; color:#78350F; border:1px solid #FDE68A; border-radius:12px; padding:12px 16px; margin-bottom:18px; font-size:15px; }
+
+/* Barra de salvar */
+.barra{ position:fixed; left:0; right:0; bottom:0; z-index:50; background:var(--marinho); color:#DCE6F7;
+    box-shadow:0 -8px 24px rgba(8,18,46,.25); transform:translateY(100%); transition:transform .25s; }
+.barra.visivel{ transform:none; }
+.barra .wrap{ display:flex; align-items:center; justify-content:space-between; gap:14px; padding:12px 0; }
+.barra .estado{ font-size:15px; }
+.barra .estado.erro{ color:#FDA4AF; }
+.barra .b{ background:var(--ciano); color:#fff; border-color:var(--ciano); }
+
+@media (max-width:900px){
+    .painel{ grid-template-columns:1fr; }
+    .lateral{ position:static; max-height:none; }
+    .lateral .itens{ max-height:300px; }
+}
+@media (max-width:600px){
+    .campo.m3, .campo.m2{ grid-column:span 6; }
+    .editor-topo, .abas, .conteudo-aba{ padding-left:16px; padding-right:16px; }
+    .add-conv{ grid-template-columns:1fr; }
+    .linha-conv{ grid-template-columns:22px 1fr auto; }
+    .linha-conv input[data-c="nome"], .linha-conv input[data-c="whats"]{ grid-column:2 / span 2; }
+    .quem{ text-align:left; }
+    .linha-conv .convite{ grid-column:2; justify-self:start; }
+}
+</style>
+</head>
+
+<body data-pagina="eventos" data-sem-whats>
+
+<div id="topo"></div>
+
+<header class="cabecalho">
+    <div class="wrap">
+        <div>
+            <span class="cadeado">🔒 Área privada</span>
+            <h1>Painel do organizador</h1>
+        </div>
+        <div class="quem" id="quem"></div>
+    </div>
+</header>
+
+<main class="wrap painel" id="painel">
+    <div class="caixa aviso" style="grid-column:1 / -1">Carregando...</div>
+</main>
+
+<div class="barra" id="barra">
+    <div class="wrap">
+        <span class="estado" id="estado">Alterações não salvas</span>
+        <button class="b" id="salvar">Salvar alterações</button>
+    </div>
+</div>
+
+<script src="/assets/js/site.js"></script>
+<script src="/assets/js/eventos-comum.js"></script>
+<!-- Eventos do arquivo do site: usados só na primeira vez, para começar o painel -->
+<script src="/eventos/eventos.js"></script>
+<script>
+(function () {
+    var esc = EV.esc, I = window.ICONES;
+    var DO_ARQUIVO = (window.EVENTOS || []).slice();
+
+    var estado = { eventos: [], convidados: {}, versao: "" };
+    var atual = null;          // id do evento aberto
+    var aba = "detalhes";
+    var sujo = false;
+    var painel = document.getElementById("painel");
+
+    /* ---------------- Utilidades ---------------- */
+
+    function copia(o) { return JSON.parse(JSON.stringify(o)); }
+
+    function slug(t) {
+        return String(t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60) || "evento";
+    }
+    function idLivre(base, ignorar) {
+        var id = base, n = 2;
+        while (estado.eventos.some(function (e) { return e.id === id && e !== ignorar; })) id = base + "-" + n++;
+        return id;
+    }
+    function evento(id) { return estado.eventos.filter(function (e) { return e.id === id; })[0] || null; }
+    function convidados(id) { return estado.convidados[id] || (estado.convidados[id] = []); }
+
+    function numero(w) {
+        var d = String(w || "").replace(/\D/g, "");
+        if (!d) return "";
+        return d.length <= 11 ? "55" + d : d;
+    }
+    function textoConvite(ev, nome) {
+        var link = window.AZUL.site + "/eventos/evento.html?id=" + encodeURIComponent(ev.id);
+        return "Olá, " + String(nome).trim().split(" ")[0] + "! 🎉\n" +
+            "Você está convidado(a) para *" + ev.titulo + "*.\n\n" +
+            "📅 " + EV.dataLonga(ev) + (ev.hora ? ", às " + ev.hora : "") + "\n" +
+            (ev.local ? "📍 " + ev.local + (ev.endereco ? " (" + ev.endereco + ")" : "") + "\n" : "") +
+            "\nTodos os detalhes, mapa, previsão do tempo e playlist:\n" + link + "\n\nConto com você!";
+    }
+
+    function marcarSujo() {
+        sujo = true;
+        mostrarBarra("Alterações não salvas", false);
+    }
+    function mostrarBarra(texto, erro) {
+        var b = document.getElementById("barra"), e = document.getElementById("estado");
+        e.textContent = texto;
+        e.className = "estado" + (erro ? " erro" : "");
+        b.classList.add("visivel");
+    }
+
+    /* Limpa campos vazios antes de salvar */
+    function limpo(ev) {
+        var o = {};
+        Object.keys(ev).forEach(function (k) {
+            var v = ev[k];
+            if (v === "" || v == null || v === false) return;
+            if (Array.isArray(v) && !v.length && k !== "fotos") return;
+            o[k] = v;
+        });
+        if (!o.fotos) o.fotos = [];
+        return o;
+    }
+
+    /* ---------------- Carregar ---------------- */
+
+    function avisoConfig(titulo, texto) {
+        painel.innerHTML = '<div class="caixa aviso" style="grid-column:1 / -1"><h2>' + titulo + '</h2>' + texto +
+            '<p style="margin-top:16px;color:var(--texto-claro);font-size:14px">O passo a passo completo está no arquivo LEIAME.md do site, na parte "Painel do organizador".</p></div>';
+    }
+
+    function telaSenha(erro) {
+        painel.innerHTML = '<form class="caixa aviso entrar" id="form-senha" style="grid-column:1 / -1">' +
+            '<h2>🔒 Entrar no painel</h2><p>Digite a senha do organizador.</p>' +
+            '<input type="password" id="senha" autocomplete="current-password" placeholder="Senha" required>' +
+            '<button class="b cheio" type="submit">Entrar</button>' +
+            '<p class="erro-senha" id="erro-senha">' + esc(erro || "") + '</p></form>';
+        var f = document.getElementById("form-senha"), campo = document.getElementById("senha");
+        campo.focus();
+        f.addEventListener("submit", function (e) {
+            e.preventDefault();
+            var botao = f.querySelector("button");
+            botao.disabled = true;
+            fetch("/api/admin/login", {
+                method: "POST", credentials: "same-origin",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ senha: campo.value })
+            })
+            .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { d._status = r.status; return d; }); })
+            .then(function (d) {
+                if (d._status === 200) return carregar();
+                document.getElementById("erro-senha").textContent = d.erro || "Não consegui entrar.";
+                campo.select();
+            })
+            .catch(function () { document.getElementById("erro-senha").textContent = "Sem conexão. Tente de novo."; })
+            .then(function () { botao.disabled = false; });
+        });
+    }
+
+    function sair(e) {
+        if (e) e.preventDefault();
+        if (sujo && !confirm("Há alterações não salvas. Sair mesmo assim?")) return;
+        sujo = false;
+        fetch("/api/admin/sair", { method: "POST", credentials: "same-origin" })
+            .then(function () { location.reload(); }, function () { location.reload(); });
+    }
+
+    function carregar() {
+    fetch("/api/admin/dados", { credentials: "same-origin", cache: "no-store" })
+        .then(function (r) {
+            return r.json().catch(function () { return {}; }).then(function (d) { d._status = r.status; return d; });
+        })
+        .then(function (d) {
+            if (d._status === 200) return iniciar(d);
+            if (d.codigo === "senha") return telaSenha();
+            if (d.codigo === "sem-login") {
+                avisoConfig("Falta ligar o login do painel",
+                    '<p>O painel está pronto, mas ainda falta configurar no Cloudflare (projeto azulmarinho-site → Settings):</p><ol>' +
+                    '<li>Em <b>Variables and Secrets</b>, a senha do painel: <code>ADMIN_SENHA</code> (tipo Secret).</li>' +
+                    '<li>Em <b>Bindings</b>, o armazenamento KV com o nome <code>DADOS</code>.</li></ol>');
+            } else if (d.codigo === "sem-kv") {
+                avisoConfig("Falta ligar o armazenamento",
+                    '<p>O login está funcionando. Agora é só criar o KV no Cloudflare e ligar ao site com o nome <code>DADOS</code>.</p>');
+            } else if (d._status === 401 || d._status === 403) {
+                avisoConfig("Acesso não autorizado",
+                    '<p>' + esc(d.erro || "Faça login com o e-mail do organizador.") + '</p>' +
+                    '<p><a class="b" href="/cdn-cgi/access/logout">Sair e entrar de novo</a></p>');
+            } else {
+                avisoConfig("O painel só funciona no site publicado",
+                    '<p>Não consegui falar com o servidor do painel (' + (d._status || "sem resposta") + '). Abra pelo endereço do site no Cloudflare.</p>');
+            }
+        })
+        .catch(function () {
+            avisoConfig("Sem conexão", "<p>Não consegui carregar os dados do painel. Verifique a internet e recarregue a página.</p>");
+        });
+    }
+    carregar();
+
+    function iniciar(d) {
+        var primeiraVez = !Array.isArray(d.eventos);
+        estado.eventos = primeiraVez ? copia(DO_ARQUIVO) : d.eventos;
+        estado.convidados = d.convidados || {};
+        estado.versao = d.versao || "";
+        window.EVENTOS = estado.eventos;
+
+        var quem = document.getElementById("quem");
+        if (d.modo === "senha") {
+            quem.innerHTML = '<a href="#" id="sair">Sair do painel</a>';
+            document.getElementById("sair").addEventListener("click", sair);
+        } else if (d.email) {
+            quem.innerHTML = 'Entrou como <b>' + esc(d.email) + '</b><br><a href="/cdn-cgi/access/logout">Sair</a>';
+        }
+
+        var pedido = decodeURIComponent(location.hash.slice(1));
+        atual = evento(pedido) ? pedido : null;
+
+        desenhar();
+        if (primeiraVez) {
+            marcarSujo();
+            mostrarBarra("Primeira vez: carreguei os " + estado.eventos.length + " eventos do site. Clique em Salvar para guardar no painel.", false);
+        }
+    }
+
+    /* ---------------- Desenho ---------------- */
+
+    function desenhar() {
+        window.EVENTOS = estado.eventos;
+        painel.innerHTML =
+            '<aside class="caixa lateral">' +
+                '<div class="topo-lista"><button class="b cheio largo" data-acao="novo">＋ Novo evento</button></div>' +
+                '<div class="itens">' + listaHTML() + '</div>' +
+            '</aside>' +
+            '<section class="caixa" id="editor">' + editorHTML() + '</section>';
+        ligarEditor();
+    }
+
+    function listaHTML() {
+        var g = EV.separar();
+        function item(ev) {
+            var t = EV.tema(ev);
+            return '<button class="item' + (ev.id === atual ? " ativo" : "") + '" data-abrir="' + esc(ev.id) + '">' +
+                '<span class="emo">' + t.emoji + '</span><span><b>' + esc(ev.titulo || "(sem título)") +
+                (ev.rascunho ? '<span class="selo">rascunho</span>' : "") + '</b>' +
+                '<small>' + (ev.data ? EV.dataCurta(ev) : "sem data") + " • " + convidados(ev.id).length + ' conv.</small></span></button>';
+        }
+        var html = "";
+        if (g.proximos.length) html += '<div class="grupo">Próximos</div>' + g.proximos.map(item).join("");
+        if (g.passados.length) html += '<div class="grupo">Já aconteceram</div>' + g.passados.map(item).join("");
+        return html || '<p style="padding:16px;color:var(--texto-claro)">Nenhum evento ainda.</p>';
+    }
+
+    function editorHTML() {
+        var ev = atual && evento(atual);
+        if (!ev) {
+            return '<div class="aviso"><h2>Escolha um evento</h2><p>Clique em um evento da lista para editar os detalhes e os convidados, ou em <b>Novo evento</b> para criar um.</p>' +
+                '<p style="color:var(--texto-claro)">Depois de mexer, clique em <b>Salvar alterações</b> na barra de baixo. O site atualiza em até 1 minuto.</p></div>';
+        }
+        var qtd = convidados(ev.id).length;
+        return '<div class="editor-topo"><h2>' + esc(ev.titulo || "Novo evento") + '</h2><div class="acoes">' +
+                '<a class="b pequeno" href="/eventos/evento.html?id=' + encodeURIComponent(ev.id) + '" target="_blank" rel="noopener">Ver página</a>' +
+                '<button class="b pequeno" data-acao="duplicar">Duplicar</button>' +
+                '<button class="b pequeno perigo" data-acao="excluir">Excluir</button></div></div>' +
+            '<div class="abas"><button data-aba="detalhes" class="' + (aba === "detalhes" ? "ativa" : "") + '">Detalhes</button>' +
+                '<button data-aba="convidados" class="' + (aba === "convidados" ? "ativa" : "") + '">Convidados (' + qtd + ')</button></div>' +
+            '<div class="conteudo-aba">' + (aba === "detalhes" ? detalhesHTML(ev) : convidadosHTML(ev)) + '</div>';
+    }
+
+    function campo(nome, rotulo, valor, extra) {
+        extra = extra || {};
+        var tipo = extra.tipo || "text";
+        var entrada = tipo === "area"
+            ? '<textarea data-c="' + nome + '" id="c-' + nome + '" placeholder="' + esc(extra.ph || "") + '">' + esc(valor) + '</textarea>'
+            : '<input type="' + tipo + '" data-c="' + nome + '" id="c-' + nome + '" value="' + esc(valor) + '" placeholder="' + esc(extra.ph || "") + '"' +
+                (extra.attr || "") + '>';
+        return '<div class="campo ' + (extra.cls || "") + '"><label for="c-' + nome + '">' + rotulo + '</label>' + entrada +
+            (extra.dica ? '<span class="dica">' + extra.dica + '</span>' : "") + '</div>';
+    }
+
+    function detalhesHTML(ev) {
+        var c = ev.cores || {}, t = EV.tema(ev);
+        var opcoes = Object.keys(window.TEMAS).map(function (k) {
+            var x = window.TEMAS[k];
+            return '<option value="' + k + '"' + ((ev.tema || "padrao") === k ? " selected" : "") + '>' + x.emoji + " " + esc(x.nome) + '</option>';
+        }).join("");
+        function cor(k, rot) {
+            return '<label>' + rot + '<input type="color" data-cor="' + k + '" value="' + esc(c[k] || t[k]) + '"></label>';
+        }
+        return '<div class="campos">' +
+            '<div class="secao-form">O evento</div>' +
+            campo("titulo", "Título *", ev.titulo || "", { ph: "Ex.: Heloísa 2 Anos" }) +
+            campo("data", "Data *", ev.data || "", { tipo: "date", cls: "m2" }) +
+            campo("hora", "Horário", ev.hora || "", { cls: "m2", ph: "15:00 ou 15:00 às 21:00" }) +
+            campo("id", "Nome curto do link", ev.id, { cls: "m2", dica: "Só letras minúsculas, números e hífen." }) +
+            campo("descricao", "Descrição", ev.descricao || "", { tipo: "area", ph: "Conte sobre o evento. Deixe uma linha em branco para começar outro parágrafo." }) +
+
+            '<div class="secao-form">Local</div>' +
+            campo("local", "Nome do lugar", ev.local || "", { cls: "m3", ph: "Ex.: Chácara Feliz" }) +
+            campo("endereco", "Endereço completo", ev.endereco || "", { cls: "m3", ph: "Rua, número, bairro, cidade - UF" }) +
+            campo("mapa", "Link do mapa (opcional)", ev.mapa || "", { ph: "https://maps.app.goo.gl/...", dica: "Se ficar vazio, o botão do mapa usa o endereço." }) +
+            campo("cidade", "Cidade para a previsão do tempo", ev.cidade || "", { cls: "m2", ph: "Ipatinga" }) +
+            campo("lat", "Latitude (opcional)", ev.lat == null ? "" : ev.lat, { cls: "m2", ph: "-19.363" }) +
+            campo("lon", "Longitude (opcional)", ev.lon == null ? "" : ev.lon, { cls: "m2", ph: "-42.569" }) +
+
+            '<div class="secao-form">Tema e cores</div>' +
+            '<div class="campo m3"><label for="c-tema">Tema</label><select id="c-tema" data-c="tema">' + opcoes + '</select></div>' +
+            campo("emoji", "Emoji (opcional)", ev.emoji || "", { cls: "m3", ph: t.emoji, dica: "Troca o emoji do tema." }) +
+            '<div class="campo"><label class="check"><input type="checkbox" id="usar-cores"' + (ev.cores ? " checked" : "") + '> Usar cores próprias</label>' +
+                '<div class="cores' + (ev.cores ? "" : " oculto") + '" id="cores">' +
+                    cor("fundo1", "Fundo 1") + cor("fundo2", "Fundo 2") + cor("destaque", "Destaque") + cor("titulo", "Título") + cor("texto", "Texto") +
+                    '<label class="check" style="flex-direction:row;align-self:center"><input type="checkbox" data-cor="claro"' + (t.claro ? " checked" : "") + '> Fundo claro</label>' +
+                '</div></div>' +
+            '<div class="amostra" id="amostra"></div>' +
+
+            '<div class="secao-form">Música e fotos</div>' +
+            campo("playlist", "Playlist", ev.playlist || "", { ph: "Link do Apple Music, Spotify ou YouTube" }) +
+            campo("album", "Álbum de fotos", ev.album || "", { ph: "Link do álbum compartilhado (iCloud, Google Fotos...)" }) +
+            campo("capa", "Foto de capa (opcional)", ev.capa || "", { ph: "Link de uma imagem", dica: "Aparece no cartão do evento. Sem capa, aparece o emoji do tema." }) +
+
+            '<div class="secao-form">Publicação</div>' +
+            '<div class="campo"><label class="check"><input type="checkbox" data-c="rascunho"' + (ev.rascunho ? " checked" : "") + '> Rascunho: esconder este evento do site</label>' +
+                '<span class="dica">Use enquanto ainda está preenchendo. Você pode mandar convites mesmo assim.</span></div>' +
+        '</div>';
+    }
+
+    /* Convidados já salvos nos outros eventos (sem repetir nomes) */
+    function chaveNome(n) { return String(n || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/\s+/g, " ").trim(); }
+    function contatos(ev) {
+        var jaTem = {}, mapa = {};
+        convidados(ev.id).forEach(function (p) { jaTem[chaveNome(p.nome)] = true; });
+        var ordem = estado.eventos.slice().sort(function (a, b) { return (b.data || "").localeCompare(a.data || ""); });
+        ordem.forEach(function (outro) {
+            if (outro.id === ev.id) return;
+            (estado.convidados[outro.id] || []).forEach(function (p) {
+                var k = chaveNome(p.nome);
+                if (!k || jaTem[k]) return;
+                var c = mapa[k] || (mapa[k] = { nome: String(p.nome).trim(), whats: "", eventos: [] });
+                if (!c.whats && p.whats) c.whats = String(p.whats).trim();   // o mais recente com WhatsApp
+                if (c.eventos.indexOf(outro.id) < 0) c.eventos.push(outro.id);
+            });
+        });
+        return Object.keys(mapa).map(function (k) { return mapa[k]; }).sort(function (a, b) {
+            return b.eventos.length - a.eventos.length || a.nome.localeCompare(b.nome, "pt-BR");
+        });
+    }
+    function contatosHTML(ev, lista) {
+        var cs = contatos(ev);
+        if (!cs.length) return "";
+        var comConv = estado.eventos.filter(function (o) { return o.id !== ev.id && (estado.convidados[o.id] || []).length; });
+        return '<details class="varios-box"' + (lista.length ? "" : " open") + '><summary>Escolher dos convidados já salvos (' + cs.length + ')</summary>' +
+            '<div class="contatos"><div class="filtros">' +
+                '<input id="busca-contatos" placeholder="🔎 Buscar nome" autocomplete="off">' +
+                '<select id="filtro-evento"><option value="">Todos os eventos</option>' + comConv.map(function (o) {
+                    return '<option value="' + esc(o.id) + '">Quem foi em: ' + esc(o.titulo) + '</option>';
+                }).join("") + '</select></div>' +
+                '<ul class="lista-contatos" id="lista-contatos">' + cs.map(function (c, i) {
+                    return '<li data-ev="' + esc(c.eventos.join(" ")) + '" data-k="' + esc(chaveNome(c.nome)) + '"><label>' +
+                        '<input type="checkbox" data-contato="' + i + '"><span class="nm">' + esc(c.nome) + '</span>' +
+                        '<small>' + (c.whats ? "📱 " + esc(c.whats) + " • " : "") + c.eventos.length + (c.eventos.length === 1 ? " evento" : " eventos") + '</small></label>' +
+                        '<button class="esquecer" data-esquecer="' + i + '" title="Tirar de todos os eventos" aria-label="Tirar ' + esc(c.nome) + ' de todos os eventos">🗑</button></li>';
+                }).join("") + '</ul>' +
+                '<div class="acoes-c"><button class="b pequeno" data-acao="marcar-visiveis">Marcar todos da lista</button>' +
+                '<button class="b pequeno" data-acao="desmarcar-contatos">Desmarcar</button>' +
+                '<button class="b cheio" data-acao="add-contatos" id="add-contatos" disabled>Adicionar marcados</button></div>' +
+            '</div></details>';
+    }
+    var CONTATOS_ABERTOS = [];
+
+    function convidadosHTML(ev) {
+        var lista = convidados(ev.id);
+        var enviados = lista.filter(function (p) { return p.enviado; }).length;
+        return '<div class="add-conv">' +
+                '<input id="novo-nome" placeholder="Nome do convidado" autocomplete="off" list="sugestoes">' +
+                '<input id="novo-whats" placeholder="WhatsApp com DDD (opcional)" inputmode="tel" autocomplete="off">' +
+                '<button class="b cheio" data-acao="add-conv">Adicionar</button>' +
+            '</div>' +
+            (function () { var h = contatosHTML(ev, lista); CONTATOS_ABERTOS = contatos(ev); return h; })() +
+            '<datalist id="sugestoes">' + contatos(ev).map(function (c) { return '<option value="' + esc(c.nome) + '">'; }).join("") + '</datalist>' +
+            '<details class="varios-box"><summary>Adicionar vários de uma vez</summary>' +
+                '<textarea class="varios" id="varios" placeholder="Um por linha. Exemplo:\nMaria Souza, 31 99999-8888\nJoão 31988887777\nTia Rosa"></textarea>' +
+                '<button class="b" data-acao="add-varios">Adicionar todos</button></details>' +
+            (lista.length
+                ? '<ol class="linhas">' + lista.map(function (p, i) {
+                    var n = numero(p.whats);
+                    var botao = n
+                        ? '<a class="convite' + (p.enviado ? " enviado" : "") + '" data-i="' + i + '" href="https://wa.me/' + n + '?text=' + encodeURIComponent(textoConvite(ev, p.nome)) + '" target="_blank" rel="noopener">' +
+                            I.whats + (p.enviado ? "Enviado ✓" : "Enviar convite") + '</a>'
+                        : '<span class="convite inativo">sem WhatsApp</span>';
+                    return '<li class="linha-conv"><span class="n">' + (i + 1) + '.</span>' +
+                        '<input data-i="' + i + '" data-c="nome" value="' + esc(p.nome) + '" aria-label="Nome">' +
+                        '<input data-i="' + i + '" data-c="whats" value="' + esc(p.whats || "") + '" placeholder="WhatsApp" inputmode="tel" aria-label="WhatsApp">' +
+                        botao + '<button class="remover" data-remover="' + i + '" title="Remover" aria-label="Remover ' + esc(p.nome) + '">×</button></li>';
+                  }).join("") + '</ol>' +
+                  '<div class="resumo-conv"><span>' + lista.length + (lista.length === 1 ? " convidado" : " convidados") + " • " + enviados + (enviados === 1 ? " convite enviado" : " convites enviados") + '</span>' +
+                  '<span style="display:flex;gap:8px;flex-wrap:wrap"><button class="b pequeno" data-acao="copiar">Copiar lista</button>' +
+                  (enviados ? '<button class="b pequeno" data-acao="limpar-envios">Desmarcar enviados</button>' : "") + '</span></div>'
+                : '<p style="margin-top:18px;color:var(--texto-claro)">Nenhum convidado ainda.</p>');
+    }
+
+    function amostra() {
+        var a = document.getElementById("amostra");
+        if (!a) return;
+        var t = EV.tema(evento(atual));
+        a.style.background = "linear-gradient(135deg," + t.fundo1 + "," + t.fundo2 + ")";
+        a.style.color = t.texto;
+        a.innerHTML = '<span class="e">' + t.emoji + '</span><div><b style="color:' + t.titulo + '">' + esc(evento(atual).titulo || "Título do evento") + '</b>' +
+            'Assim fica a página do evento.<br><span class="btn-a" style="background:' + t.destaque + ';color:' + (t.claro ? "#fff" : t.fundo1) + '">Botão</span></div>';
+    }
+
+    /* ---------------- Interação ---------------- */
+
+    function ligarEditor() { amostra(); }
+
+    function atualizarLista() {
+        var itens = painel.querySelector(".itens");
+        if (itens) itens.innerHTML = listaHTML();
+    }
+
+    function filtrarContatos() {
+        var busca = chaveNome((document.getElementById("busca-contatos") || {}).value);
+        var filtro = (document.getElementById("filtro-evento") || {}).value || "";
+        painel.querySelectorAll("#lista-contatos li").forEach(function (li) {
+            var ok = (!busca || li.getAttribute("data-k").indexOf(busca) >= 0) &&
+                (!filtro || (" " + li.getAttribute("data-ev") + " ").indexOf(" " + filtro + " ") >= 0);
+            li.style.display = ok ? "" : "none";
+        });
+    }
+    function contarMarcados() {
+        var n = painel.querySelectorAll("[data-contato]:checked").length, b = document.getElementById("add-contatos");
+        if (b) { b.disabled = !n; b.textContent = n ? "Adicionar marcados (" + n + ")" : "Adicionar marcados"; }
+    }
+
+    painel.addEventListener("input", function (e) {
+        var ev = atual && evento(atual);
+        if (!ev) return;
+        var el = e.target, c = el.getAttribute("data-c");
+
+        /* Escolher dos convidados já salvos: busca, filtro e marcação */
+        if (el.id === "busca-contatos" || el.id === "filtro-evento") return filtrarContatos();
+        if (el.hasAttribute("data-contato")) return contarMarcados();
+        if (el.id === "novo-nome") {
+            var achou = CONTATOS_ABERTOS.filter(function (x) { return chaveNome(x.nome) === chaveNome(el.value); })[0];
+            var w = document.getElementById("novo-whats");
+            if (achou && achou.whats && !w.value) w.value = achou.whats;
+            return;
+        }
+
+        /* Convidados */
+        if (el.hasAttribute("data-i") && c) {
+            convidados(ev.id)[+el.getAttribute("data-i")][c] = el.value;
+            marcarSujo();
+            return;
+        }
+
+        /* Cores próprias */
+        if (el.hasAttribute("data-cor")) {
+            ev.cores = ev.cores || {};
+            var k = el.getAttribute("data-cor");
+            ev.cores[k] = k === "claro" ? el.checked : el.value;
+            marcarSujo(); amostra();
+            return;
+        }
+
+        if (!c) return;
+        if (c === "id") {
+            var novo = slug(el.value);
+            el.classList.toggle("erro", novo !== el.value);
+            return;
+        }
+        var v = el.type === "checkbox" ? el.checked : el.value;
+        if (c === "lat" || c === "lon") v = v === "" || isNaN(+v) ? "" : +v;
+        ev[c] = v;
+
+        /* Evento novo: o link acompanha o título até ser salvo */
+        if (c === "titulo" && ev._novo) {
+            var id = idLivre(slug(v), ev);
+            trocarId(ev, id);
+            var campoId = document.getElementById("c-id");
+            if (campoId) campoId.value = id;
+        }
+        if (c === "titulo") painel.querySelector(".editor-topo h2").textContent = v || "Novo evento";
+        marcarSujo();
+        if (c === "titulo" || c === "data" || c === "rascunho" || c === "tema" || c === "emoji") { atualizarLista(); amostra(); }
+    });
+
+    painel.addEventListener("change", function (e) {
+        var ev = atual && evento(atual), el = e.target;
+        if (!ev) return;
+        if (el.id === "usar-cores") {
+            document.getElementById("cores").classList.toggle("oculto", !el.checked);
+            if (el.checked) {
+                var t = EV.tema(ev);
+                ev.cores = { fundo1: t.fundo1, fundo2: t.fundo2, destaque: t.destaque, titulo: t.titulo, texto: t.texto, claro: t.claro };
+            } else delete ev.cores;
+            marcarSujo(); amostra();
+        }
+        if (el.getAttribute("data-c") === "id") {
+            var id = slug(el.value);
+            if (id !== ev.id) {
+                id = idLivre(id, ev);
+                trocarId(ev, id);
+                atual = id;
+                marcarSujo(); atualizarLista();
+            }
+            el.value = ev.id;
+            el.classList.remove("erro");
+        }
+    });
+
+    function trocarId(ev, id) {
+        if (ev.id === id) return;
+        if (estado.convidados[ev.id]) {
+            estado.convidados[id] = estado.convidados[ev.id];
+            delete estado.convidados[ev.id];
+        }
+        ev.id = id;
+        atual = id;
+    }
+
+    function abrir(id) {
+        atual = id;
+        history.replaceState(null, "", id ? "#" + encodeURIComponent(id) : location.pathname);
+        desenhar();
+        if (window.innerWidth < 900) document.getElementById("editor").scrollIntoView({ behavior: "smooth" });
+    }
+
+    function adicionar(nome, whats) {
+        nome = String(nome || "").trim();
+        if (!nome) return false;
+        convidados(atual).push({ nome: nome, whats: String(whats || "").trim() });
+        return true;
+    }
+
+    painel.addEventListener("click", function (e) {
+        var alvo = e.target.closest("[data-abrir],[data-acao],[data-aba],[data-remover],[data-esquecer],.convite");
+        if (!alvo) return;
+
+        if (alvo.hasAttribute("data-abrir")) return abrir(alvo.getAttribute("data-abrir"));
+        if (alvo.hasAttribute("data-aba")) { aba = alvo.getAttribute("data-aba"); return desenhar(); }
+
+        var ev = atual && evento(atual);
+
+        if (alvo.classList.contains("convite")) {
+            var p = convidados(ev.id)[+alvo.getAttribute("data-i")];
+            if (p && !p.enviado) {
+                p.enviado = true;
+                alvo.classList.add("enviado");
+                alvo.innerHTML = I.whats + "Enviado ✓";
+                salvar(true);
+            }
+            return;
+        }
+
+        if (alvo.hasAttribute("data-esquecer")) {
+            var ct = CONTATOS_ABERTOS[+alvo.getAttribute("data-esquecer")], k = chaveNome(ct.nome);
+            var nomesEv = ct.eventos.map(function (id) { var o = evento(id); return "• " + (o ? o.titulo : id); }).join("\n");
+            if (confirm("Tirar " + ct.nome + " de todos os eventos?\n\n" + nomesEv + "\n\nIsso só vale depois de Salvar.")) {
+                Object.keys(estado.convidados).forEach(function (id) {
+                    estado.convidados[id] = estado.convidados[id].filter(function (p) { return chaveNome(p.nome) !== k; });
+                });
+                marcarSujo(); desenhar();
+                mostrarBarra(ct.nome + " foi tirado(a) de todos os eventos. Clique em Salvar.", false);
+            }
+            return;
+        }
+
+        if (alvo.hasAttribute("data-remover")) {
+            var i = +alvo.getAttribute("data-remover"), lista = convidados(ev.id);
+            if (confirm("Remover " + lista[i].nome + " da lista?")) {
+                lista.splice(i, 1); marcarSujo(); desenhar();
+            }
+            return;
+        }
+
+        switch (alvo.getAttribute("data-acao")) {
+            case "novo":
+                var hoje = new Date(); hoje.setDate(hoje.getDate() + 30);
+                var novo = {
+                    id: idLivre("novo-evento"), titulo: "", data: hoje.toISOString().slice(0, 10), hora: "",
+                    local: "", endereco: "", cidade: "Ipatinga", tema: "padrao", descricao: "", playlist: "",
+                    fotos: [], album: "", rascunho: true, _novo: true
+                };
+                estado.eventos.unshift(novo);
+                aba = "detalhes";
+                marcarSujo();
+                abrir(novo.id);
+                document.getElementById("c-titulo").focus();
+                break;
+
+            case "duplicar":
+                var dup = copia(ev);
+                dup.titulo = ev.titulo + " (cópia)";
+                dup.id = idLivre(ev.id + "-copia");
+                dup.album = ""; dup.fotos = []; dup.rascunho = true; dup._novo = true;
+                estado.eventos.unshift(dup);
+                marcarSujo();
+                abrir(dup.id);
+                break;
+
+            case "excluir":
+                if (!confirm("Excluir o evento \"" + (ev.titulo || ev.id) + "\" e a lista de convidados dele?\n\nIsso só vale depois de Salvar.")) return;
+                estado.eventos = estado.eventos.filter(function (x) { return x !== ev; });
+                delete estado.convidados[ev.id];
+                marcarSujo();
+                abrir(null);
+                break;
+
+            case "add-conv":
+                var n = document.getElementById("novo-nome"), w = document.getElementById("novo-whats");
+                if (adicionar(n.value, w.value)) { marcarSujo(); desenhar(); document.getElementById("novo-nome").focus(); }
+                else n.focus();
+                break;
+
+            case "marcar-visiveis":
+            case "desmarcar-contatos":
+                var marcar = alvo.getAttribute("data-acao") === "marcar-visiveis";
+                painel.querySelectorAll("#lista-contatos li").forEach(function (li) {
+                    if (li.style.display !== "none" || !marcar) li.querySelector("input").checked = marcar;
+                });
+                contarMarcados();
+                break;
+
+            case "add-contatos":
+                var qtdC = 0;
+                painel.querySelectorAll("[data-contato]:checked").forEach(function (cb) {
+                    var c = CONTATOS_ABERTOS[+cb.getAttribute("data-contato")];
+                    if (c && adicionar(c.nome, c.whats)) qtdC++;
+                });
+                if (qtdC) { marcarSujo(); desenhar(); mostrarBarra(qtdC + (qtdC === 1 ? " convidado adicionado" : " convidados adicionados") + ". Clique em Salvar.", false); }
+                break;
+
+            case "add-varios":
+                var linhas = document.getElementById("varios").value.split(/\n+/), qtd = 0;
+                linhas.forEach(function (l) {
+                    var m = l.match(/^(.*?)[\s,;:-]*((?:\+?\(?\d[\d\s().-]{7,}\d))?\s*$/);
+                    if (m && adicionar(m[1].replace(/[\s,;:-]+$/, ""), m[2] || "")) qtd++;
+                });
+                if (qtd) { marcarSujo(); desenhar(); }
+                break;
+
+            case "copiar":
+                var texto = ev.titulo + " (" + EV.dataCurta(ev) + ")\n" + convidados(ev.id).map(function (p, i) { return (i + 1) + ". " + p.nome; }).join("\n");
+                navigator.clipboard.writeText(texto).then(function () {
+                    alvo.textContent = "Copiado!";
+                    setTimeout(function () { alvo.textContent = "Copiar lista"; }, 1800);
+                });
+                break;
+
+            case "limpar-envios":
+                convidados(ev.id).forEach(function (p) { delete p.enviado; });
+                marcarSujo(); desenhar();
+                break;
+        }
+    });
+
+    painel.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" && (e.target.id === "novo-nome" || e.target.id === "novo-whats")) {
+            e.preventDefault();
+            painel.querySelector('[data-acao="add-conv"]').click();
+        }
+    });
+
+    /* ---------------- Salvar ---------------- */
+
+    var salvando = false;
+    function salvar(silencioso) {
+        if (salvando) return;
+        var erro = "";
+        estado.eventos.forEach(function (ev) {
+            if (!erro && !String(ev.titulo || "").trim()) erro = "Falta o título de um evento.";
+            if (!erro && !/^\d{4}-\d{2}-\d{2}$/.test(ev.data || "")) erro = "Falta a data do evento \"" + ev.titulo + "\".";
+        });
+        if (erro) { mostrarBarra(erro, true); return; }
+
+        /* Tira convidados de eventos que não existem mais e linhas sem nome */
+        var conv = {};
+        estado.eventos.forEach(function (ev) {
+            var l = (estado.convidados[ev.id] || []).filter(function (p) { return String(p.nome || "").trim(); })
+                .map(function (p) { var o = { nome: String(p.nome).trim() }; if (p.whats) o.whats = String(p.whats).trim(); if (p.enviado) o.enviado = true; return o; });
+            if (l.length) conv[ev.id] = l;
+        });
+        var eventos = estado.eventos.map(function (ev) { var o = copia(ev); delete o._novo; return limpo(o); });
+
+        salvando = true;
+        var botao = document.getElementById("salvar");
+        botao.disabled = true;
+        mostrarBarra("Salvando...", false);
+
+        fetch("/api/admin/dados", {
+            method: "PUT", credentials: "same-origin",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ eventos: eventos, convidados: conv, versao: estado.versao })
+        })
+        .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { d._status = r.status; return d; }); })
+        .then(function (d) {
+            if (d._status !== 200) throw new Error(d.erro || "Erro " + d._status);
+            estado.versao = d.versao;
+            estado.eventos.forEach(function (ev) { delete ev._novo; });
+            sujo = false;
+            mostrarBarra(silencioso ? "Convite marcado como enviado ✓" : "Tudo salvo ✓ O site atualiza em até 1 minuto.", false);
+            setTimeout(function () { if (!sujo) document.getElementById("barra").classList.remove("visivel"); }, 4000);
+        })
+        .catch(function (err) {
+            mostrarBarra("Não salvou: " + err.message, true);
+        })
+        .then(function () { salvando = false; botao.disabled = false; });
+    }
+
+    document.getElementById("salvar").addEventListener("click", function () { salvar(false); });
+
+    window.addEventListener("beforeunload", function (e) {
+        if (sujo) { e.preventDefault(); e.returnValue = ""; }
+    });
+})();
+</script>
+
+</body>
+</html>

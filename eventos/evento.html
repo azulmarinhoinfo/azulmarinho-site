@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Evento | Azul Marinho</title>
+<meta name="description" content="Evento Azul Marinho: data, hora, local, previsão do tempo, playlist e fotos.">
+<meta name="theme-color" content="#0F1F47">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Ubuntu:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/site.css">
+
+<style>
+/* As cores abaixo são trocadas pelo tema de cada evento (eventos.js) */
+body.tema{
+    --t-fundo1:#08122E; --t-fundo2:#24376B; --t-destaque:#00ADEF; --t-texto:#DCE6F7; --t-titulo:#FFFFFF;
+    --t-cartao:rgba(255,255,255,.07); --t-borda:rgba(255,255,255,.14); --t-suave:rgba(255,255,255,.72);
+    background:linear-gradient(160deg, var(--t-fundo1), var(--t-fundo2));
+    position:relative; min-height:100vh;
+    color:var(--t-texto);
+}
+body.tema.claro{
+    --t-cartao:rgba(255,255,255,.72); --t-borda:rgba(0,0,0,.08); --t-suave:rgba(0,0,0,.62);
+}
+body.tema h1, body.tema h2, body.tema h3{ color:var(--t-titulo); }
+
+.fundo-padrao{ position:absolute; inset:0; pointer-events:none; z-index:0; opacity:.55; }
+.padrao-estrelas{ background-image:radial-gradient(1.5px 1.5px at 20px 30px, #fff, transparent), radial-gradient(1px 1px at 120px 80px, #fff, transparent), radial-gradient(1.5px 1.5px at 200px 160px, #fff, transparent), radial-gradient(1px 1px at 60px 190px, #fff, transparent); background-size:240px 220px; }
+.padrao-neve{ background-image:radial-gradient(3px 3px at 30px 40px, #fff, transparent), radial-gradient(2px 2px at 140px 110px, #fff, transparent), radial-gradient(3px 3px at 90px 200px, #fff, transparent); background-size:220px 240px; }
+.padrao-confete{ background-image:radial-gradient(4px 4px at 30px 40px, #FFD600, transparent), radial-gradient(4px 4px at 140px 90px, #00E5FF, transparent), radial-gradient(4px 4px at 80px 180px, #FF4081, transparent), radial-gradient(4px 4px at 190px 200px, #76FF03, transparent); background-size:230px 240px; }
+.padrao-flores{ background-image:radial-gradient(6px 6px at 40px 50px, #F9A8D4, transparent), radial-gradient(5px 5px at 160px 120px, #86EFAC, transparent), radial-gradient(6px 6px at 90px 210px, #FBCFE8, transparent); background-size:240px 260px; opacity:.8; }
+.padrao-bandeirinhas{
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='60'%3E%3Cpath d='M0 4 Q80 22 160 4' stroke='%23fff' stroke-width='2' fill='none' opacity='.6'/%3E%3Cpath d='M10 7 L30 10 L22 40Z' fill='%23FACC15'/%3E%3Cpath d='M45 12 L65 14 L57 44Z' fill='%2322C55E'/%3E%3Cpath d='M80 13 L100 13 L92 43Z' fill='%23EF4444'/%3E%3Cpath d='M115 12 L135 10 L127 40Z' fill='%233B82F6'/%3E%3C/svg%3E");
+    background-repeat:repeat-x; background-size:160px 60px; opacity:.9; position:absolute; top:67px; bottom:auto; height:60px;
+}
+
+main, .rodape{ position:relative; z-index:1; }
+
+/* Topo do evento */
+.ev-hero{ padding:46px 0 40px; }
+.voltar{ display:inline-flex; align-items:center; gap:6px; color:var(--t-suave); text-decoration:none; font-size:15px; margin-bottom:26px; }
+.voltar:hover{ color:var(--t-destaque); }
+.ev-hero .grade{ display:grid; grid-template-columns:1fr 280px; gap:34px; align-items:center; }
+.chip-tema{
+    display:inline-flex; gap:8px; align-items:center; background:var(--t-cartao); border:1px solid var(--t-borda);
+    border-radius:999px; padding:6px 16px; font-size:14px; font-weight:500; margin-bottom:16px;
+}
+.ev-hero h1{ font-size:clamp(32px, 5.4vw, 58px); font-weight:800; margin-bottom:16px; }
+.ev-hero .linha{ display:flex; flex-wrap:wrap; gap:10px 24px; font-size:18px; margin-bottom:18px; }
+.ev-contagem{
+    display:inline-block; font-family:"Montserrat",sans-serif; font-weight:800; font-size:20px;
+    color:var(--t-destaque); margin-bottom:24px;
+}
+.ev-botoes{ display:flex; flex-wrap:wrap; gap:12px; }
+.btn-tema{ background:var(--t-destaque); color:var(--t-fundo1); box-shadow:0 10px 26px rgba(0,0,0,.25); }
+.btn-tema:hover{ filter:brightness(1.08); }
+.btn-tema-contorno{ border:2px solid var(--t-borda); color:var(--t-titulo); background:var(--t-cartao); }
+.btn-tema-contorno:hover{ border-color:var(--t-destaque); color:var(--t-destaque); }
+.ev-arte{
+    aspect-ratio:1; border-radius:28px; display:grid; place-items:center; font-size:130px;
+    background:var(--t-cartao); border:1px solid var(--t-borda); background-size:cover; background-position:center;
+    box-shadow:0 24px 60px rgba(0,0,0,.25);
+}
+
+/* Blocos */
+.blocos{ display:grid; grid-template-columns:repeat(12, 1fr); gap:22px; padding-bottom:80px; }
+.bloco{
+    background:var(--t-cartao); border:1px solid var(--t-borda); border-radius:20px; padding:26px 26px 28px;
+    backdrop-filter:blur(6px);
+}
+.bloco h2{ font-size:21px; margin-bottom:14px; display:flex; align-items:center; gap:10px; }
+.bloco p{ font-size:17px; }
+.bloco p + p{ margin-top:12px; }
+.bloco .suave{ color:var(--t-suave); font-size:15px; }
+.c4{ grid-column:span 4; } .c5{ grid-column:span 5; } .c6{ grid-column:span 6; } .c7{ grid-column:span 7; } .c8{ grid-column:span 8; } .c12{ grid-column:span 12; }
+
+.info-grande{ font-family:"Montserrat",sans-serif; font-weight:700; font-size:22px; color:var(--t-titulo); line-height:1.3; }
+.link-tema{ color:var(--t-destaque); font-weight:500; text-decoration:none; display:inline-block; margin-top:10px; }
+.link-tema:hover{ text-decoration:underline; }
+
+.clima{ display:flex; align-items:center; gap:18px; }
+.clima .emoji{ font-size:58px; line-height:1; }
+.clima .temp{ font-family:"Montserrat",sans-serif; font-weight:800; font-size:34px; color:var(--t-titulo); line-height:1.1; }
+
+.playlist iframe{ width:100%; height:352px; border:0; border-radius:14px; }
+
+.album{ display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:12px; }
+.album button{
+    border:0; padding:0; cursor:zoom-in; border-radius:14px; overflow:hidden; aspect-ratio:4/3; background:var(--t-cartao);
+}
+.album img{ width:100%; height:100%; object-fit:cover; transition:transform .3s; }
+.album button:hover img{ transform:scale(1.05); }
+
+/* Visualizador de fotos */
+.lightbox{
+    position:fixed; inset:0; z-index:100; background:rgba(0,0,0,.92); display:none;
+    align-items:center; justify-content:center; padding:20px;
+}
+.lightbox.aberto{ display:flex; }
+.lightbox img{ max-width:100%; max-height:86vh; border-radius:10px; }
+.lightbox button{
+    position:absolute; background:rgba(255,255,255,.12); color:#fff; border:0; cursor:pointer;
+    width:52px; height:52px; border-radius:50%; font-size:26px; display:grid; place-items:center;
+}
+.lightbox button:hover{ background:rgba(255,255,255,.25); }
+.lb-fechar{ top:16px; right:16px; }
+.lb-ant{ left:16px; top:50%; transform:translateY(-50%); }
+.lb-prox{ right:16px; top:50%; transform:translateY(-50%); }
+.lb-conta{ position:absolute; bottom:18px; left:0; right:0; text-align:center; color:#ddd; font-size:15px; }
+
+.nao-achou{ text-align:center; padding:120px 20px; }
+.nao-achou h1{ margin-bottom:12px; }
+
+@media (max-width:900px){
+    .ev-hero .grade{ grid-template-columns:1fr; }
+    .ev-arte{ display:none; }
+    .c4, .c5, .c6, .c7, .c8{ grid-column:span 12; }
+}
+@media (min-width:561px) and (max-width:900px){
+    .c4{ grid-column:span 6; }
+}
+@media (max-width:560px){
+    .ev-hero{ padding:30px 0 30px; }
+    .ev-botoes .btn{ width:100%; }
+    .bloco{ padding:22px 18px; }
+    .album{ grid-template-columns:1fr 1fr; gap:8px; }
+}
+</style>
+</head>
+
+<body data-pagina="eventos" class="tema">
+
+<div id="topo"></div>
+<div class="fundo-padrao" id="fundo-padrao"></div>
+
+<main id="conteudo"></main>
+
+<div class="lightbox" id="lightbox" role="dialog" aria-label="Fotos do evento">
+    <button class="lb-fechar" aria-label="Fechar">✕</button>
+    <button class="lb-ant" aria-label="Foto anterior">‹</button>
+    <img alt="">
+    <button class="lb-prox" aria-label="Próxima foto">›</button>
+    <div class="lb-conta"></div>
+</div>
+
+<div id="rodape"></div>
+
+<script src="/assets/js/site.js"></script>
+<script src="/assets/js/eventos-comum.js"></script>
+<script src="/eventos/dados"></script>
+<script>window.EVENTOS || document.write('<script src="/eventos/eventos.js"><\/script>')</script>
+<script>
+(function () {
+    var esc = EV.esc, A = window.AZUL, I = window.ICONES;
+    var id = new URLSearchParams(location.search).get("id");
+    var ev = id ? EV.buscar(id) : null;
+    var alvo = document.getElementById("conteudo");
+
+    if (!ev) {
+        document.body.classList.remove("tema");
+        alvo.innerHTML = '<div class="wrap nao-achou"><h1>Evento não encontrado</h1>' +
+            '<p style="margin-bottom:24px">Esse evento pode ter mudado de endereço.</p>' +
+            '<a class="btn btn-ciano" href="/eventos/">Ver todos os eventos</a></div>';
+        return;
+    }
+
+    /* ----- Tema do evento ----- */
+    var t = EV.tema(ev), s = document.body.style;
+    s.setProperty("--t-fundo1", t.fundo1);
+    s.setProperty("--t-fundo2", t.fundo2);
+    s.setProperty("--t-destaque", t.destaque);
+    s.setProperty("--t-texto", t.texto);
+    s.setProperty("--t-titulo", t.titulo);
+    if (t.claro) document.body.classList.add("claro");
+    if (t.padrao) document.getElementById("fundo-padrao").classList.add("padrao-" + t.padrao);
+    document.querySelector('meta[name="theme-color"]').setAttribute("content", t.fundo1);
+    document.title = ev.titulo + " | Eventos Azul Marinho";
+
+    var passado = EV.diasAte(ev) < 0;
+    var linkMapa = EV.linkMapa(ev);
+    var textoWhats = ev.titulo + " • " + EV.dataCurta(ev) + (ev.hora ? " às " + ev.hora : "") + "\n" + location.href;
+
+    function paragrafos(txt) {
+        return String(txt || "").split(/\n\s*\n/).map(function (p) { return "<p>" + esc(p).replace(/\n/g, "<br>") + "</p>"; }).join("");
+    }
+
+    function embedPlaylist(url) {
+        if (!url) return "";
+        var m = url.match(/open\.spotify\.com\/(?:intl-[a-z]+\/)?(playlist|album|track|artist)\/([A-Za-z0-9]+)/);
+        if (m) return '<iframe src="https://open.spotify.com/embed/' + m[1] + "/" + m[2] + '" loading="lazy" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" title="Playlist do evento"></iframe>';
+        if (/music\.apple\.com\//.test(url)) return '<iframe src="' + esc(url.replace("://music.apple.com/", "://embed.music.apple.com/")) + '" loading="lazy" allow="autoplay *; encrypted-media *; clipboard-write" sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-top-navigation-by-user-activation" title="Playlist do evento"></iframe>';
+        m = url.match(/[?&]list=([A-Za-z0-9_-]+)/);
+        if (m && /youtu/.test(url)) return '<iframe src="https://www.youtube.com/embed/videoseries?list=' + m[1] + '" loading="lazy" allowfullscreen title="Playlist do evento"></iframe>';
+        return '<a class="btn btn-tema" href="' + esc(url) + '" target="_blank" rel="noopener">🎵 Abrir a playlist</a>';
+    }
+
+    var dm = EV.diaMes(ev);
+    var capa = ev.capa ? "background-image:url('/eventos/" + esc(ev.capa) + "')" : "";
+    var fotos = ev.fotos || [];
+
+    var html =
+        '<section class="ev-hero"><div class="wrap">' +
+            '<a class="voltar" href="/eventos/">← Todos os eventos</a>' +
+            '<div class="grade"><div>' +
+                '<span class="chip-tema">' + t.emoji + " " + esc(t.nome) + '</span>' +
+                '<h1>' + esc(ev.titulo) + '</h1>' +
+                '<div class="linha"><span>📅 ' + EV.dataLonga(ev) + '</span>' +
+                    (ev.hora ? '<span>🕗 ' + esc(ev.hora) + '</span>' : "") +
+                    (ev.local ? '<span>📍 ' + esc(ev.local) + '</span>' : "") + '</div>' +
+                '<span class="ev-contagem">' + EV.contagem(ev) + '</span>' +
+                '<div class="ev-botoes">' +
+                    '<a class="btn btn-tema" href="' + esc(linkMapa) + '" target="_blank" rel="noopener">📍 Abrir no mapa</a>' +
+                    '<a class="btn btn-tema-contorno" href="https://wa.me/?text=' + encodeURIComponent(textoWhats) + '" target="_blank" rel="noopener">' + I.whats + ' Compartilhar</a>' +
+                '</div>' +
+            '</div>' +
+            '<div class="ev-arte" style="' + capa + '">' + (ev.capa ? "" : t.emoji) + '</div>' +
+            '</div>' +
+        '</div></section>' +
+
+        '<div class="wrap"><div class="blocos">' +
+            '<div class="bloco c4"><h2>📅 Data e hora</h2>' +
+                '<div class="info-grande">' + dm.dia + " de " + EV.dataLonga(ev).split(" de ")[1] + '</div>' +
+                '<p class="suave">' + EV.dataLonga(ev).split(",")[0] + (ev.hora ? ", às " + esc(ev.hora) : "") + '</p></div>' +
+            '<div class="bloco c4"><h2>📍 Local</h2>' +
+                '<div class="info-grande">' + esc(ev.local || "A definir") + '</div>' +
+                (ev.endereco ? '<p class="suave">' + esc(ev.endereco) + '</p>' : "") +
+                '<a class="link-tema" href="' + esc(linkMapa) + '" target="_blank" rel="noopener">Ver no mapa →</a></div>' +
+            '<div class="bloco c4"><h2>🌤️ Clima</h2><div id="clima" class="suave">Buscando a previsão do tempo...</div></div>' +
+
+            '<div class="bloco ' + (ev.playlist ? "c7" : "c12") + '"><h2>✨ Sobre o evento</h2>' + paragrafos(ev.descricao) + '</div>' +
+            (ev.playlist ? '<div class="bloco c5 playlist"><h2>🎵 Playlist</h2>' + embedPlaylist(ev.playlist) + '</div>' : "") +
+
+            '<div class="bloco c12"><h2>📸 Álbum de fotos</h2>' +
+                (fotos.length
+                    ? '<div class="album">' + fotos.map(function (f, i) {
+                        return '<button data-i="' + i + '" aria-label="Abrir foto ' + (i + 1) + '"><img src="/eventos/' + esc(f) + '" loading="lazy" alt="Foto ' + (i + 1) + ' do evento"></button>';
+                      }).join("") + '</div>'
+                    : (ev.album ? "" : '<p class="suave">' + (passado ? "As fotos deste evento vão aparecer aqui em breve." : "As fotos vão aparecer aqui depois do evento.") + '</p>')) +
+                (ev.album ? '<a class="btn btn-tema" style="margin-top:14px" href="' + esc(ev.album) + '" target="_blank" rel="noopener">📸 Álbum de fotos</a>' : "") +
+            '</div>' +
+            '<p class="suave" style="grid-column:span 12;text-align:center;font-size:14px">👥 A lista de convidados é privada. ' +
+                '<a class="link-tema" style="margin:0" href="/admin/#' + encodeURIComponent(ev.id) + '">Área do organizador</a></p>' +
+        '</div></div>';
+
+    alvo.innerHTML = html;
+
+    /* ----- Clima ----- */
+    var caixa = document.getElementById("clima");
+    EV.clima(ev).then(function (c) {
+        if (c.tipo === "longe") {
+            caixa.innerHTML = '<p>A previsão do tempo aparece aqui a partir de <b>' + c.liberaEm + '</b>, 15 dias antes do evento.</p>';
+            return;
+        }
+        var chuva = c.chuva == null ? "" : (c.chuvaTipo === "%" ? "Chance de chuva: " + c.chuva + "%" : "Chuva no dia: " + c.chuva + " mm");
+        caixa.className = "";
+        caixa.innerHTML =
+            '<div class="clima"><span class="emoji">' + c.emoji + '</span><div>' +
+                '<div class="temp">' + c.max + '° <span style="font-size:20px;opacity:.7">/ ' + c.min + '°</span></div>' +
+                '<div>' + c.descricao + '</div></div></div>' +
+            (c.naHora ? '<p class="suave" style="margin-top:10px">Às ' + esc(ev.hora) + ': ' + c.naHora.temp + '°, ' + c.naHora.descricao.toLowerCase() + '</p>' : "") +
+            (chuva ? '<p class="suave">' + chuva + '</p>' : "") +
+            '<p class="suave" style="font-size:13px;margin-top:6px">' + (c.tipo === "previsao" ? "Previsão" : "Como foi o tempo") + ' em ' + esc(ev.cidade || "Ipatinga") + '</p>';
+    }).catch(function () {
+        caixa.innerHTML = "<p>Não foi possível carregar a previsão agora. Tente de novo mais tarde.</p>";
+    });
+
+    /* ----- Visualizador de fotos ----- */
+    var lb = document.getElementById("lightbox"), lbImg = lb.querySelector("img"), lbConta = lb.querySelector(".lb-conta"), atual = 0;
+    function mostrar(i) {
+        atual = (i + fotos.length) % fotos.length;
+        lbImg.src = "/eventos/" + fotos[atual];
+        lbConta.textContent = (atual + 1) + " de " + fotos.length;
+    }
+    function abrir(i) { mostrar(i); lb.classList.add("aberto"); document.body.style.overflow = "hidden"; }
+    function fechar() { lb.classList.remove("aberto"); document.body.style.overflow = ""; }
+    alvo.addEventListener("click", function (e) {
+        var b = e.target.closest(".album button");
+        if (b) abrir(+b.getAttribute("data-i"));
+    });
+    lb.querySelector(".lb-fechar").onclick = fechar;
+    lb.querySelector(".lb-ant").onclick = function () { mostrar(atual - 1); };
+    lb.querySelector(".lb-prox").onclick = function () { mostrar(atual + 1); };
+    lb.addEventListener("click", function (e) { if (e.target === lb) fechar(); });
+    document.addEventListener("keydown", function (e) {
+        if (!lb.classList.contains("aberto")) return;
+        if (e.key === "Escape") fechar();
+        if (e.key === "ArrowLeft") mostrar(atual - 1);
+        if (e.key === "ArrowRight") mostrar(atual + 1);
+    });
+    var x0 = null;
+    lb.addEventListener("touchstart", function (e) { x0 = e.touches[0].clientX; }, { passive: true });
+    lb.addEventListener("touchend", function (e) {
+        if (x0 == null) return;
+        var dx = e.changedTouches[0].clientX - x0;
+        if (Math.abs(dx) > 50) mostrar(atual + (dx < 0 ? 1 : -1));
+        x0 = null;
+    });
+})();
+</script>
+
+</body>
+</html>

@@ -1,272 +1,409 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
-<title>Azul Marinho | Suporte em Informática</title>
+<title>Azul Marinho | Informática, Eventos e Sports</title>
+<meta name="description" content="Azul Marinho: suporte em informática, eventos todo mês e a loja Azul Marinho Sports, com camisas de futebol e Fórmula 1. Fale pelo WhatsApp (31) 98883-6857.">
+<meta property="og:title" content="Azul Marinho">
+<meta property="og:description" content="Informática, eventos e a loja Azul Marinho Sports.">
+<meta property="og:image" content="https://azulmarinhoinfo.com.br/logo.png">
+<meta property="og:url" content="https://azulmarinhoinfo.com.br/">
+<meta name="theme-color" content="#0F1F47">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Ubuntu:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/site.css">
 
 <style>
-
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
+/* ---------- Vitrine rotativa (estilo Netflix) ---------- */
+.vitrine{
+    position:relative; height:min(78vh, 680px); min-height:560px; overflow:hidden;
+    background:var(--marinho-escuro); color:#DCE6F7;
+}
+.slide{
+    position:absolute; inset:0; opacity:0; visibility:hidden;
+    transition:opacity .9s ease, visibility .9s;
+}
+.slide.ativo{ opacity:1; visibility:visible; }
+.slide .fundo{
+    position:absolute; inset:-4%; background-size:cover; background-position:center;
+    transform:scale(1); transition:transform 8s linear;
+}
+.slide.ativo .fundo{ transform:scale(1.06); }
+.slide .sombra{
+    position:absolute; inset:0;
+    background:linear-gradient(90deg, rgba(8,18,46,.9) 0%, rgba(8,18,46,.55) 45%, rgba(8,18,46,0) 80%),
+               linear-gradient(0deg, rgba(8,18,46,.9) 0%, transparent 30%);
+}
+.slide .wrap{
+    position:relative; height:100%; display:grid; grid-template-columns:1.05fr .95fr;
+    align-items:center; gap:30px; padding-bottom:60px;
+}
+.slide .texto{ max-width:560px; }
+.slide .tag{
+    display:inline-flex; align-items:center; gap:8px; color:var(--ciano);
+    font-family:"Montserrat",sans-serif; font-weight:800; font-size:14px; letter-spacing:3px; text-transform:uppercase;
+    margin-bottom:14px;
+}
+.slide .tag::before{ content:""; width:28px; height:3px; background:var(--ciano); border-radius:3px; }
+.slide h1, .slide h2{ color:var(--branco); font-size:clamp(32px, 5vw, 56px); font-weight:800; margin-bottom:16px; }
+.slide h2 span, .slide h1 span{ color:var(--ciano); }
+.slide p{ font-size:19px; margin-bottom:22px; }
+.slide .meta{ display:flex; flex-wrap:wrap; gap:8px 20px; font-size:17px; margin-bottom:14px; }
+.slide .contagem{ font-family:"Montserrat",sans-serif; font-weight:800; color:var(--ciano); font-size:20px; margin-bottom:24px; display:block; }
+.slide .botoes{ display:flex; flex-wrap:wrap; gap:12px; }
+.chips{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:26px; list-style:none; }
+.chips li{
+    background:rgba(0,173,239,.12); border:1px solid rgba(0,173,239,.4); color:#E6F7FE;
+    border-radius:999px; padding:6px 14px; font-size:14px;
 }
 
-body{
-
-    font-family:"Segoe UI", Arial, sans-serif;
-
-    background:#ffffff;
-
-    color:#444;
-
-    display:flex;
-
-    justify-content:center;
-
-    align-items:center;
-
-    min-height:100vh;
-
+/* Arte do lado direito */
+.arte-evento{
+    justify-self:center; width:min(360px, 100%); aspect-ratio:1; border-radius:32px;
+    display:grid; place-items:center; font-size:150px; background-size:cover; background-position:center;
+    background-color:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14);
+    box-shadow:0 30px 80px rgba(0,0,0,.45), 0 0 0 10px rgba(0,173,239,.08);
 }
-
-.container{
-
-    width:min(900px,92vw);
-
-    text-align:center;
-
-    padding:35px 30px;
-
+.arte-camisas{ justify-self:center; display:flex; align-items:center; justify-content:center; width:100%; }
+.camisa-poster{
+    width:min(200px, 30%); background:var(--branco); border-radius:18px; overflow:hidden; text-decoration:none;
+    box-shadow:0 26px 60px rgba(0,0,0,.5); transition:transform .3s; flex-shrink:0;
 }
-
-.logo{
-
-    width:min(720px,95vw);
-
-    margin-bottom:35px;
-
+.camisa-poster:nth-child(1){ transform:rotate(-7deg) translateY(16px); margin-right:-26px; }
+.camisa-poster:nth-child(2){ transform:scale(1.12); z-index:2; position:relative; }
+.camisa-poster:nth-child(3){ transform:rotate(7deg) translateY(16px); margin-left:-26px; }
+.camisa-poster:hover{ transform:scale(1.16) rotate(0); z-index:3; position:relative; }
+.camisa-poster img{ width:100%; aspect-ratio:1; object-fit:cover; background:#EEF2F8; }
+.camisa-poster span{
+    display:block; padding:9px 10px 11px; font-size:12px; font-weight:500; color:var(--marinho);
+    text-align:center; line-height:1.3;
 }
+.arte-power{ justify-self:center; width:min(340px, 100%); aspect-ratio:1; display:grid; place-items:center; border-radius:50%;
+    background:radial-gradient(circle, rgba(0,173,239,.22), transparent 70%); }
+.arte-power svg{ width:62%; height:62%; filter:drop-shadow(0 0 34px rgba(0,173,239,.6)); }
 
-h1{
-
-    color:#24376B;
-
-    font-size:42px;
-
-    font-weight:700;
-
-    margin-bottom:18px;
-
+/* Controles */
+.seta{
+    position:absolute; top:50%; transform:translateY(-50%); z-index:5; width:50px; height:50px; border-radius:50%;
+    border:1px solid rgba(255,255,255,.25); background:rgba(8,18,46,.45); color:#fff; font-size:28px; cursor:pointer;
+    display:grid; place-items:center; transition:background .2s, border-color .2s; line-height:1;
 }
-
-p{
-
-    font-size:21px;
-
-    line-height:1.6;
-
-    color:#666;
-
-    max-width:750px;
-
-    margin:auto;
-
+.seta:hover{ background:var(--ciano); border-color:var(--ciano); }
+.seta-ant{ left:14px; } .seta-prox{ right:14px; }
+.indicadores{
+    position:absolute; left:0; right:0; bottom:26px; z-index:5;
+    display:flex; justify-content:center; gap:14px;
 }
-
-
-.botao{
-
-    display:inline-block;
-
-    margin-top:35px;
-
-    background:#25D366;
-
-    color:white;
-
-    text-decoration:none;
-
-    padding:17px 38px;
-
-    border-radius:12px;
-
-    font-size:21px;
-
-    font-weight:600;
-
-    transition:.25s;
-
+.indicadores button{
+    background:none; border:0; cursor:pointer; color:rgba(255,255,255,.65); font-family:"Montserrat",sans-serif;
+    font-size:13px; font-weight:600; text-align:left; width:min(180px, 28vw); padding:0;
 }
+.indicadores button.ativo{ color:var(--branco); }
+.indicadores .barra{ display:block; height:4px; border-radius:4px; background:rgba(255,255,255,.25); overflow:hidden; margin-bottom:8px; }
+.indicadores .barra i{ display:block; height:100%; width:0; background:var(--ciano); }
+.indicadores button.ativo .barra i{ animation:enche var(--tempo, 7s) linear forwards; }
+.vitrine.pausada .indicadores button.ativo .barra i{ animation-play-state:paused; }
+@keyframes enche{ to{ width:100%; } }
 
-.botao:hover{
-
-    background:#1fb65a;
-
-    transform:translateY(-2px);
-
+/* ---------- Caminhos ---------- */
+.caminhos{ display:grid; grid-template-columns:repeat(3, 1fr); gap:24px; }
+.caminho{
+    position:relative; overflow:hidden; border-radius:22px; padding:34px 30px 30px; text-decoration:none;
+    background:linear-gradient(160deg, var(--marinho), var(--marinho-medio)); color:#DCE6F7;
+    min-height:280px; display:flex; flex-direction:column; transition:transform .25s, box-shadow .25s;
 }
-
-
-.contatos{
-
-    margin-top:35px;
-
+.caminho:hover{ transform:translateY(-6px); box-shadow:0 24px 50px rgba(15,31,71,.3); }
+.caminho::after{
+    content:""; position:absolute; right:-60px; top:-60px; width:200px; height:200px; border-radius:50%;
+    background:radial-gradient(circle, rgba(0,173,239,.35), transparent 70%);
 }
-
-
-.contatos a{
-
-    display:block;
-
-    color:#24376B;
-
-    text-decoration:none;
-
-    font-size:19px;
-
-    margin:10px 0;
-
+.caminho .ic{
+    width:62px; height:62px; border-radius:16px; background:var(--ciano); color:var(--branco);
+    display:grid; place-items:center; font-size:30px; margin-bottom:22px; position:relative; z-index:1;
 }
+.caminho .ic svg{ width:32px; height:32px; }
+.caminho h3{ color:var(--branco); font-size:24px; margin-bottom:10px; }
+.caminho p{ font-size:16px; flex:1; }
+.caminho .ir{ margin-top:22px; color:var(--ciano); font-family:"Montserrat",sans-serif; font-weight:700; }
+.caminho:hover .ir{ text-decoration:underline; }
 
-
-.contatos a:hover{
-
-    color:#18A8F4;
-
+/* ---------- Fileira de camisas ---------- */
+.fileira-topo{ display:flex; align-items:baseline; justify-content:space-between; gap:16px; margin-bottom:22px; }
+.fileira-topo h2{ font-size:clamp(24px, 3vw, 30px); }
+.fileira-topo a{ color:var(--ciano); text-decoration:none; font-weight:500; white-space:nowrap; }
+.fileira{
+    display:grid; grid-auto-flow:column; grid-auto-columns:clamp(150px, 18vw, 210px); gap:16px;
+    overflow-x:auto; scroll-snap-type:x mandatory; padding-bottom:12px; scrollbar-width:thin;
 }
-
-
-footer{
-
-    margin-top:35px;
-
-    color:#999;
-
-    font-size:15px;
-
+.fileira a{
+    scroll-snap-align:start; background:var(--branco); border:1px solid var(--borda); border-radius:16px; overflow:hidden;
+    text-decoration:none; transition:transform .2s, border-color .2s, box-shadow .2s;
 }
+.fileira a:hover{ transform:translateY(-4px); border-color:var(--ciano); box-shadow:0 14px 30px rgba(15,31,71,.12); }
+.fileira img{ width:100%; aspect-ratio:1; object-fit:cover; background:#EEF2F8; }
+.fileira span{ display:block; padding:10px 12px 14px; font-size:14px; color:var(--marinho); font-weight:500; line-height:1.35; }
 
-
-
-@media(max-width:700px){
-
-.container{
-
-    padding:25px 15px;
-
+@media (max-width:900px){
+    .vitrine{ height:auto; min-height:640px; }
+    .slide .wrap{ grid-template-columns:1fr; align-content:center; gap:22px; padding:40px 0 90px; }
+    .slide .sombra{ background:linear-gradient(0deg, rgba(8,18,46,.9) 0%, rgba(8,18,46,.4) 60%, rgba(8,18,46,.2) 100%); }
+    .arte-evento, .arte-power{ display:none; }
+    .arte-camisas{ order:2; }
+    .camisa-poster{ width:min(150px, 31%); }
+    .caminhos{ grid-template-columns:1fr; }
+    .caminho{ min-height:0; }
+    .seta{ display:none; }
 }
-
-
-.logo{
-
-    width:95%;
-
-    margin-bottom:25px;
-
+@media (max-width:560px){
+    .vitrine{ min-height:680px; }
+    .slide p{ font-size:17px; }
+    .slide .botoes .btn{ flex:1 1 auto; }
+    .indicadores{ gap:8px; bottom:20px; }
+    .indicadores button{ font-size:11px; width:30%; }
 }
-
-
-h1{
-
-    font-size:30px;
-
+@media (prefers-reduced-motion: reduce){
+    .slide, .slide .fundo{ transition:none; }
+    .slide.ativo .fundo{ transform:none; }
 }
-
-
-p{
-
-    font-size:18px;
-
-}
-
-
-.botao{
-
-    width:100%;
-
-    font-size:19px;
-
-}
-
-
-.contatos a{
-
-    font-size:17px;
-
-}
-
-}
-
 </style>
-
 </head>
 
+<body data-pagina="inicio">
 
-<body>
+<div id="topo"></div>
 
+<!-- ===================== VITRINE ROTATIVA ===================== -->
+<section class="vitrine" id="vitrine" aria-roledescription="carrossel" aria-label="Destaques da Azul Marinho">
 
-<div class="container">
+    <!-- 1. Próximo evento (preenchido com os dados de eventos/eventos.js) -->
+    <article class="slide" data-nome="Próximo evento" id="slide-evento">
+        <div class="fundo" style="background:radial-gradient(circle at 75% 40%, rgba(0,173,239,.35), transparent 50%), linear-gradient(135deg, #08122E, #0F1F47 55%, #24376B)"></div>
+        <div class="sombra"></div>
+        <div class="wrap" id="conteudo-evento"></div>
+    </article>
 
+    <!-- 2. Azul Marinho Sports (camisas sorteadas a cada volta) -->
+    <article class="slide" data-nome="Azul Marinho Sports" id="slide-sports">
+        <div class="fundo" style="background:radial-gradient(circle at 70% 50%, rgba(0,173,239,.4), transparent 55%), linear-gradient(135deg, #08122E, #0F1F47)"></div>
+        <div class="sombra"></div>
+        <div class="wrap">
+            <div class="texto">
+                <span class="tag">Azul Marinho Sports</span>
+                <h2>Vista o <span>manto</span> do seu time</h2>
+                <p>Lançamentos 2026/27, retrôs, versão jogador, feminina, infantil e Fórmula 1. Escolha e peça pelo WhatsApp.</p>
+                <div class="botoes">
+                    <a class="btn btn-ciano" href="https://sports.azulmarinhoinfo.com.br" target="_blank" rel="noopener">⚽ Visitar a loja</a>
+                </div>
+            </div>
+            <div class="arte-camisas" id="arte-camisas"></div>
+        </div>
+    </article>
 
-<img src="logo.png" class="logo" alt="Azul Marinho">
+    <!-- 3. Informática -->
+    <article class="slide" data-nome="Informática" id="slide-info">
+        <div class="fundo" style="background:radial-gradient(circle at 78% 45%, rgba(0,173,239,.32), transparent 50%), linear-gradient(135deg, #08122E, #0F1F47 60%, #24376B)"></div>
+        <div class="sombra"></div>
+        <div class="wrap">
+            <div class="texto">
+                <span class="tag">Azul Marinho Informática</span>
+                <h2>Suporte em informática <span>sem complicação</span></h2>
+                <ul class="chips" id="chips-servicos"></ul>
+                <div class="botoes">
+                    <a class="btn btn-ciano" href="/informatica/">Ver serviços</a>
+                    <a class="btn btn-contorno js-whats" data-texto="Olá! Vim pelo site e gostaria de um orçamento de informática." href="https://wa.me/5531988836857" target="_blank" rel="noopener">Pedir orçamento</a>
+                </div>
+            </div>
+            <div class="arte-power" aria-hidden="true">
+                <svg viewBox="0 0 100 100" fill="none" stroke="#00ADEF" stroke-width="9" stroke-linecap="round"><path d="M32 26a34 34 0 1 0 36 0"/><path d="M50 12v34"/></svg>
+            </div>
+        </div>
+    </article>
 
+    <button class="seta seta-ant" aria-label="Destaque anterior">‹</button>
+    <button class="seta seta-prox" aria-label="Próximo destaque">›</button>
+    <div class="indicadores" id="indicadores"></div>
+</section>
 
-<h1>Nosso novo site está chegando.</h1>
+<!-- ===================== CAMINHOS ===================== -->
+<section class="secao">
+    <div class="wrap">
+        <div class="titulo-secao">
+            <span class="sobretitulo">Azul Marinho</span>
+            <h2>Para onde você quer ir?</h2>
+            <p>Escolha um dos nossos espaços.</p>
+        </div>
+        <div class="caminhos">
+            <a class="caminho" href="/informatica/">
+                <span class="ic"><svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round"><path d="M32 26a34 34 0 1 0 36 0"/><path d="M50 12v34"/></svg></span>
+                <h3>Informática</h3>
+                <p>Informática, automação residencial, elétrica, alarmes e câmeras para casa e empresa.</p>
+                <span class="ir">Ver serviços →</span>
+            </a>
+            <a class="caminho" href="/eventos/">
+                <span class="ic">🎉</span>
+                <h3>Eventos</h3>
+                <p>Todo mês um encontro novo. Veja o próximo evento, a playlist, quem vai e as fotos.</p>
+                <span class="ir">Ver eventos →</span>
+            </a>
+            <a class="caminho" href="https://sports.azulmarinhoinfo.com.br" target="_blank" rel="noopener">
+                <span class="ic">⚽</span>
+                <h3>Azul Marinho Sports</h3>
+                <p>Camisas de clubes brasileiros, retrôs e Fórmula 1, com pedido direto pelo WhatsApp.</p>
+                <span class="ir">Visitar a loja →</span>
+            </a>
+        </div>
+    </div>
+</section>
 
+<!-- ===================== FILEIRA DE CAMISAS ===================== -->
+<section class="secao secao-suave" style="padding-top:70px;padding-bottom:70px">
+    <div class="wrap">
+        <div class="fileira-topo">
+            <h2>Em alta na Azul Marinho Sports</h2>
+            <a href="https://sports.azulmarinhoinfo.com.br" target="_blank" rel="noopener">Ver todas →</a>
+        </div>
+        <div class="fileira" id="fileira-camisas"></div>
+    </div>
+</section>
 
-<p>
+<div id="rodape"></div>
 
-Estamos preparando uma experiência mais moderna para apresentar nossos serviços de suporte em informática.
+<script src="/assets/js/site.js"></script>
+<script src="/assets/data/servicos.js"></script>
+<script src="/assets/data/camisas.js"></script>
+<script src="/assets/js/eventos-comum.js"></script>
+<script src="/eventos/dados"></script>
+<script>window.EVENTOS || document.write('<script src="/eventos/eventos.js"><\/script>')</script>
+<script>
+(function () {
+    var A = window.AZUL, esc = EV.esc;
+    var LOJA = A.sports;
+    var TEMPO = 7000; // tempo de cada destaque, em milissegundos
 
-</p>
+    document.querySelectorAll(".js-whats").forEach(function (a) { a.href = A.linkWhats(a.getAttribute("data-texto")); });
 
+    /* ----- Camisas sorteadas ----- */
+    function sortear(n) {
+        var lista = (window.CAMISAS_DESTAQUE || []).slice();
+        for (var i = lista.length - 1; i > 0; i--) {
+            var j = Math.floor(Math.random() * (i + 1)), x = lista[i]; lista[i] = lista[j]; lista[j] = x;
+        }
+        return lista.slice(0, n);
+    }
+    function cartaoCamisa(c, classe) {
+        return '<a class="' + (classe || "") + '" href="' + LOJA + '/#p=' + encodeURI(c.p) + '" target="_blank" rel="noopener">' +
+            '<img src="' + LOJA + '/img/' + encodeURI(c.p) + '/01t.jpg" alt="' + esc(c.titulo) + '" loading="lazy">' +
+            '<span>' + esc(c.titulo) + '</span></a>';
+    }
+    function trocarCamisas() {
+        document.getElementById("arte-camisas").innerHTML = sortear(3).map(function (c) { return cartaoCamisa(c, "camisa-poster"); }).join("");
+    }
+    trocarCamisas();
+    document.getElementById("fileira-camisas").innerHTML = sortear(12).map(function (c) { return cartaoCamisa(c); }).join("");
 
-<a class="botao"
-href="https://wa.me/5531988836857"
-target="_blank">
+    /* ----- Serviços ----- */
+    document.getElementById("chips-servicos").innerHTML = (window.SERVICOS_RESUMO || []).map(function (s) {
+        return "<li>" + esc(s) + "</li>";
+    }).join("");
 
-💬 Fale conosco pelo WhatsApp
+    /* ----- Próximo evento ----- */
+    var grupos = EV.separar();
+    var ev = grupos.proximos[0], alvo = document.getElementById("conteudo-evento");
+    if (ev) {
+        var t = EV.tema(ev);
+        var capa = ev.capa ? "background-image:url('/eventos/" + esc(ev.capa) + "')" : "";
+        alvo.innerHTML =
+            '<div class="texto">' +
+                '<span class="tag">Próximo evento</span>' +
+                '<h1>' + esc(ev.titulo) + '</h1>' +
+                '<div class="meta"><span>📅 ' + EV.dataLonga(ev) + '</span>' +
+                    (ev.hora ? '<span>🕗 ' + esc(ev.hora) + '</span>' : "") +
+                    (ev.local ? '<span>📍 ' + esc(ev.local) + '</span>' : "") + '</div>' +
+                '<span class="contagem">' + EV.contagem(ev) + '</span>' +
+                '<div class="botoes">' +
+                    '<a class="btn btn-ciano" href="/eventos/evento.html?id=' + encodeURIComponent(ev.id) + '">Ver evento</a>' +
+                    '<a class="btn btn-contorno" href="/eventos/">Todos os eventos</a>' +
+                '</div>' +
+            '</div>' +
+            '<div class="arte-evento" style="' + capa + '">' + (ev.capa ? "" : t.emoji) + '</div>';
+    } else {
+        var ultimo = grupos.passados[0];
+        alvo.innerHTML =
+            '<div class="texto">' +
+                '<span class="tag">Eventos Azul Marinho</span>' +
+                '<h1>Novo evento <span>em breve</span></h1>' +
+                '<p>Todo mês um encontro novo.' + (ultimo ? " Enquanto isso, veja as fotos do " + esc(ultimo.titulo) + "." : "") + '</p>' +
+                '<div class="botoes"><a class="btn btn-ciano" href="/eventos/">Ver eventos</a></div>' +
+            '</div>' +
+            '<div class="arte-evento">🎉</div>';
+    }
 
-</a>
+    /* ----- Rotação dos destaques ----- */
+    var vitrine = document.getElementById("vitrine");
+    var slides = Array.prototype.slice.call(vitrine.querySelectorAll(".slide"));
+    var ind = document.getElementById("indicadores");
+    vitrine.style.setProperty("--tempo", TEMPO / 1000 + "s");
+    ind.innerHTML = slides.map(function (s, i) {
+        return '<button data-i="' + i + '" aria-label="Mostrar ' + s.getAttribute("data-nome") + '"><span class="barra"><i></i></span>' + s.getAttribute("data-nome") + '</button>';
+    }).join("");
+    var botoes = Array.prototype.slice.call(ind.querySelectorAll("button"));
+    var atual = -1, timer = null, restante = TEMPO, inicio = 0, pausado = false;
 
+    function ir(i) {
+        i = (i + slides.length) % slides.length;
+        if (i === atual) return;
+        if (slides[i].id === "slide-sports" && atual !== -1) trocarCamisas();
+        slides.forEach(function (s, k) { s.classList.toggle("ativo", k === i); s.setAttribute("aria-hidden", k !== i); });
+        botoes.forEach(function (b, k) {
+            b.classList.remove("ativo");
+            if (k === i) { void b.offsetWidth; b.classList.add("ativo"); }
+        });
+        atual = i;
+        restante = TEMPO;
+        agendar();
+    }
+    function agendar() {
+        clearTimeout(timer);
+        if (pausado) return;
+        inicio = Date.now();
+        timer = setTimeout(function () { ir(atual + 1); }, restante);
+    }
+    function pausar() {
+        if (pausado) return;
+        pausado = true;
+        clearTimeout(timer);
+        restante -= Date.now() - inicio;
+        vitrine.classList.add("pausada");
+    }
+    function continuar() {
+        if (!pausado) return;
+        pausado = false;
+        vitrine.classList.remove("pausada");
+        agendar();
+    }
 
-<div class="contatos">
+    vitrine.querySelector(".seta-ant").onclick = function () { ir(atual - 1); };
+    vitrine.querySelector(".seta-prox").onclick = function () { ir(atual + 1); };
+    botoes.forEach(function (b) { b.onclick = function () { ir(+b.getAttribute("data-i")); }; });
+    vitrine.addEventListener("mouseenter", pausar);
+    vitrine.addEventListener("mouseleave", continuar);
+    document.addEventListener("visibilitychange", function () { document.hidden ? pausar() : continuar(); });
 
+    var x0 = null;
+    vitrine.addEventListener("touchstart", function (e) { x0 = e.touches[0].clientX; }, { passive: true });
+    vitrine.addEventListener("touchend", function (e) {
+        if (x0 == null) return;
+        var dx = e.changedTouches[0].clientX - x0;
+        if (Math.abs(dx) > 50) ir(atual + (dx < 0 ? 1 : -1));
+        x0 = null;
+    });
 
-<a href="tel:+5531988836857">
-📞 (31) 98883-6857
-</a>
-
-
-<a href="mailto:azulmarinhoinfo@gmail.com">
-✉️ azulmarinhoinfo@gmail.com
-</a>
-
-
-<a href="https://www.facebook.com/azulmarinhoinfo" target="_blank">
-👍 facebook.com/azulmarinhoinfo
-</a>
-
-
-</div>
-
-
-<footer>
-
-Azul Marinho • Suporte em Informática
-
-</footer>
-
-
-</div>
-
+    ir(0);
+})();
+</script>
 
 </body>
-
 </html>
-
