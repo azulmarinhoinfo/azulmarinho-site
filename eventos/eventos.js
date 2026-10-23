@@ -26,7 +26,8 @@
    capa       opcional: foto de capa, ex.: "fotos/meu-evento/capa.jpg"
    descricao  texto do evento (pode ter várias linhas, use \n\n para novo parágrafo)
    playlist   link da playlist do Spotify ou do YouTube
-   convidados lista de nomes: ["Ana", "Bruno"]
+   (a lista de convidados NÃO fica aqui: ela é privada e fica em
+    privado/convidados.js, veja o LEIAME.md)
    fotos      lista de fotos do álbum: ["fotos/meu-evento/01.jpg", ...]
    album      opcional: link de um álbum completo (Google Fotos, Drive...)
    ========================================================= */
@@ -44,7 +45,6 @@ window.EVENTOS = [
         tema: "halloween",
         descricao: "EVENTO DE EXEMPLO: troque este texto pela descrição do seu evento.\n\nVenha fantasiado! Vai ter música, comidinhas temáticas e concurso de melhor fantasia.",
         playlist: "https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M",
-        convidados: ["Ana", "Bruno", "Carla", "Diego", "Elisa", "Fábio", "Gabi", "Henrique"],
         fotos: [],
         album: ""
     },
@@ -60,7 +60,6 @@ window.EVENTOS = [
         tema: "primavera",
         descricao: "EVENTO DE EXEMPLO: troque este texto pela descrição do seu evento.\n\nUma tarde ao ar livre para receber a primavera, com piquenique, música e muitas flores.",
         playlist: "",
-        convidados: ["Ana", "Bruno", "Carla", "Diego", "Elisa"],
         fotos: [
             "fotos/primavera-2026/01.svg",
             "fotos/primavera-2026/02.svg",
@@ -83,7 +82,6 @@ window.EVENTOS = [
         tema: "festa-junina",
         descricao: "EVENTO DE EXEMPLO: troque este texto pela descrição do seu evento.\n\nQuadrilha, fogueira, canjica e quentão.",
         playlist: "",
-        convidados: [],
         fotos: [],
         album: ""
     }

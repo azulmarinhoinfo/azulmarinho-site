@@ -9,6 +9,7 @@ window.AZUL = {
     telefone: "(31) 98883-6857",
     email: "azulmarinhoinfo@gmail.com",
     facebook: "https://www.facebook.com/azulmarinhoinfo",
+    site: "https://azulmarinhoinfo.com.br",
     sports: "https://sports.azulmarinhoinfo.com.br",
     linkWhats: function (texto) {
         return "https://wa.me/" + this.whatsapp + "?text=" + encodeURIComponent(texto || "Olá! Vim pelo site da Azul Marinho.");

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Evento | Azul Marinho</title>
-<meta name="description" content="Evento Azul Marinho: data, hora, local, previsão do tempo, playlist, convidados e fotos.">
+<meta name="description" content="Evento Azul Marinho: data, hora, local, previsão do tempo, playlist e fotos.">
 <meta name="theme-color" content="#0F1F47">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -85,16 +85,6 @@ main, .rodape{ position:relative; z-index:1; }
 .clima .temp{ font-family:"Montserrat",sans-serif; font-weight:800; font-size:34px; color:var(--t-titulo); line-height:1.1; }
 
 .playlist iframe{ width:100%; height:352px; border:0; border-radius:14px; }
-
-.convidados{ display:flex; flex-wrap:wrap; gap:10px; list-style:none; }
-.convidados li{
-    display:flex; align-items:center; gap:10px; background:var(--t-cartao); border:1px solid var(--t-borda);
-    border-radius:999px; padding:6px 16px 6px 6px; font-size:16px;
-}
-.convidados .ini{
-    width:32px; height:32px; border-radius:50%; background:var(--t-destaque); color:var(--t-fundo1);
-    display:grid; place-items:center; font-family:"Montserrat",sans-serif; font-weight:800; font-size:14px;
-}
 
 .album{ display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:12px; }
 .album button{
@@ -206,7 +196,6 @@ main, .rodape{ position:relative; z-index:1; }
 
     var dm = EV.diaMes(ev);
     var capa = ev.capa ? "background-image:url('/eventos/" + esc(ev.capa) + "')" : "";
-    var convidados = ev.convidados || [];
     var fotos = ev.fotos || [];
 
     var html =
@@ -241,11 +230,6 @@ main, .rodape{ position:relative; z-index:1; }
             '<div class="bloco ' + (ev.playlist ? "c7" : "c12") + '"><h2>✨ Sobre o evento</h2>' + paragrafos(ev.descricao) + '</div>' +
             (ev.playlist ? '<div class="bloco c5 playlist"><h2>🎵 Playlist</h2>' + embedPlaylist(ev.playlist) + '</div>' : "") +
 
-            (convidados.length ? '<div class="bloco c12"><h2>👥 Lista de convidados <span class="suave" style="font-weight:500">(' + convidados.length + ')</span></h2>' +
-                '<ul class="convidados">' + convidados.map(function (n) {
-                    return '<li><span class="ini">' + esc(String(n).trim().charAt(0).toUpperCase()) + '</span>' + esc(n) + '</li>';
-                }).join("") + '</ul></div>' : "") +
-
             '<div class="bloco c12"><h2>📸 Álbum de fotos</h2>' +
                 (fotos.length
                     ? '<div class="album">' + fotos.map(function (f, i) {
@@ -254,6 +238,8 @@ main, .rodape{ position:relative; z-index:1; }
                     : '<p class="suave">' + (passado ? "As fotos deste evento vão aparecer aqui em breve." : "As fotos vão aparecer aqui depois do evento.") + '</p>') +
                 (ev.album ? '<a class="link-tema" href="' + esc(ev.album) + '" target="_blank" rel="noopener">Ver o álbum completo →</a>' : "") +
             '</div>' +
+            '<p class="suave" style="grid-column:span 12;text-align:center;font-size:14px">👥 A lista de convidados é privada. ' +
+                '<a class="link-tema" style="margin:0" href="/privado/#' + encodeURIComponent(ev.id) + '">Área do organizador</a></p>' +
         '</div></div>';
 
     alvo.innerHTML = html;

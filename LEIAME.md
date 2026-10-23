@@ -61,7 +61,6 @@ Dica: fotos de celular são grandes. Diminua para uns 1600 px de largura antes d
         tema: "natal",                 // veja a lista de temas abaixo
         descricao: "Primeiro parágrafo.\n\nSegundo parágrafo.",
         playlist: "https://open.spotify.com/playlist/...",
-        convidados: ["Ana", "Bruno", "Carla"],
         fotos: [
             "fotos/natal-2026/01.jpg",
             "fotos/natal-2026/02.jpg"
@@ -97,9 +96,46 @@ Google Maps, clique em **Compartilhar → Copiar link** e coloque em `mapa: "htt
 Cole o link do Spotify (playlist, álbum ou música) ou de uma playlist do YouTube
 (link com `list=`). Spotify e YouTube aparecem tocando direto na página.
 
-### Lista de convidados
-Os nomes ficam visíveis para qualquer pessoa que abrir o site. Use só o primeiro nome
-ou apelido se preferir.
+### Lista de convidados e convites pelo WhatsApp (área privada)
+A lista **não** aparece na página do evento. Ela fica na **Área do organizador**:
+`azulmarinhoinfo.com.br/privado/` (tem um link discreto no fim de cada evento).
+
+Os nomes ficam no arquivo `privado/convidados.js`:
+
+```js
+window.CONVIDADOS = {
+    "natal-2026": [
+        { nome: "Maria Souza", whats: "31999998888" },
+        { nome: "João", whats: "31988887777" },
+        "Tia Rosa"
+    ]
+};
+```
+
+Quem tem `whats` ganha o botão **Enviar convite**: ele abre o WhatsApp daquela pessoa
+com o convite pronto (nome, data, hora, local e o link do evento). É só apertar enviar.
+O botão fica "Enviado ✓" depois do clique (a marca fica guardada só no aparelho que você usou).
+
+> ⚠️ **Antes de colocar nomes e telefones reais, faça os 2 passos abaixo.**
+> Sem eles, qualquer pessoa que souber o endereço consegue ver a lista.
+
+#### Passo 1: deixar o repositório do GitHub privado
+Hoje o repositório `azulmarinho-site` é **público**: qualquer um pode ler os arquivos no GitHub.
+1. Abra https://github.com/azulmarinhoinfo/azulmarinho-site → **Settings**.
+2. Role até o fim (**Danger Zone**) → **Change repository visibility** → **Make private** → confirme.
+O Cloudflare continua publicando normalmente.
+
+#### Passo 2: colocar login na área privada (Cloudflare Access, gratuito)
+1. No painel do Cloudflare, abra **Zero Trust** (menu da esquerda). Na primeira vez ele pede
+   um nome para a equipe e o plano: escolha o **Free**.
+2. Vá em **Access → Applications → Add an application → Self-hosted**.
+3. Nome: `Area privada`. Em **Application domain** adicione 3 linhas:
+   - `azulmarinhoinfo.com.br` com caminho `privado`
+   - `azulmarinho-site.pages.dev` com caminho `privado`
+   - `*.azulmarinho-site.pages.dev` com caminho `privado` (as prévias)
+4. Em **Policies**: nome `So o Farley`, ação **Allow**, regra **Emails** = o seu e-mail.
+5. Salve. Ao abrir `/privado/`, o Cloudflare pede seu e-mail e manda um código.
+   Só o seu e-mail entra.
 
 ### Temas prontos
 
