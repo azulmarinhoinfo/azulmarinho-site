@@ -295,7 +295,7 @@
     }
     function cartaoCamisa(c, classe) {
         return '<a class="' + (classe || "") + '" href="' + LOJA + '/#p=' + encodeURI(c.p) + '" target="_blank" rel="noopener">' +
-            '<img src="' + LOJA + '/img/' + encodeURI(c.p) + '/01t.jpg" alt="' + esc(c.titulo) + '" loading="lazy">' +
+            '<img src="' + LOJA + '/img/' + encodeURI(c.p) + '/01t.jpg?v=20261023" alt="' + esc(c.titulo) + '" loading="lazy">' +
             '<span>' + esc(c.titulo) + '</span></a>';
     }
     function trocarCamisas() {
