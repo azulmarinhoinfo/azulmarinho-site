@@ -22,7 +22,22 @@ window.SERVICOS = [
     {
         nome: "Câmeras de segurança",
         texto: "Instalação e configuração de câmeras, com acesso às imagens pelo celular.",
-        icone: '<path d="M2 8h13l3-3h2v10h-2l-3-3H2z"/><path d="M6 12v4a2 2 0 0 0 2 2h1"/><circle cx="8" cy="10" r="1"/>'
+        icone: '<rect x="2" y="6" width="14" height="12" rx="2"/><path d="m22 8-6 4 6 4z"/>'
+    },
+    {
+        nome: "Automação residencial",
+        texto: "Controle luzes, bombas elétricas, portão e outros aparelhos pelo celular ou por horário programado.",
+        icone: '<path d="M3 11 12 3l9 8"/><path d="M5 9.5V21h14V9.5"/><path d="M12 13a3 3 0 0 0-3 3"/><path d="M12 10a6 6 0 0 0-6 6"/><circle cx="12" cy="17" r="1"/>'
+    },
+    {
+        nome: "Elétrica",
+        texto: "Instalações e reparos elétricos: tomadas, disjuntores, iluminação e quadros de energia.",
+        icone: '<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>'
+    },
+    {
+        nome: "Alarmes",
+        texto: "Instalação e configuração de alarmes e sensores, com aviso direto no seu celular.",
+        icone: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>'
     },
     {
         nome: "Suporte para empresas",
