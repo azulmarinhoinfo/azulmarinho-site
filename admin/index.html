@@ -114,6 +114,17 @@ body{ background:var(--fundo-suave); }
 .resumo-conv{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; margin-top:18px; }
 .resumo-conv span{ color:var(--texto-claro); }
 details.varios-box{ margin-top:14px; }
+.contatos{ border:1px solid var(--borda); border-radius:12px; padding:14px; margin-top:10px; background:var(--fundo-suave); }
+.contatos .filtros{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.contatos .filtros input, .contatos .filtros select{ font:inherit; font-size:15px; border:1.5px solid var(--borda); border-radius:10px; padding:8px 10px; background:#fff; width:100%; }
+.lista-contatos{ list-style:none; max-height:320px; overflow:auto; margin:10px 0; background:#fff; border:1px solid var(--borda); border-radius:10px; }
+.lista-contatos label{ display:flex; gap:10px; align-items:center; padding:8px 12px; border-bottom:1px solid var(--borda); cursor:pointer; }
+.lista-contatos label:hover{ background:var(--ciano-claro); }
+.lista-contatos input{ width:18px; height:18px; accent-color:var(--ciano); flex-shrink:0; }
+.lista-contatos .nm{ flex:1; }
+.lista-contatos small{ color:var(--texto-claro); font-size:13px; white-space:nowrap; }
+.contatos .acoes-c{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+@media (max-width:600px){ .contatos .filtros{ grid-template-columns:1fr; } .lista-contatos small{ display:none; } }
 details.varios-box summary{ cursor:pointer; color:var(--ciano-escuro); font-weight:500; }
 textarea.varios{ min-height:120px; margin:10px 0; }
 
@@ -449,14 +460,58 @@ textarea.varios{ min-height:120px; margin:10px 0; }
         '</div>';
     }
 
+    /* Convidados já salvos nos outros eventos (sem repetir nomes) */
+    function chaveNome(n) { return String(n || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/\s+/g, " ").trim(); }
+    function contatos(ev) {
+        var jaTem = {}, mapa = {};
+        convidados(ev.id).forEach(function (p) { jaTem[chaveNome(p.nome)] = true; });
+        var ordem = estado.eventos.slice().sort(function (a, b) { return (b.data || "").localeCompare(a.data || ""); });
+        ordem.forEach(function (outro) {
+            if (outro.id === ev.id) return;
+            (estado.convidados[outro.id] || []).forEach(function (p) {
+                var k = chaveNome(p.nome);
+                if (!k || jaTem[k]) return;
+                var c = mapa[k] || (mapa[k] = { nome: String(p.nome).trim(), whats: "", eventos: [] });
+                if (!c.whats && p.whats) c.whats = String(p.whats).trim();   // o mais recente com WhatsApp
+                if (c.eventos.indexOf(outro.id) < 0) c.eventos.push(outro.id);
+            });
+        });
+        return Object.keys(mapa).map(function (k) { return mapa[k]; }).sort(function (a, b) {
+            return b.eventos.length - a.eventos.length || a.nome.localeCompare(b.nome, "pt-BR");
+        });
+    }
+    function contatosHTML(ev, lista) {
+        var cs = contatos(ev);
+        if (!cs.length) return "";
+        var comConv = estado.eventos.filter(function (o) { return o.id !== ev.id && (estado.convidados[o.id] || []).length; });
+        return '<details class="varios-box"' + (lista.length ? "" : " open") + '><summary>Escolher dos convidados já salvos (' + cs.length + ')</summary>' +
+            '<div class="contatos"><div class="filtros">' +
+                '<input id="busca-contatos" placeholder="🔎 Buscar nome" autocomplete="off">' +
+                '<select id="filtro-evento"><option value="">Todos os eventos</option>' + comConv.map(function (o) {
+                    return '<option value="' + esc(o.id) + '">Quem foi em: ' + esc(o.titulo) + '</option>';
+                }).join("") + '</select></div>' +
+                '<ul class="lista-contatos" id="lista-contatos">' + cs.map(function (c, i) {
+                    return '<li data-ev="' + esc(c.eventos.join(" ")) + '" data-k="' + esc(chaveNome(c.nome)) + '"><label>' +
+                        '<input type="checkbox" data-contato="' + i + '"><span class="nm">' + esc(c.nome) + '</span>' +
+                        '<small>' + (c.whats ? "📱 " + esc(c.whats) + " • " : "") + c.eventos.length + (c.eventos.length === 1 ? " evento" : " eventos") + '</small></label></li>';
+                }).join("") + '</ul>' +
+                '<div class="acoes-c"><button class="b pequeno" data-acao="marcar-visiveis">Marcar todos da lista</button>' +
+                '<button class="b pequeno" data-acao="desmarcar-contatos">Desmarcar</button>' +
+                '<button class="b cheio" data-acao="add-contatos" id="add-contatos" disabled>Adicionar marcados</button></div>' +
+            '</div></details>';
+    }
+    var CONTATOS_ABERTOS = [];
+
     function convidadosHTML(ev) {
         var lista = convidados(ev.id);
         var enviados = lista.filter(function (p) { return p.enviado; }).length;
         return '<div class="add-conv">' +
-                '<input id="novo-nome" placeholder="Nome do convidado" autocomplete="off">' +
+                '<input id="novo-nome" placeholder="Nome do convidado" autocomplete="off" list="sugestoes">' +
                 '<input id="novo-whats" placeholder="WhatsApp com DDD (opcional)" inputmode="tel" autocomplete="off">' +
                 '<button class="b cheio" data-acao="add-conv">Adicionar</button>' +
             '</div>' +
+            (function () { var h = contatosHTML(ev, lista); CONTATOS_ABERTOS = contatos(ev); return h; })() +
+            '<datalist id="sugestoes">' + contatos(ev).map(function (c) { return '<option value="' + esc(c.nome) + '">'; }).join("") + '</datalist>' +
             '<details class="varios-box"><summary>Adicionar vários de uma vez</summary>' +
                 '<textarea class="varios" id="varios" placeholder="Um por linha. Exemplo:\nMaria Souza, 31 99999-8888\nJoão 31988887777\nTia Rosa"></textarea>' +
                 '<button class="b" data-acao="add-varios">Adicionar todos</button></details>' +
@@ -497,10 +552,34 @@ textarea.varios{ min-height:120px; margin:10px 0; }
         if (itens) itens.innerHTML = listaHTML();
     }
 
+    function filtrarContatos() {
+        var busca = chaveNome((document.getElementById("busca-contatos") || {}).value);
+        var filtro = (document.getElementById("filtro-evento") || {}).value || "";
+        painel.querySelectorAll("#lista-contatos li").forEach(function (li) {
+            var ok = (!busca || li.getAttribute("data-k").indexOf(busca) >= 0) &&
+                (!filtro || (" " + li.getAttribute("data-ev") + " ").indexOf(" " + filtro + " ") >= 0);
+            li.style.display = ok ? "" : "none";
+        });
+    }
+    function contarMarcados() {
+        var n = painel.querySelectorAll("[data-contato]:checked").length, b = document.getElementById("add-contatos");
+        if (b) { b.disabled = !n; b.textContent = n ? "Adicionar marcados (" + n + ")" : "Adicionar marcados"; }
+    }
+
     painel.addEventListener("input", function (e) {
         var ev = atual && evento(atual);
         if (!ev) return;
         var el = e.target, c = el.getAttribute("data-c");
+
+        /* Escolher dos convidados já salvos: busca, filtro e marcação */
+        if (el.id === "busca-contatos" || el.id === "filtro-evento") return filtrarContatos();
+        if (el.hasAttribute("data-contato")) return contarMarcados();
+        if (el.id === "novo-nome") {
+            var achou = CONTATOS_ABERTOS.filter(function (x) { return chaveNome(x.nome) === chaveNome(el.value); })[0];
+            var w = document.getElementById("novo-whats");
+            if (achou && achou.whats && !w.value) w.value = achou.whats;
+            return;
+        }
 
         /* Convidados */
         if (el.hasAttribute("data-i") && c) {
@@ -653,6 +732,24 @@ textarea.varios{ min-height:120px; margin:10px 0; }
                 var n = document.getElementById("novo-nome"), w = document.getElementById("novo-whats");
                 if (adicionar(n.value, w.value)) { marcarSujo(); desenhar(); document.getElementById("novo-nome").focus(); }
                 else n.focus();
+                break;
+
+            case "marcar-visiveis":
+            case "desmarcar-contatos":
+                var marcar = alvo.getAttribute("data-acao") === "marcar-visiveis";
+                painel.querySelectorAll("#lista-contatos li").forEach(function (li) {
+                    if (li.style.display !== "none" || !marcar) li.querySelector("input").checked = marcar;
+                });
+                contarMarcados();
+                break;
+
+            case "add-contatos":
+                var qtdC = 0;
+                painel.querySelectorAll("[data-contato]:checked").forEach(function (cb) {
+                    var c = CONTATOS_ABERTOS[+cb.getAttribute("data-contato")];
+                    if (c && adicionar(c.nome, c.whats)) qtdC++;
+                });
+                if (qtdC) { marcarSujo(); desenhar(); mostrarBarra(qtdC + (qtdC === 1 ? " convidado adicionado" : " convidados adicionados") + ". Clique em Salvar.", false); }
                 break;
 
             case "add-varios":

@@ -36,6 +36,9 @@ No painel você:
 - escolhe o tema, ou cores próprias, e vê uma amostra de como fica;
 - marca **Rascunho** para esconder o evento do site enquanto prepara;
 - cadastra convidados (um por um, ou vários de uma vez colando a lista);
+- reaproveita convidados de outros eventos: em **Escolher dos convidados já salvos**, busque
+  pelo nome ou filtre "Quem foi em" um evento, marque e clique em **Adicionar marcados**
+  (o WhatsApp vem junto);
 - clica em **Enviar convite**: abre o WhatsApp do convidado com o convite pronto,
   e o painel guarda que aquele convite já foi enviado.
 
