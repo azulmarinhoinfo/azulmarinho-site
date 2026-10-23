@@ -149,7 +149,8 @@ main, .rodape{ position:relative; z-index:1; }
 
 <script src="/assets/js/site.js"></script>
 <script src="/assets/js/eventos-comum.js"></script>
-<script src="/eventos/eventos.js"></script>
+<script src="/eventos/dados"></script>
+<script>window.EVENTOS || document.write('<script src="/eventos/eventos.js"><\/script>')</script>
 <script>
 (function () {
     var esc = EV.esc, A = window.AZUL, I = window.ICONES;
@@ -240,7 +241,7 @@ main, .rodape{ position:relative; z-index:1; }
                 (ev.album ? '<a class="btn btn-tema" style="margin-top:14px" href="' + esc(ev.album) + '" target="_blank" rel="noopener">📸 Álbum de fotos</a>' : "") +
             '</div>' +
             '<p class="suave" style="grid-column:span 12;text-align:center;font-size:14px">👥 A lista de convidados é privada. ' +
-                '<a class="link-tema" style="margin:0" href="/privado/#' + encodeURIComponent(ev.id) + '">Área do organizador</a></p>' +
+                '<a class="link-tema" style="margin:0" href="/admin/#' + encodeURIComponent(ev.id) + '">Área do organizador</a></p>' +
         '</div></div>';
 
     alvo.innerHTML = html;

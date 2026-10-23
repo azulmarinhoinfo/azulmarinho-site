@@ -26,8 +26,13 @@
    capa       opcional: foto de capa, ex.: "fotos/meu-evento/capa.jpg"
    descricao  texto do evento (pode ter várias linhas, use \n\n para novo parágrafo)
    playlist   link da playlist do Apple Music, Spotify ou YouTube
-   (a lista de convidados NÃO fica aqui: ela é privada e fica em
-    privado/convidados.js, veja o LEIAME.md)
+   (a lista de convidados NÃO fica aqui: ela é privada e fica só
+    no Painel do organizador, em /admin/, veja o LEIAME.md)
+
+   DICA: o jeito mais fácil é usar o Painel do organizador
+   (azulmarinhoinfo.com.br/admin/). Depois que o painel salvar
+   pela primeira vez, os eventos passam a vir de lá e este arquivo
+   fica só como reserva.
    fotos      lista de fotos do álbum: ["fotos/meu-evento/01.jpg", ...]
    album      opcional: link do álbum compartilhado (iCloud, Google Fotos...)
    ========================================================= */

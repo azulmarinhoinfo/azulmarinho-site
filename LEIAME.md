@@ -18,7 +18,7 @@ para o ar sozinha em cerca de 1 minuto.
 
 | Quer mudar... | Edite |
 |---|---|
-| Eventos | `eventos/eventos.js` (+ fotos em `eventos/fotos/`) |
+| Eventos e convidados | **Painel do organizador**: `azulmarinhoinfo.com.br/admin/` |
 | Serviços de informática | `assets/data/servicos.js` |
 | WhatsApp, telefone, e-mail, Facebook | `assets/js/site.js` (bloco `window.AZUL`) |
 | Camisas que aparecem na página principal | `assets/data/camisas.js` |
@@ -26,7 +26,69 @@ para o ar sozinha em cerca de 1 minuto.
 
 ---
 
-## Como postar um evento novo (passo a passo)
+## Painel do organizador (`/admin/`)
+
+O jeito fácil de cuidar dos eventos. Abra `azulmarinhoinfo.com.br/admin/` no PC ou no celular.
+O Cloudflare pede o seu e-mail e manda um código; só o seu e-mail entra.
+
+No painel você:
+- cria um evento (**Novo evento**), edita todos os detalhes ou duplica um evento antigo;
+- escolhe o tema, ou cores próprias, e vê uma amostra de como fica;
+- marca **Rascunho** para esconder o evento do site enquanto prepara;
+- cadastra convidados (um por um, ou vários de uma vez colando a lista);
+- clica em **Enviar convite**: abre o WhatsApp do convidado com o convite pronto,
+  e o painel guarda que aquele convite já foi enviado.
+
+Depois de mexer, clique em **Salvar alterações** (barra azul embaixo). O site atualiza em até 1 minuto.
+Cada gravação guarda uma cópia da versão anterior por 90 dias (no KV, chaves `backup:...`).
+
+Como funciona por dentro:
+- `admin/index.html` é o painel; `functions/api/admin/dados.js` lê e grava os dados;
+  `lib/acesso.js` confere o login do Cloudflare Access.
+- Os dados ficam no **KV** do Cloudflare (ligado ao site com o nome `DADOS`).
+- As páginas públicas leem os eventos de `/eventos/dados` (`functions/eventos/dados.js`),
+  que nunca entrega convidados nem rascunhos. Enquanto o painel não salvar pela primeira vez,
+  esse endereço usa o arquivo `eventos/eventos.js`.
+
+### Configurar o painel no Cloudflare (uma vez só)
+
+**1. Criar a equipe do Zero Trust (gratuito)**
+No painel do Cloudflare, abra **Zero Trust**. Na primeira vez ele pede um nome para a equipe
+(ex.: `azulmarinho`) e o plano: escolha o **Free**. Anote o nome: o endereço fica
+`azulmarinho.cloudflareaccess.com`.
+
+**2. Colocar login no painel**
+Em **Zero Trust → Access → Applications → Add an application → Self-hosted**:
+- Nome: `Painel`. Duração da sessão: 1 mês.
+- Em **Application domain**, adicione 6 linhas (domínio + caminho):
+  - `azulmarinhoinfo.com.br` + `admin` e `azulmarinhoinfo.com.br` + `api/admin`
+  - `azulmarinho-site.pages.dev` + `admin` e `azulmarinho-site.pages.dev` + `api/admin`
+  - `*.azulmarinho-site.pages.dev` + `admin` e `*.azulmarinho-site.pages.dev` + `api/admin` (prévias)
+- **Policy**: nome `So o Farley`, ação **Allow**, regra **Emails** = o seu e-mail.
+- Login: **One-time PIN** (código por e-mail). Salve.
+
+**3. Criar o armazenamento**
+Em **Workers & Pages → KV → Create namespace**, nome `azulmarinho-dados`.
+
+**4. Ligar o armazenamento e o login ao site**
+Em **Workers & Pages → azulmarinho-site → Settings**:
+- **Bindings → Add → KV namespace**: nome da variável `DADOS`, namespace `azulmarinho-dados`.
+- **Variables and Secrets → Add**: `ACCESS_TEAM` = nome da equipe (ex.: `azulmarinho`)
+  e `ADMIN_EMAIL` = o seu e-mail.
+- Faça isso em **Production** e em **Preview**.
+
+**5. Publicar de novo**
+Em **Deployments**, no último deploy, clique em **⋯ → Retry deployment** (ou salve qualquer
+alteração no GitHub). Pronto: abra `/admin/`, entre com o código do e-mail e clique em
+**Salvar alterações** uma vez para levar os eventos atuais para o painel.
+
+---
+
+## Como postar um evento pelo arquivo (sem o painel)
+
+Só funciona enquanto o painel ainda não foi usado. Depois do primeiro **Salvar** no painel,
+os eventos passam a vir de lá e o arquivo `eventos/eventos.js` fica só como reserva.
+
 
 ### 1. Escolha um nome curto para o evento (o "id")
 Sem espaço, sem acento, só letras minúsculas, números e hífen.
@@ -96,46 +158,9 @@ Google Maps, clique em **Compartilhar → Copiar link** e coloque em `mapa: "htt
 Cole o link do Spotify (playlist, álbum ou música) ou de uma playlist do YouTube
 (link com `list=`). Spotify e YouTube aparecem tocando direto na página.
 
-### Lista de convidados e convites pelo WhatsApp (área privada)
-A lista **não** aparece na página do evento. Ela fica na **Área do organizador**:
-`azulmarinhoinfo.com.br/privado/` (tem um link discreto no fim de cada evento).
-
-Os nomes ficam no arquivo `privado/convidados.js`:
-
-```js
-window.CONVIDADOS = {
-    "natal-2026": [
-        { nome: "Maria Souza", whats: "31999998888" },
-        { nome: "João", whats: "31988887777" },
-        "Tia Rosa"
-    ]
-};
-```
-
-Quem tem `whats` ganha o botão **Enviar convite**: ele abre o WhatsApp daquela pessoa
-com o convite pronto (nome, data, hora, local e o link do evento). É só apertar enviar.
-O botão fica "Enviado ✓" depois do clique (a marca fica guardada só no aparelho que você usou).
-
-> ⚠️ **Antes de colocar nomes e telefones reais, faça os 2 passos abaixo.**
-> Sem eles, qualquer pessoa que souber o endereço consegue ver a lista.
-
-#### Passo 1: deixar o repositório do GitHub privado
-Hoje o repositório `azulmarinho-site` é **público**: qualquer um pode ler os arquivos no GitHub.
-1. Abra https://github.com/azulmarinhoinfo/azulmarinho-site → **Settings**.
-2. Role até o fim (**Danger Zone**) → **Change repository visibility** → **Make private** → confirme.
-O Cloudflare continua publicando normalmente.
-
-#### Passo 2: colocar login na área privada (Cloudflare Access, gratuito)
-1. No painel do Cloudflare, abra **Zero Trust** (menu da esquerda). Na primeira vez ele pede
-   um nome para a equipe e o plano: escolha o **Free**.
-2. Vá em **Access → Applications → Add an application → Self-hosted**.
-3. Nome: `Area privada`. Em **Application domain** adicione 3 linhas:
-   - `azulmarinhoinfo.com.br` com caminho `privado`
-   - `azulmarinho-site.pages.dev` com caminho `privado`
-   - `*.azulmarinho-site.pages.dev` com caminho `privado` (as prévias)
-4. Em **Policies**: nome `So o Farley`, ação **Allow**, regra **Emails** = o seu e-mail.
-5. Salve. Ao abrir `/privado/`, o Cloudflare pede seu e-mail e manda um código.
-   Só o seu e-mail entra.
+### Lista de convidados e convites pelo WhatsApp
+Ficam no **Painel do organizador** (veja abaixo). A lista **não** aparece na página do
+evento e **não** fica no GitHub: fica guardada no Cloudflare, só para você.
 
 ### Temas prontos
 
