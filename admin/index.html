@@ -123,6 +123,10 @@ textarea.varios{ min-height:120px; margin:10px 0; }
 .aviso p{ margin-bottom:10px; }
 .aviso ol{ margin:10px 0 0 22px; }
 .aviso li{ margin-bottom:6px; }
+.entrar{ max-width:420px; margin:30px auto; display:flex; flex-direction:column; gap:12px; }
+.entrar input{ font:inherit; font-size:17px; border:1.5px solid var(--borda); border-radius:10px; padding:12px 14px; }
+.entrar input:focus{ outline:none; border-color:var(--ciano); box-shadow:0 0 0 3px rgba(0,173,239,.18); }
+.erro-senha{ color:#BE123C; min-height:1.4em; margin:0; }
 .faixa-aviso{ background:#FEF3C7; color:#78350F; border:1px solid #FDE68A; border-radius:12px; padding:12px 16px; margin-bottom:18px; font-size:15px; }
 
 /* Barra de salvar */
@@ -252,18 +256,55 @@ textarea.varios{ min-height:120px; margin:10px 0; }
             '<p style="margin-top:16px;color:var(--texto-claro);font-size:14px">O passo a passo completo está no arquivo LEIAME.md do site, na parte "Painel do organizador".</p></div>';
     }
 
+    function telaSenha(erro) {
+        painel.innerHTML = '<form class="caixa aviso entrar" id="form-senha" style="grid-column:1 / -1">' +
+            '<h2>🔒 Entrar no painel</h2><p>Digite a senha do organizador.</p>' +
+            '<input type="password" id="senha" autocomplete="current-password" placeholder="Senha" required>' +
+            '<button class="b cheio" type="submit">Entrar</button>' +
+            '<p class="erro-senha" id="erro-senha">' + esc(erro || "") + '</p></form>';
+        var f = document.getElementById("form-senha"), campo = document.getElementById("senha");
+        campo.focus();
+        f.addEventListener("submit", function (e) {
+            e.preventDefault();
+            var botao = f.querySelector("button");
+            botao.disabled = true;
+            fetch("/api/admin/login", {
+                method: "POST", credentials: "same-origin",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ senha: campo.value })
+            })
+            .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { d._status = r.status; return d; }); })
+            .then(function (d) {
+                if (d._status === 200) return carregar();
+                document.getElementById("erro-senha").textContent = d.erro || "Não consegui entrar.";
+                campo.select();
+            })
+            .catch(function () { document.getElementById("erro-senha").textContent = "Sem conexão. Tente de novo."; })
+            .then(function () { botao.disabled = false; });
+        });
+    }
+
+    function sair(e) {
+        if (e) e.preventDefault();
+        if (sujo && !confirm("Há alterações não salvas. Sair mesmo assim?")) return;
+        sujo = false;
+        fetch("/api/admin/sair", { method: "POST", credentials: "same-origin" })
+            .then(function () { location.reload(); }, function () { location.reload(); });
+    }
+
+    function carregar() {
     fetch("/api/admin/dados", { credentials: "same-origin", cache: "no-store" })
         .then(function (r) {
             return r.json().catch(function () { return {}; }).then(function (d) { d._status = r.status; return d; });
         })
         .then(function (d) {
             if (d._status === 200) return iniciar(d);
+            if (d.codigo === "senha") return telaSenha();
             if (d.codigo === "sem-login") {
                 avisoConfig("Falta ligar o login do painel",
-                    '<p>O painel está pronto, mas ainda falta configurar no Cloudflare:</p><ol>' +
-                    '<li>O login (Cloudflare Access) para esta página e para <code>/api/admin</code>.</li>' +
-                    '<li>A variável <code>ACCESS_TEAM</code> com o nome da equipe do Zero Trust.</li>' +
-                    '<li>O armazenamento KV com o nome <code>DADOS</code>.</li></ol>');
+                    '<p>O painel está pronto, mas ainda falta configurar no Cloudflare (projeto azulmarinho-site → Settings):</p><ol>' +
+                    '<li>Em <b>Variables and Secrets</b>, a senha do painel: <code>ADMIN_SENHA</code> (tipo Secret).</li>' +
+                    '<li>Em <b>Bindings</b>, o armazenamento KV com o nome <code>DADOS</code>.</li></ol>');
             } else if (d.codigo === "sem-kv") {
                 avisoConfig("Falta ligar o armazenamento",
                     '<p>O login está funcionando. Agora é só criar o KV no Cloudflare e ligar ao site com o nome <code>DADOS</code>.</p>');
@@ -279,6 +320,8 @@ textarea.varios{ min-height:120px; margin:10px 0; }
         .catch(function () {
             avisoConfig("Sem conexão", "<p>Não consegui carregar os dados do painel. Verifique a internet e recarregue a página.</p>");
         });
+    }
+    carregar();
 
     function iniciar(d) {
         var primeiraVez = !Array.isArray(d.eventos);
@@ -287,8 +330,12 @@ textarea.varios{ min-height:120px; margin:10px 0; }
         estado.versao = d.versao || "";
         window.EVENTOS = estado.eventos;
 
-        if (d.email) {
-            document.getElementById("quem").innerHTML = 'Entrou como <b>' + esc(d.email) + '</b><br><a href="/cdn-cgi/access/logout">Sair</a>';
+        var quem = document.getElementById("quem");
+        if (d.modo === "senha") {
+            quem.innerHTML = '<a href="#" id="sair">Sair do painel</a>';
+            document.getElementById("sair").addEventListener("click", sair);
+        } else if (d.email) {
+            quem.innerHTML = 'Entrou como <b>' + esc(d.email) + '</b><br><a href="/cdn-cgi/access/logout">Sair</a>';
         }
 
         var pedido = decodeURIComponent(location.hash.slice(1));

@@ -29,7 +29,7 @@ para o ar sozinha em cerca de 1 minuto.
 ## Painel do organizador (`/admin/`)
 
 O jeito fácil de cuidar dos eventos. Abra `azulmarinhoinfo.com.br/admin/` no PC ou no celular.
-O Cloudflare pede o seu e-mail e manda um código; só o seu e-mail entra.
+O painel pede a sua senha; só quem tem a senha entra.
 
 No painel você:
 - cria um evento (**Novo evento**), edita todos os detalhes ou duplica um evento antigo;
@@ -44,7 +44,8 @@ Cada gravação guarda uma cópia da versão anterior por 90 dias (no KV, chaves
 
 Como funciona por dentro:
 - `admin/index.html` é o painel; `functions/api/admin/dados.js` lê e grava os dados;
-  `lib/acesso.js` confere o login do Cloudflare Access.
+  `lib/acesso.js` confere o login (senha ou Cloudflare Access);
+  `functions/api/admin/login.js` e `sair.js` entram e saem com a senha.
 - Os dados ficam no **KV** do Cloudflare (ligado ao site com o nome `DADOS`).
 - As páginas públicas leem os eventos de `/eventos/dados` (`functions/eventos/dados.js`),
   que nunca entrega convidados nem rascunhos. Enquanto o painel não salvar pela primeira vez,
@@ -52,35 +53,31 @@ Como funciona por dentro:
 
 ### Configurar o painel no Cloudflare (uma vez só)
 
-**1. Criar a equipe do Zero Trust (gratuito)**
-No painel do Cloudflare, abra **Zero Trust**. Na primeira vez ele pede um nome para a equipe
-(ex.: `azulmarinho`) e o plano: escolha o **Free**. Anote o nome: o endereço fica
-`azulmarinho.cloudflareaccess.com`.
+**1. Criar o armazenamento**
+Em **Workers & Pages → KV** (ou **Storage & Databases → KV**) → **Create namespace**, nome `azulmarinho-dados`.
 
-**2. Colocar login no painel**
-Em **Zero Trust → Access → Applications → Add an application → Self-hosted**:
-- Nome: `Painel`. Duração da sessão: 1 mês.
-- Em **Application domain**, adicione 6 linhas (domínio + caminho):
-  - `azulmarinhoinfo.com.br` + `admin` e `azulmarinhoinfo.com.br` + `api/admin`
-  - `azulmarinho-site.pages.dev` + `admin` e `azulmarinho-site.pages.dev` + `api/admin`
-  - `*.azulmarinho-site.pages.dev` + `admin` e `*.azulmarinho-site.pages.dev` + `api/admin` (prévias)
-- **Policy**: nome `So o Farley`, ação **Allow**, regra **Emails** = o seu e-mail.
-- Login: **One-time PIN** (código por e-mail). Salve.
-
-**3. Criar o armazenamento**
-Em **Workers & Pages → KV → Create namespace**, nome `azulmarinho-dados`.
-
-**4. Ligar o armazenamento e o login ao site**
+**2. Ligar o armazenamento e a senha ao site**
 Em **Workers & Pages → azulmarinho-site → Settings**:
 - **Bindings → Add → KV namespace**: nome da variável `DADOS`, namespace `azulmarinho-dados`.
-- **Variables and Secrets → Add**: `ACCESS_TEAM` = nome da equipe (ex.: `azulmarinho`)
-  e `ADMIN_EMAIL` = o seu e-mail.
+- **Variables and Secrets → Add**: tipo **Secret**, nome `ADMIN_SENHA`, valor = a senha do painel
+  (use uma senha forte, só sua). Para trocar a senha depois, é só editar aqui: todos os aparelhos saem.
 - Faça isso em **Production** e em **Preview**.
 
-**5. Publicar de novo**
+**3. Publicar de novo**
 Em **Deployments**, no último deploy, clique em **⋯ → Retry deployment** (ou salve qualquer
-alteração no GitHub). Pronto: abra `/admin/`, entre com o código do e-mail e clique em
+alteração no GitHub). Pronto: abra `/admin/`, digite a senha e clique em
 **Salvar alterações** uma vez para levar os eventos atuais para o painel.
+
+Segurança: depois de 8 senhas erradas, aquele endereço fica bloqueado por 15 minutos.
+O login fica guardado no aparelho por 30 dias (botão **Sair do painel** encerra).
+
+**Opcional: login por código no e-mail (Cloudflare Access)**
+Em vez da senha, dá para usar o Cloudflare Access (o Cloudflare manda um código para o seu e-mail).
+Exige ativar o **Zero Trust** (plano Free, mas pede cartão ou PayPal para validar). Depois:
+crie um aplicativo **Self-hosted** protegendo `admin` e `api/admin` em `azulmarinhoinfo.com.br`,
+`azulmarinho-site.pages.dev` e `*.azulmarinho-site.pages.dev`, com a regra **Emails** = o seu e-mail,
+e adicione as variáveis `ACCESS_TEAM` (nome da equipe) e `ADMIN_EMAIL` (seu e-mail).
+Com `ACCESS_TEAM` preenchido, o painel passa a usar o Access e ignora a senha.
 
 ---
 

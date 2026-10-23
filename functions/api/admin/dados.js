@@ -51,6 +51,7 @@ export async function onRequestGet(context) {
     if (p.resposta) return p.resposta;
     return json({
         email: p.acesso.email,
+        modo: p.acesso.modo,
         eventos: await lerJSON(p.kv, "eventos", null),
         convidados: await lerJSON(p.kv, "convidados", {}),
         versao: (await p.kv.get("versao")) || ""
