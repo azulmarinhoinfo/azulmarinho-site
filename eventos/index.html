@@ -150,7 +150,7 @@
         var t = EV.tema(ev), dm = EV.diaMes(ev);
         var qtdFotos = (ev.fotos || []).length;
         var extra = passado
-            ? (qtdFotos ? qtdFotos + (qtdFotos === 1 ? " foto" : " fotos") : "Fotos em breve")
+            ? (qtdFotos ? qtdFotos + (qtdFotos === 1 ? " foto" : " fotos") : (ev.album ? "📸 Álbum de fotos" : "Fotos em breve"))
             : EV.contagem(ev);
         var temFoto = ev.capa || qtdFotos;
         return '<a class="evento-card" href="' + linkEvento(ev) + '">' +

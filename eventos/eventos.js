@@ -29,7 +29,7 @@
    (a lista de convidados NÃO fica aqui: ela é privada e fica em
     privado/convidados.js, veja o LEIAME.md)
    fotos      lista de fotos do álbum: ["fotos/meu-evento/01.jpg", ...]
-   album      opcional: link de um álbum completo (Google Fotos, Drive...)
+   album      opcional: link do álbum compartilhado (iCloud, Google Fotos...)
    ========================================================= */
 
 window.EVENTOS = [
@@ -46,7 +46,7 @@ window.EVENTOS = [
         descricao: "Nosso pequeno Heitor acaba de completar 1 mês de vida! 👶🏻💙\n\nSerá um evento bem simples, só um bolinho mesmo para reunir os irmãos, pais, avós e padrinhos do Heitor. ❤️\n\nApenas a família mais próxima para comemorar esse primeiro mês do nosso pequeno explorador! 🥹💙",
         playlist: "https://music.apple.com/br/playlist/festa-infantil/pl.u-qxyllDXt2op40P3",
         fotos: [],
-        album: ""
+        album: "https://www.icloud.com/photos/#/sharedalbums/sa,a94b07c2-d6c7-4641-abd7-98c6943570b2/"
     },
 
     {
@@ -61,7 +61,7 @@ window.EVENTOS = [
         descricao: "Dia de torcer pela Seleção Brasileira juntos! 🇧🇷💚💛",
         playlist: "",
         fotos: [],
-        album: ""
+        album: "https://www.icloud.com/photos/#/sharedalbums/sa,5DD9BDFC-7E08-4D0E-8461-EF8995846CCC/"
     },
 
     {
@@ -76,7 +76,7 @@ window.EVENTOS = [
         descricao: "ALMOÇO AMERICANO\n\nDeixamos que o próprio Henrique escolhesse quem gostaria de ter por perto nesse dia tão especial.\nSe você está aqui, é porque ocupa um lugar importante no coração dele e também no nosso. Sua presença é o verdadeiro presente desta celebração.\n\nSerá uma alegria compartilhar esse momento com vocês.",
         playlist: "https://music.apple.com/br/playlist/festa-infantil/pl.u-qxyllDXt2op40P3",
         fotos: [],
-        album: ""
+        album: "https://www.icloud.com/photos/#/sharedalbums/sa,B1332374-A98D-4C3B-AFFE-A297CFDBDB8C/"
     },
 
     {
@@ -91,7 +91,7 @@ window.EVENTOS = [
         descricao: "Aniversário de 5 anos da Helena e 1 aninho da Heloísa. 🌷✨",
         playlist: "https://music.apple.com/br/playlist/festa-infantil/pl.u-qxyllDXt2op40P3",
         fotos: [],
-        album: ""
+        album: "https://www.icloud.com/photos/#/sharedalbums/sa,B8E08A58-18C2-41FF-9288-7A486A99D4E6/"
     },
 
     {
@@ -106,7 +106,7 @@ window.EVENTOS = [
         descricao: "Pool Party da Helô: 11 meses de sol, água e sorrisos! 💦☀️",
         playlist: "https://music.apple.com/us/playlist/pl.u-zPyLAeYFZVljkJe",
         fotos: [],
-        album: ""
+        album: "https://www.icloud.com/photos/#/sharedalbums/sa,46F90A71-08CF-4EB0-B351-081C8BA884B1/"
     },
 
     {
@@ -121,7 +121,7 @@ window.EVENTOS = [
         descricao: "Heloísa 10 meses na Toca da Raposa! 💙🦊",
         playlist: "https://music.apple.com/br/playlist/01-cruzeiro/pl.u-55D6X42i8AG7gj6",
         fotos: [],
-        album: ""
+        album: "https://www.icloud.com/photos/#/sharedalbums/sa,27B8CA63-F9DF-4761-8957-A8792F3625EF/"
     },
 
     {
@@ -136,7 +136,7 @@ window.EVENTOS = [
         descricao: "Henrique 3 anos e Heloísa 9 meses com o Spidey e seus Amigos Espetaculares! 🕷️",
         playlist: "https://music.apple.com/br/playlist/festa-infantil/pl.u-qxyllDXt2op40P3",
         fotos: [],
-        album: ""
+        album: "https://www.icloud.com/photos/#/sharedalbums/sa,5AA219A2-5A3A-4A62-8D8A-624C3FDF336D/"
     },
 
     {
@@ -151,7 +151,7 @@ window.EVENTOS = [
         descricao: "Arraiá da Helô: 8 meses com bandeirinhas, fogueira e muita alegria! 🌽🎉",
         playlist: "https://music.apple.com/br/playlist/arraia-da-hel%C3%B4/pl.u-zPyLAdvTZVljkJe",
         fotos: [],
-        album: ""
+        album: "https://www.icloud.com/photos/#/sharedalbums/sa,11D7E44F-49E5-42C9-9E78-C1BD6038E86C/"
     },
 
     {
@@ -166,7 +166,7 @@ window.EVENTOS = [
         descricao: "Tema: 🐉 Heloísa: Uma Nova Lenda Sayajin!\n\n🚨🚨 Importante 🚨🚨\nConvidado não convida 😉",
         playlist: "https://music.apple.com/br/playlist/festa-infantil/pl.u-qxyllDXt2op40P3",
         fotos: [],
-        album: ""
+        album: "https://www.icloud.com/photos/#/sharedalbums/sa,DCDD60F3-8FF5-489E-BCDE-D18964BD2767/"
     },
 
     {
@@ -181,7 +181,7 @@ window.EVENTOS = [
         descricao: "Batismo da Heloísa Teresa, aos 6 meses. 🕊️",
         playlist: "https://music.apple.com/br/playlist/festa-infantil/pl.u-qxyllDXt2op40P3",
         fotos: [],
-        album: ""
+        album: "https://www.icloud.com/photos/#/sharedalbums/sa,64D0143F-6704-427A-9E42-196AC9A5F92D/"
     },
 
     {
@@ -196,7 +196,7 @@ window.EVENTOS = [
         descricao: "Tema: Toy Story 🤠\n\n🚨🚨 Importante 🚨🚨\nConvidado não convida 😉",
         playlist: "https://music.apple.com/br/playlist/festa-infantil/pl.u-qxyllDXt2op40P3",
         fotos: [],
-        album: ""
+        album: "https://www.icloud.com/photos/#/sharedalbums/sa,6BF9506D-6DBF-41B4-AD4D-2594F7D9D98D/"
     },
 
     {
@@ -211,7 +211,7 @@ window.EVENTOS = [
         descricao: "Tema: Branca de Neve 🍎\n\n🚨🚨 Importante 🚨🚨\nConvidado não convida 😉",
         playlist: "https://music.apple.com/br/playlist/festa-infantil/pl.u-qxyllDXt2op40P3",
         fotos: [],
-        album: ""
+        album: "https://www.icloud.com/photos/#/sharedalbums/sa,091D6BA6-DF8D-497F-A213-D4A25B17B417/"
     }
 
 ];
