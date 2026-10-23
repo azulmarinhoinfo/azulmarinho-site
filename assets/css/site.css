@@ -77,6 +77,17 @@ h1,h2,h3{
 
 .menu .menu-destaque:hover{ border-color:var(--ciano); }
 
+/* Logo da Azul Marinho Sports no menu */
+.menu .logo-sports{
+    display:inline-flex; flex-direction:column; align-items:flex-end; line-height:1;
+    background:var(--marinho); border-color:var(--marinho); border-radius:12px; padding:7px 14px 6px;
+    transition:border-color .2s, transform .2s;
+}
+.menu .logo-sports:hover{ border-color:var(--ciano); transform:translateY(-1px); }
+.ls-palavra{ display:flex; align-items:center; font-family:"Montserrat",sans-serif; font-weight:800; font-size:15px; color:#fff; white-space:nowrap; letter-spacing:-.01em; }
+.sports-bola{ width:.84em; height:.84em; margin-left:.04em; color:var(--ciano); flex:none; }
+.ls-sub{ margin-top:2px; font-size:8.5px; font-weight:500; letter-spacing:.32em; text-transform:uppercase; color:var(--ciano); margin-right:-.32em; }
+
 .btn-menu{
     display:none; background:none; border:0; cursor:pointer;
     width:42px; height:42px; color:var(--marinho);
@@ -218,6 +229,10 @@ h1,h2,h3{
     .menu li{ width:100%; text-align:center; border-top:1px solid #EEF2F8; }
     .menu a{ display:block; padding:14px; }
     .menu .menu-destaque{ border:0; border-radius:0; font-size:16px; }
+    .menu .logo-sports{ display:flex; align-items:center; padding:12px; }
+    .menu .logo-sports:hover{ transform:none; }
+    .ls-palavra{ font-size:18px; }
+    .ls-sub{ font-size:10px; }
 }
 
 @media (max-width:560px){
