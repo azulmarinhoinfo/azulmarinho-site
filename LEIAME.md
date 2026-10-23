@@ -56,8 +56,8 @@ Dica: fotos de celular são grandes. Diminua para uns 1600 px de largura antes d
         data: "2026-12-19",            // ANO-MÊS-DIA
         hora: "20:00",
         local: "Salão da Igreja",
-        endereco: "Rua Exemplo, 123, Bairro, Belo Horizonte - MG",
-        cidade: "Belo Horizonte",      // para a previsão do tempo
+        endereco: "Rua Exemplo, 123, Bairro, Ipatinga - MG",
+        cidade: "Ipatinga",           // para a previsão do tempo
         tema: "natal",                 // veja a lista de temas abaixo
         descricao: "Primeiro parágrafo.\n\nSegundo parágrafo.",
         playlist: "https://open.spotify.com/playlist/...",

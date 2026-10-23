@@ -304,8 +304,8 @@
     document.getElementById("fileira-camisas").innerHTML = sortear(12).map(function (c) { return cartaoCamisa(c); }).join("");
 
     /* ----- Serviços ----- */
-    document.getElementById("chips-servicos").innerHTML = (window.SERVICOS || []).map(function (s) {
-        return "<li>" + esc(s.nome) + "</li>";
+    document.getElementById("chips-servicos").innerHTML = (window.SERVICOS_RESUMO || []).map(function (s) {
+        return "<li>" + esc(s) + "</li>";
     }).join("");
 
     /* ----- Próximo evento ----- */

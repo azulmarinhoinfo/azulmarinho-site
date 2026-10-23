@@ -47,6 +47,25 @@
 .grade-servicos{ display:flex; flex-wrap:wrap; justify-content:center; gap:22px; }
 .grade-servicos .card{ flex:0 1 calc((100% - 66px) / 4); }
 
+.abas{ display:flex; justify-content:center; gap:12px; margin:-20px 0 40px; flex-wrap:wrap; }
+.aba{
+    display:inline-flex; align-items:center; gap:10px; cursor:pointer; border:2px solid var(--borda); background:var(--branco);
+    color:var(--marinho); font-family:"Montserrat",sans-serif; font-weight:700; font-size:17px; padding:13px 26px; border-radius:999px;
+    transition:background .2s, color .2s, border-color .2s;
+}
+.aba:hover{ border-color:var(--ciano); }
+.aba[aria-selected="true"]{ background:var(--marinho); border-color:var(--marinho); color:var(--branco); }
+.grade-servicos .card{ display:flex; flex-direction:column; }
+.grade-servicos .card p{ flex:1; }
+.card .btn-whats{
+    margin-top:18px; align-self:flex-start; display:inline-flex; align-items:center; gap:8px; text-decoration:none;
+    color:var(--ciano-escuro); font-weight:500; font-size:15px; border:1.5px solid var(--ciano); border-radius:999px; padding:7px 14px;
+    transition:background .2s, color .2s;
+}
+.card .btn-whats svg{ width:18px; height:18px; }
+.card .btn-whats:hover{ background:var(--ciano); color:var(--branco); }
+.infra-grupo li a{ color:inherit; text-decoration:none; border-bottom:1px dashed rgba(255,255,255,.25); }
+.infra-grupo li a:hover{ color:var(--ciano); border-bottom-color:var(--ciano); }
 .infra{ background:linear-gradient(160deg, var(--marinho-escuro), var(--marinho) 60%, var(--marinho-medio)); color:#DCE6F7; }
 .infra .titulo-secao h2{ color:var(--branco); }
 .infra .titulo-secao p{ color:#B9C7E2; }
@@ -124,9 +143,13 @@
         <div class="titulo-secao">
             <span class="sobretitulo">Serviços</span>
             <h2>Serviços disponíveis</h2>
-            <p>Escolha o serviço e chame no WhatsApp. O orçamento é sem compromisso.</p>
+            <p>Escolha o serviço e chame no WhatsApp: a mensagem já vai pronta. O orçamento é sem compromisso.</p>
         </div>
-        <div class="grade-servicos" id="grade-servicos"></div>
+        <div class="abas" role="tablist" aria-label="Tipo de atendimento">
+            <button class="aba" role="tab" id="aba-casa" aria-controls="grade-servicos" data-tipo="casa">🏠 Para sua casa</button>
+            <button class="aba" role="tab" id="aba-empresa" aria-controls="grade-servicos" data-tipo="empresa">🏢 Para sua empresa</button>
+        </div>
+        <div class="grade-servicos" id="grade-servicos" role="tabpanel"></div>
     </div>
 </section>
 
@@ -167,20 +190,47 @@
 (function () {
     var A = window.AZUL, I = window.ICONES;
 
+    function svg(desenho) {
+        return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + desenho + '</svg>';
+    }
+    function textoWhats(nome, tipo) {
+        return "Olá! Vim pelo site da Azul Marinho e gostaria de um orçamento.\nServiço: *" + nome + "*\nPara: " +
+            (tipo === "empresa" ? "minha empresa" : "minha casa");
+    }
+
+    /* ----- Serviços em abas: casa / empresa ----- */
+    var listas = { casa: window.SERVICOS_CASA || [], empresa: window.SERVICOS_EMPRESA || [] };
+    var abas = document.querySelectorAll(".aba");
+    function mostrar(tipo) {
+        abas.forEach(function (b) { b.setAttribute("aria-selected", b.getAttribute("data-tipo") === tipo); });
+        document.getElementById("grade-servicos").innerHTML = listas[tipo].map(function (s) {
+            return '<div class="card">' +
+                '<div class="icone">' + svg(window.ICONES_SERVICO[s.icone] || window.ICONES_SERVICO.suporte) + '</div>' +
+                '<h3>' + s.nome + '</h3><p>' + s.texto + '</p>' +
+                '<a class="btn-whats" href="' + A.linkWhats(s.whats || textoWhats(s.nome, tipo)) + '" target="_blank" rel="noopener">' + I.whats + ' Pedir pelo WhatsApp</a>' +
+                '</div>';
+        }).join("");
+    }
+    abas.forEach(function (b) {
+        b.addEventListener("click", function () {
+            var tipo = b.getAttribute("data-tipo");
+            mostrar(tipo);
+            history.replaceState(null, "", "#" + tipo);
+        });
+    });
+    mostrar(location.hash === "#empresa" ? "empresa" : "casa");
+
+    /* ----- Infraestrutura (cada item abre o WhatsApp) ----- */
     document.getElementById("grade-infra").innerHTML = (window.INFRAESTRUTURA || []).map(function (g) {
         return '<div class="infra-grupo">' +
-            '<div class="icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + g.icone + '</svg></div>' +
-            '<h3>' + g.grupo + '</h3><ul>' + g.itens.map(function (i) { return '<li>' + i + '</li>'; }).join("") + '</ul></div>';
+            '<div class="icone">' + svg(g.icone) + '</div>' +
+            '<h3>' + g.grupo + '</h3><ul>' + g.itens.map(function (i) {
+                return '<li><a href="' + A.linkWhats(textoWhats(i, "empresa")) + '" target="_blank" rel="noopener">' + i + '</a></li>';
+            }).join("") + '</ul></div>';
     }).join("");
 
     document.querySelectorAll(".js-whats").forEach(function (a) { a.href = A.linkWhats(a.getAttribute("data-texto")); });
     document.querySelectorAll(".js-icone-whats").forEach(function (s) { s.outerHTML = I.whats; });
-
-    document.getElementById("grade-servicos").innerHTML = window.SERVICOS.map(function (s) {
-        return '<div class="card">' +
-            '<div class="icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + s.icone + '</svg></div>' +
-            '<h3>' + s.nome + '</h3><p>' + s.texto + '</p></div>';
-    }).join("");
 
     document.getElementById("grade-contato").innerHTML =
         '<a class="contato-card whats" href="' + A.linkWhats("Olá! Vim pelo site da Azul Marinho Informática.") + '" target="_blank" rel="noopener">' +

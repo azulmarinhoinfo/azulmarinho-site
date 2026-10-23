@@ -122,7 +122,7 @@ window.EV = (function () {
 
     function coordenadas(ev) {
         if (ev.lat != null && ev.lon != null) return Promise.resolve({ lat: ev.lat, lon: ev.lon });
-        var nome = ev.cidade || "Belo Horizonte";
+        var nome = ev.cidade || "Ipatinga";
         return fetch("https://geocoding-api.open-meteo.com/v1/search?count=1&language=pt&countryCode=BR&name=" + encodeURIComponent(nome))
             .then(function (r) { return r.json(); })
             .then(function (j) {

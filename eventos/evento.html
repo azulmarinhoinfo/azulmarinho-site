@@ -273,7 +273,7 @@ main, .rodape{ position:relative; z-index:1; }
                 '<div>' + c.descricao + '</div></div></div>' +
             (c.naHora ? '<p class="suave" style="margin-top:10px">Às ' + esc(ev.hora) + ': ' + c.naHora.temp + '°, ' + c.naHora.descricao.toLowerCase() + '</p>' : "") +
             (chuva ? '<p class="suave">' + chuva + '</p>' : "") +
-            '<p class="suave" style="font-size:13px;margin-top:6px">' + (c.tipo === "previsao" ? "Previsão" : "Como foi o tempo") + ' em ' + esc(ev.cidade || "Belo Horizonte") + '</p>';
+            '<p class="suave" style="font-size:13px;margin-top:6px">' + (c.tipo === "previsao" ? "Previsão" : "Como foi o tempo") + ' em ' + esc(ev.cidade || "Ipatinga") + '</p>';
     }).catch(function () {
         caixa.innerHTML = "<p>Não foi possível carregar a previsão agora. Tente de novo mais tarde.</p>";
     });
