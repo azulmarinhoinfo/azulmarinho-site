@@ -55,3 +55,43 @@ window.SERVICOS = [
         icone: '<rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/>'
     }
 ];
+
+/* =========================================================
+   INFRAESTRUTURA (para empresas) — edite aqui
+   Aparece na página Informática, em 3 grupos.
+   ========================================================= */
+window.INFRAESTRUTURA = [
+    {
+        grupo: "Computadores e sistemas",
+        icone: '<rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/>',
+        itens: [
+            "Formatação e suporte ao hardware",
+            "Instalação de Windows e Linux",
+            "Instalação de softwares",
+            "Manutenções preventivas",
+            "Instalação e configuração de estações de trabalho e servidores",
+            "Instalação e configuração de periféricos (impressoras, roteadores, switches, nobreaks)"
+        ]
+    },
+    {
+        grupo: "Redes e segurança",
+        icone: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/>',
+        itens: [
+            "Instalação completa de redes cabeadas ou sem fio",
+            "Configuração de Access Point para rede wireless segura",
+            "Configuração de firewall",
+            "Configuração de VPN",
+            "Monitoramento remoto de servidores"
+        ]
+    },
+    {
+        grupo: "Gestão e continuidade",
+        icone: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/>',
+        itens: [
+            "Inventário de equipamentos e programas",
+            "Documentação de todo o ambiente tecnológico",
+            "Contingência para continuidade dos negócios",
+            "Rotinas de backup"
+        ]
+    }
+];

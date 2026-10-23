@@ -47,6 +47,25 @@
 .grade-servicos{ display:flex; flex-wrap:wrap; justify-content:center; gap:22px; }
 .grade-servicos .card{ flex:0 1 calc((100% - 66px) / 4); }
 
+.infra{ background:linear-gradient(160deg, var(--marinho-escuro), var(--marinho) 60%, var(--marinho-medio)); color:#DCE6F7; }
+.infra .titulo-secao h2{ color:var(--branco); }
+.infra .titulo-secao p{ color:#B9C7E2; }
+.grade-infra{ display:grid; grid-template-columns:repeat(3, 1fr); gap:22px; }
+.infra-grupo{
+    background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); border-radius:var(--raio); padding:28px 26px;
+}
+.infra-grupo .icone{
+    width:52px; height:52px; border-radius:14px; background:var(--ciano); color:var(--branco);
+    display:grid; place-items:center; margin-bottom:16px;
+}
+.infra-grupo .icone svg{ width:28px; height:28px; }
+.infra-grupo h3{ color:var(--branco); font-size:20px; margin-bottom:14px; }
+.infra-grupo ul{ list-style:none; display:grid; gap:10px; }
+.infra-grupo li{ display:flex; gap:10px; align-items:flex-start; font-size:15.5px; line-height:1.45; }
+.infra-grupo li::before{ content:"✔"; color:var(--ciano); font-weight:700; flex-shrink:0; }
+.infra .chamada{ text-align:center; margin-top:40px; }
+@media (max-width:900px){ .grade-infra{ grid-template-columns:1fr; } }
+
 @media (max-width:1000px){ .grade-servicos .card{ flex-basis:calc((100% - 44px) / 3); } }
 @media (max-width:900px){
     .hero .wrap{ grid-template-columns:1fr; }
@@ -111,6 +130,23 @@
     </div>
 </section>
 
+<!-- ===================== INFRAESTRUTURA ===================== -->
+<section class="secao infra" id="infraestrutura">
+    <div class="wrap">
+        <div class="titulo-secao">
+            <span class="sobretitulo">Para empresas</span>
+            <h2>Infraestrutura de TI</h2>
+            <p>Cuidamos de toda a estrutura de tecnologia do seu negócio, dos computadores à rede, à segurança e ao backup.</p>
+        </div>
+        <div class="grade-infra" id="grade-infra"></div>
+        <div class="chamada">
+            <a class="btn btn-ciano js-whats" data-texto="Olá! Vim pelo site e gostaria de falar sobre infraestrutura de TI para minha empresa." href="https://wa.me/5531988836857" target="_blank" rel="noopener">
+                <span class="js-icone-whats"></span> Falar sobre minha empresa
+            </a>
+        </div>
+    </div>
+</section>
+
 <!-- ===================== CONTATO ===================== -->
 <section class="secao" id="contato">
     <div class="wrap">
@@ -130,6 +166,12 @@
 <script>
 (function () {
     var A = window.AZUL, I = window.ICONES;
+
+    document.getElementById("grade-infra").innerHTML = (window.INFRAESTRUTURA || []).map(function (g) {
+        return '<div class="infra-grupo">' +
+            '<div class="icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + g.icone + '</svg></div>' +
+            '<h3>' + g.grupo + '</h3><ul>' + g.itens.map(function (i) { return '<li>' + i + '</li>'; }).join("") + '</ul></div>';
+    }).join("");
 
     document.querySelectorAll(".js-whats").forEach(function (a) { a.href = A.linkWhats(a.getAttribute("data-texto")); });
     document.querySelectorAll(".js-icone-whats").forEach(function (s) { s.outerHTML = I.whats; });
