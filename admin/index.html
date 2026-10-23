@@ -118,6 +118,10 @@ details.varios-box{ margin-top:14px; }
 .contatos .filtros{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
 .contatos .filtros input, .contatos .filtros select{ font:inherit; font-size:15px; border:1.5px solid var(--borda); border-radius:10px; padding:8px 10px; background:#fff; width:100%; }
 .lista-contatos{ list-style:none; max-height:320px; overflow:auto; margin:10px 0; background:#fff; border:1px solid var(--borda); border-radius:10px; }
+.lista-contatos li{ display:flex; align-items:center; border-bottom:1px solid var(--borda); }
+.lista-contatos li label{ flex:1; border-bottom:0 !important; }
+.lista-contatos .esquecer{ border:0; background:none; cursor:pointer; color:var(--texto-claro); font-size:16px; padding:6px 12px; border-radius:8px; }
+.lista-contatos .esquecer:hover{ color:#BE123C; background:#FFE4E6; }
 .lista-contatos label{ display:flex; gap:10px; align-items:center; padding:8px 12px; border-bottom:1px solid var(--borda); cursor:pointer; }
 .lista-contatos label:hover{ background:var(--ciano-claro); }
 .lista-contatos input{ width:18px; height:18px; accent-color:var(--ciano); flex-shrink:0; }
@@ -493,7 +497,8 @@ textarea.varios{ min-height:120px; margin:10px 0; }
                 '<ul class="lista-contatos" id="lista-contatos">' + cs.map(function (c, i) {
                     return '<li data-ev="' + esc(c.eventos.join(" ")) + '" data-k="' + esc(chaveNome(c.nome)) + '"><label>' +
                         '<input type="checkbox" data-contato="' + i + '"><span class="nm">' + esc(c.nome) + '</span>' +
-                        '<small>' + (c.whats ? "📱 " + esc(c.whats) + " • " : "") + c.eventos.length + (c.eventos.length === 1 ? " evento" : " eventos") + '</small></label></li>';
+                        '<small>' + (c.whats ? "📱 " + esc(c.whats) + " • " : "") + c.eventos.length + (c.eventos.length === 1 ? " evento" : " eventos") + '</small></label>' +
+                        '<button class="esquecer" data-esquecer="' + i + '" title="Tirar de todos os eventos" aria-label="Tirar ' + esc(c.nome) + ' de todos os eventos">🗑</button></li>';
                 }).join("") + '</ul>' +
                 '<div class="acoes-c"><button class="b pequeno" data-acao="marcar-visiveis">Marcar todos da lista</button>' +
                 '<button class="b pequeno" data-acao="desmarcar-contatos">Desmarcar</button>' +
@@ -668,7 +673,7 @@ textarea.varios{ min-height:120px; margin:10px 0; }
     }
 
     painel.addEventListener("click", function (e) {
-        var alvo = e.target.closest("[data-abrir],[data-acao],[data-aba],[data-remover],.convite");
+        var alvo = e.target.closest("[data-abrir],[data-acao],[data-aba],[data-remover],[data-esquecer],.convite");
         if (!alvo) return;
 
         if (alvo.hasAttribute("data-abrir")) return abrir(alvo.getAttribute("data-abrir"));
@@ -683,6 +688,19 @@ textarea.varios{ min-height:120px; margin:10px 0; }
                 alvo.classList.add("enviado");
                 alvo.innerHTML = I.whats + "Enviado ✓";
                 salvar(true);
+            }
+            return;
+        }
+
+        if (alvo.hasAttribute("data-esquecer")) {
+            var ct = CONTATOS_ABERTOS[+alvo.getAttribute("data-esquecer")], k = chaveNome(ct.nome);
+            var nomesEv = ct.eventos.map(function (id) { var o = evento(id); return "• " + (o ? o.titulo : id); }).join("\n");
+            if (confirm("Tirar " + ct.nome + " de todos os eventos?\n\n" + nomesEv + "\n\nIsso só vale depois de Salvar.")) {
+                Object.keys(estado.convidados).forEach(function (id) {
+                    estado.convidados[id] = estado.convidados[id].filter(function (p) { return chaveNome(p.nome) !== k; });
+                });
+                marcarSujo(); desenhar();
+                mostrarBarra(ct.nome + " foi tirado(a) de todos os eventos. Clique em Salvar.", false);
             }
             return;
         }

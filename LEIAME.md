@@ -39,6 +39,7 @@ No painel você:
 - reaproveita convidados de outros eventos: em **Escolher dos convidados já salvos**, busque
   pelo nome ou filtre "Quem foi em" um evento, marque e clique em **Adicionar marcados**
   (o WhatsApp vem junto);
+- tira alguém de todos os eventos de uma vez: na mesma lista, clique na 🗑 ao lado do nome;
 - clica em **Enviar convite**: abre o WhatsApp do convidado com o convite pronto,
   e o painel guarda que aquele convite já foi enviado.
 
