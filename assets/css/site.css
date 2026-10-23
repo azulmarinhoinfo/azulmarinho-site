@@ -77,15 +77,22 @@ h1,h2,h3{
 
 .menu .menu-destaque:hover{ border-color:var(--ciano); }
 
-/* Logo da Azul Marinho Sports no menu */
-.menu .logo-sports{
+/* Logo do grupo (portal e eventos) */
+.logo-grupo{ display:flex; align-items:center; font-family:"Montserrat",sans-serif; font-weight:700; font-size:30px; color:var(--marinho); letter-spacing:-.01em; white-space:nowrap; line-height:1; }
+.logo-grupo .ls-icone{ width:.8em; height:.8em; margin-left:.03em; color:var(--ciano); }
+.topo .logo{ text-decoration:none; }
+.rodape .logo-grupo{ font-size:24px; }
+
+/* Selos das marcas no menu (Informática, Eventos, Sports) */
+.menu .selo-marca{
     display:inline-flex; flex-direction:column; align-items:flex-end; line-height:1;
     background:var(--marinho); border-color:var(--marinho); border-radius:12px; padding:7px 14px 6px;
     transition:border-color .2s, transform .2s;
 }
-.menu .logo-sports:hover{ border-color:var(--ciano); transform:translateY(-1px); }
+.menu .selo-marca:hover{ border-color:var(--ciano); transform:translateY(-1px); }
+.menu .selo-marca[data-ativo]{ border-color:var(--ciano); box-shadow:0 0 0 2px rgba(0,173,239,.25); }
 .ls-palavra{ display:flex; align-items:center; font-family:"Montserrat",sans-serif; font-weight:800; font-size:15px; color:#fff; white-space:nowrap; letter-spacing:-.01em; }
-.sports-bola{ width:.84em; height:.84em; margin-left:.04em; color:var(--ciano); flex:none; }
+.sports-bola, .selo-marca .ls-icone{ width:.84em; height:.84em; margin-left:.04em; color:var(--ciano); flex:none; }
 .ls-sub{ margin-top:2px; font-size:8.5px; font-weight:500; letter-spacing:.32em; text-transform:uppercase; color:var(--ciano); margin-right:-.32em; }
 
 .btn-menu{
@@ -218,6 +225,14 @@ h1,h2,h3{
     .grade-contato{ grid-template-columns:1fr 1fr; }
 }
 
+@media (max-width:1060px) and (min-width:761px){
+    .menu{ gap:14px; }
+    .logo-grupo{ font-size:24px; }
+    .menu .selo-marca{ padding:6px 10px 5px; }
+    .ls-palavra{ font-size:13px; }
+    .ls-sub{ font-size:7.5px; }
+}
+
 @media (max-width:760px){
     .btn-menu{ display:grid; place-items:center; }
     .menu{
@@ -229,8 +244,9 @@ h1,h2,h3{
     .menu li{ width:100%; text-align:center; border-top:1px solid #EEF2F8; }
     .menu a{ display:block; padding:14px; }
     .menu .menu-destaque{ border:0; border-radius:0; font-size:16px; }
-    .menu .logo-sports{ display:flex; align-items:center; padding:12px; }
-    .menu .logo-sports:hover{ transform:none; }
+    .menu .selo-marca{ display:flex; align-items:center; padding:12px; }
+    .menu .selo-marca:hover{ transform:none; }
+    .menu .selo-marca[data-ativo]{ box-shadow:none; border-left:4px solid var(--ciano); }
     .ls-palavra{ font-size:18px; }
     .ls-sub{ font-size:10px; }
 }
@@ -238,5 +254,6 @@ h1,h2,h3{
 @media (max-width:560px){
     .secao{ padding:64px 0; }
     .topo .logo img{ height:28px; }
+    .topo .logo-grupo{ font-size:24px; }
     .grade-contato{ grid-template-columns:1fr; }
 }
