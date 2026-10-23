@@ -2,6 +2,9 @@
    AZUL MARINHO — topo, menu, rodapé e WhatsApp, iguais em todas as páginas.
    Cada página só coloca <div id="topo"></div> e <div id="rodape"></div>
    e marca a aba atual com <body data-pagina="inicio|informatica|eventos">.
+
+   A página da Informática é divulgada para clientes, então ela é "fechada":
+   sem links para o Início nem para Eventos, só para a Sports.
    ========================================================= */
 
 window.AZUL = {
@@ -27,20 +30,25 @@ window.ICONES = {
     var A = window.AZUL, I = window.ICONES;
 
     function ativo(nome) { return pagina === nome ? ' class="ativo"' : ""; }
+    var cliente = pagina === "informatica";
+    var linkSports = '<a href="' + A.sports + '" class="menu-destaque" target="_blank" rel="noopener">⚽ Sports</a>';
 
     var topo = document.getElementById("topo");
     if (topo) {
         topo.outerHTML =
             '<header class="topo"><div class="wrap">' +
-                '<a href="/" class="logo"><img src="/logo.png" alt="Azul Marinho"></a>' +
+                '<a href="' + (cliente ? "/informatica/" : "/") + '" class="logo"><img src="/logo.png" alt="Azul Marinho"></a>' +
                 '<button class="btn-menu" aria-label="Abrir menu" aria-expanded="false" aria-controls="menu">' +
                     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>' +
                 '</button>' +
-                '<ul class="menu" id="menu">' +
-                    '<li><a href="/"' + ativo("inicio") + '>Início</a></li>' +
-                    '<li><a href="/informatica/"' + ativo("informatica") + '>Informática</a></li>' +
-                    '<li><a href="/eventos/"' + ativo("eventos") + '>Eventos</a></li>' +
-                    '<li><a href="' + A.sports + '" class="menu-destaque" target="_blank" rel="noopener">⚽ Sports</a></li>' +
+                '<ul class="menu" id="menu">' + (cliente
+                    ? '<li><a href="#servicos">Serviços</a></li>' +
+                      '<li><a href="#infraestrutura">Infraestrutura</a></li>' +
+                      '<li><a href="#contato">Contato</a></li>'
+                    : '<li><a href="/"' + ativo("inicio") + '>Início</a></li>' +
+                      '<li><a href="/informatica/"' + ativo("informatica") + '>Informática</a></li>' +
+                      '<li><a href="/eventos/"' + ativo("eventos") + '>Eventos</a></li>') +
+                    '<li>' + linkSports + '</li>' +
                 '</ul>' +
             '</div></header>';
 
@@ -63,9 +71,9 @@ window.ICONES = {
         rodape.outerHTML =
             '<footer class="rodape"><div class="wrap">' +
                 '<div class="logo-rodape"><img src="/logo.png" alt="Azul Marinho"></div>' +
-                '<nav>' +
+                '<nav>' + (cliente ? "" :
                     '<a href="/informatica/">Informática</a>' +
-                    '<a href="/eventos/">Eventos</a>' +
+                    '<a href="/eventos/">Eventos</a>') +
                     '<a href="' + A.sports + '" target="_blank" rel="noopener">Azul Marinho Sports</a>' +
                 '</nav>' +
                 '<p><a href="' + A.linkWhats() + '" target="_blank" rel="noopener">' + A.telefone + '</a> • ' +
