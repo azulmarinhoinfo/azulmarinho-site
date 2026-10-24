@@ -97,7 +97,7 @@ window.EV = (function () {
         var c = ev.cores || {};
         return {
             nome: t.nome,
-            emoji: ev.emoji || t.emoji,
+            emoji: emojiHTML(ev.emoji || t.emoji),
             fundo1: c.fundo1 || t.fundo[0],
             fundo2: c.fundo2 || t.fundo[1],
             destaque: c.destaque || t.destaque,
@@ -111,6 +111,13 @@ window.EV = (function () {
     function linkMapa(ev) {
         if (ev.mapa) return ev.mapa;
         return "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(ev.endereco || ev.local || "");
+    }
+
+    /* Emoji pode ser uma imagem: "fotos/pasta/arquivo.png" (dentro de /eventos/) ou um link. */
+    function emojiHTML(e) {
+        if (!/\.(png|jpe?g|webp|gif|svg)(\?|$)/i.test(e)) return e;
+        var src = /^(https?:)?\//.test(e) ? e : "/eventos/" + e;
+        return '<img class="emoji-img" src="' + esc(src) + '" alt="" style="height:1.15em;width:auto;vertical-align:-0.2em">';
     }
 
     function esc(s) {
