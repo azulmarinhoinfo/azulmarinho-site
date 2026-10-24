@@ -145,7 +145,7 @@
         return "background:linear-gradient(135deg," + t.fundo1 + "," + t.fundo2 + ")";
     }
 
-    function linkEvento(ev) { return "/eventos/evento.html?id=" + encodeURIComponent(ev.id); }
+    function linkEvento(ev) { return "/eventos/evento?id=" + encodeURIComponent(ev.id); }
 
     function cartao(ev, passado) {
         var t = EV.tema(ev), dm = EV.diaMes(ev);

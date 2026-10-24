@@ -256,7 +256,7 @@ textarea.varios{ min-height:120px; margin:10px 0; }
     }
     function textoConvite(ev, p) {
         var nome = p.nome;
-        var link = window.AZUL.site + "/eventos/evento.html?id=" + encodeURIComponent(ev.id) + (p.c ? "&c=" + p.c : "");
+        var link = window.AZUL.site + "/eventos/evento?id=" + encodeURIComponent(ev.id) + (p.c ? "&c=" + p.c : "");
         if (p.c) return "Olá, " + String(nome).trim().split(" ")[0] + "! 🎉\n" +
             "Você está convidado(a) para *" + ev.titulo + "*.\n\n" +
             "📅 " + EV.dataLonga(ev) + (ev.hora ? ", às " + ev.hora : "") + "\n" +
@@ -447,7 +447,7 @@ textarea.varios{ min-height:120px; margin:10px 0; }
         }
         var qtd = convidados(ev.id).length;
         return '<div class="editor-topo"><h2>' + esc(ev.titulo || "Novo evento") + '</h2><div class="acoes">' +
-                '<a class="b pequeno" href="/eventos/evento.html?id=' + encodeURIComponent(ev.id) + '" target="_blank" rel="noopener">Ver página</a>' +
+                '<a class="b pequeno" href="/eventos/evento?id=' + encodeURIComponent(ev.id) + '" target="_blank" rel="noopener">Ver página</a>' +
                 '<button class="b pequeno" data-acao="duplicar">Duplicar</button>' +
                 '<button class="b pequeno perigo" data-acao="excluir">Excluir</button></div></div>' +
             '<div class="abas"><button data-aba="detalhes" class="' + (aba === "detalhes" ? "ativa" : "") + '">Detalhes</button>' +
