@@ -42,6 +42,10 @@ No painel você:
 - tira alguém de todos os eventos de uma vez: na mesma lista, clique na 🗑 ao lado do nome;
 - clica em **Enviar convite**: abre o WhatsApp do convidado com o convite pronto,
   e o painel guarda que aquele convite já foi enviado.
+- marca em cada convidado: **Convidado** (convite enviado), **Confirmado** (confirmou presença),
+  **Adulto/Criança** (criança ganha o campo de idade) e **Masculino/Feminino**; clicar de novo desmarca.
+  Embaixo da lista aparece a conta (convidados, confirmados, adultos, crianças, homens e mulheres).
+  Ao escolher alguém dos convidados já salvos, adulto/criança, sexo e idade vêm junto.
 
 Depois de mexer, clique em **Salvar alterações** (barra azul embaixo). O site atualiza em até 1 minuto.
 Cada gravação guarda uma cópia da versão anterior por 90 dias (no KV, chaves `backup:...`).
