@@ -1,7 +1,7 @@
 /* =========================================================
    /eventos/confirmar — o convidado confirma presença pelo link do convite.
    Cada convidado tem um código só dele (campo "c" na lista do painel);
-   o convite leva /eventos/evento.html?id=<evento>&c=<código>.
+   o convite leva /eventos/evento?id=<evento>&c=<código>.
      GET  ?e=<evento>&c=<código>        → { nome, resposta }
      POST { e, c, resposta: "sim"|"nao" } → grava a resposta
    A resposta fica no KV "DADOS" numa chave separada
