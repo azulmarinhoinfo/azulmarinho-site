@@ -27,6 +27,7 @@ window.TEMAS = {
     "piscina":       { nome: "Pool Party",     emoji: "🏖️", fundo: ["#0EA5E9", "#22D3EE"], destaque: "#FF4F9A", texto: "#05324A", titulo: "#06283D", claro: true },
     "cruzeiro":      { nome: "Cruzeiro",       emoji: "🦊", fundo: ["#0B1F5C", "#1D3FA6"], destaque: "#FFFFFF", texto: "#DCE4FA", titulo: "#FFFFFF", padrao: "estrelas" },
     "super-heroi":   { nome: "Super-heróis",   emoji: "🕷️", fundo: ["#B91C1C", "#1E3A8A"], destaque: "#FACC15", texto: "#FEE2E2", titulo: "#FFFFFF" },
+    "vingadores":    { nome: "Vingadores",     emoji: "🦸‍♂️", fundo: ["#132A6E", "#0B1A45"], destaque: "#E63027", texto: "#FFFFFF", titulo: "#F5B80F", padrao: "estrelas" },
     "dragon-ball":   { nome: "Dragon Ball",    emoji: "🐉", fundo: ["#C2410C", "#1E3A8A"], destaque: "#FDE047", texto: "#FFF4E6", titulo: "#FFFFFF", padrao: "estrelas" },
     "batizado":      { nome: "Batizado",       emoji: "🕊️", fundo: ["#FFFFFF", "#FCE7EF"], destaque: "#B8860B", texto: "#4B3B2A", titulo: "#6B4E16", claro: true, padrao: "flores" },
     "toy-story":     { nome: "Toy Story",      emoji: "🤠", fundo: ["#1D4ED8", "#60A5FA"], destaque: "#FACC15", texto: "#EFF6FF", titulo: "#FFFFFF" },
