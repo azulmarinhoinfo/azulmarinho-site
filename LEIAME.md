@@ -46,6 +46,11 @@ No painel você:
   **Adulto/Criança** (criança ganha o campo de idade) e **Masculino/Feminino**; clicar de novo desmarca.
   Embaixo da lista aparece a conta (convidados, confirmados, adultos, crianças, homens e mulheres).
   Ao escolher alguém dos convidados já salvos, adulto/criança, sexo e idade vêm junto.
+- **confirmação pelo link**: cada convidado tem um link só dele no convite
+  (`evento.html?id=...&c=<código>`). Na página do evento aparece "Vou / Não vou"; a resposta
+  fica no KV (`resposta:<evento>:<código>`, via `functions/eventos/confirmar.js`) e, ao abrir o
+  painel, o convidado já aparece como **Confirmado** ou **Não vai** ("📩 respondeu pelo link").
+  Convites enviados antes desta função não têm o link pessoal: reenvie se quiser a confirmação.
 
 Depois de mexer, clique em **Salvar alterações** (barra azul embaixo). O site atualiza em até 1 minuto.
 Cada gravação guarda uma cópia da versão anterior por 90 dias (no KV, chaves `backup:...`).

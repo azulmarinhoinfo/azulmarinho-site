@@ -4,7 +4,10 @@
    Os dados ficam no KV "DADOS" do Cloudflare, fora do GitHub:
      eventos     lista de eventos (a mesma estrutura de eventos.js)
      convidados  { "id-do-evento": [ { nome, whats, enviado, confirmado,
-                   tipo: "adulto"|"crianca", sexo: "m"|"f", idade } ] }
+                   naoVai, tipo: "adulto"|"crianca", sexo: "m"|"f", idade,
+                   c: código do link de confirmação, respEm: última resposta já aplicada } ] }
+     resposta:<evento>:<código>  resposta do convidado pelo link (functions/eventos/confirmar.js),
+                 só nos metadados: { r: "sim"|"nao", em }
      versao      marca da última gravação (evita sobrescrever
                  o que foi salvo em outro aparelho)
      backup:...  cópia anterior de cada gravação (guardada por 90 dias)
@@ -40,6 +43,21 @@ function validar(eventos, convidados) {
     return "";
 }
 
+/* Respostas dos convidados pelo link: { evento: { código: { r, em } } } */
+async function lerRespostas(kv) {
+    var respostas = {}, cursor;
+    do {
+        var l = await kv.list({ prefix: "resposta:", cursor: cursor });
+        l.keys.forEach(function (k) {
+            var partes = k.name.split(":");
+            if (partes.length !== 3 || !k.metadata) return;
+            (respostas[partes[1]] = respostas[partes[1]] || {})[partes[2]] = k.metadata;
+        });
+        cursor = l.list_complete ? null : l.cursor;
+    } while (cursor);
+    return respostas;
+}
+
 async function preparar(context) {
     var acesso = await conferirAcesso(context.request, context.env);
     if (acesso.erro) return { resposta: json({ erro: acesso.erro, codigo: acesso.codigo }, acesso.status) };
@@ -55,6 +73,7 @@ export async function onRequestGet(context) {
         modo: p.acesso.modo,
         eventos: await lerJSON(p.kv, "eventos", null),
         convidados: await lerJSON(p.kv, "convidados", {}),
+        respostas: await lerRespostas(p.kv),
         versao: (await p.kv.get("versao")) || ""
     });
 }

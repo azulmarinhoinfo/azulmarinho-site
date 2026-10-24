@@ -115,6 +115,8 @@ body{ background:var(--fundo-suave); }
 .marca input{ width:15px; height:15px; margin:0; accent-color:var(--ciano); }
 .marca:has(input:checked){ border-color:var(--ciano); background:var(--ciano-claro); color:var(--marinho); font-weight:500; }
 .marca.conf:has(input:checked){ border-color:#16A34A; background:#DCFCE7; color:#14532D; }
+.marca.nao:has(input:checked){ border-color:#E11D48; background:#FFE4E6; color:#881337; }
+.pelo-link{ font-size:12px; color:var(--texto-claro); white-space:nowrap; }
 .opcoes{ display:inline-flex; border:1.5px solid var(--borda); border-radius:999px; overflow:hidden; background:var(--branco); }
 .opcoes button{ border:0; background:none; font:inherit; font-size:13px; color:var(--texto-claro); padding:5px 11px; cursor:pointer; white-space:nowrap; }
 .opcoes button + button{ border-left:1.5px solid var(--borda); }
@@ -246,8 +248,20 @@ textarea.varios{ min-height:120px; margin:10px 0; }
         if (!d) return "";
         return d.length <= 11 ? "55" + d : d;
     }
-    function textoConvite(ev, nome) {
-        var link = window.AZUL.site + "/eventos/evento.html?id=" + encodeURIComponent(ev.id);
+    /* Código do link de confirmação de cada convidado */
+    function novoCodigo() {
+        var letras = "abcdefghjkmnpqrstuvwxyz23456789", a = crypto.getRandomValues(new Uint8Array(10)), t = "";
+        for (var i = 0; i < a.length; i++) t += letras[a[i] % letras.length];
+        return t;
+    }
+    function textoConvite(ev, p) {
+        var nome = p.nome;
+        var link = window.AZUL.site + "/eventos/evento.html?id=" + encodeURIComponent(ev.id) + (p.c ? "&c=" + p.c : "");
+        if (p.c) return "Olá, " + String(nome).trim().split(" ")[0] + "! 🎉\n" +
+            "Você está convidado(a) para *" + ev.titulo + "*.\n\n" +
+            "📅 " + EV.dataLonga(ev) + (ev.hora ? ", às " + ev.hora : "") + "\n" +
+            (ev.local ? "📍 " + ev.local + (ev.endereco ? " (" + ev.endereco + ")" : "") + "\n" : "") +
+            "\n👉 *Confirme sua presença* (é só tocar em Vou ou Não vou) e veja mapa, previsão do tempo e playlist:\n" + link + "\n\nConto com você!";
         return "Olá, " + String(nome).trim().split(" ")[0] + "! 🎉\n" +
             "Você está convidado(a) para *" + ev.titulo + "*.\n\n" +
             "📅 " + EV.dataLonga(ev) + (ev.hora ? ", às " + ev.hora : "") + "\n" +
@@ -353,11 +367,29 @@ textarea.varios{ min-height:120px; margin:10px 0; }
     }
     carregar();
 
+    /* Respostas que os convidados deram pelo link do convite.
+       Cada resposta é aplicada uma vez (respEm); depois disso vale o que você marcar no painel. */
+    function aplicarRespostas(respostas) {
+        var novas = 0;
+        Object.keys(respostas).forEach(function (id) {
+            (estado.convidados[id] || []).forEach(function (p) {
+                var r = p.c && respostas[id][p.c];
+                if (!r || !r.em || p.respEm === r.em) return;
+                p.respEm = r.em; p.enviado = true;
+                if (r.r === "sim") { p.confirmado = true; delete p.naoVai; }
+                else { p.naoVai = true; delete p.confirmado; }
+                novas++;
+            });
+        });
+        return novas;
+    }
+
     function iniciar(d) {
         var primeiraVez = !Array.isArray(d.eventos);
         estado.eventos = primeiraVez ? copia(DO_ARQUIVO) : d.eventos;
         estado.convidados = d.convidados || {};
         estado.versao = d.versao || "";
+        var novas = aplicarRespostas(d.respostas || {});
         window.EVENTOS = estado.eventos;
 
         var quem = document.getElementById("quem");
@@ -372,6 +404,7 @@ textarea.varios{ min-height:120px; margin:10px 0; }
         atual = evento(pedido) ? pedido : null;
 
         desenhar();
+        if (novas) mostrarBarra(novas + (novas === 1 ? " convidado respondeu" : " convidados responderam") + " pelo link do convite (já marcado na lista).", false);
         if (primeiraVez) {
             marcarSujo();
             mostrarBarra("Primeira vez: carreguei os " + estado.eventos.length + " eventos do site. Clique em Salvar para guardar no painel.", false);
@@ -530,6 +563,8 @@ textarea.varios{ min-height:120px; margin:10px 0; }
         var partes = [q(lista.length, "na lista", "na lista"),
             q(conta(function (p) { return p.enviado; }), "convidado", "convidados"),
             q(conta(function (p) { return p.confirmado; }), "confirmado", "confirmados")];
+        var nv = conta(function (p) { return p.naoVai; });
+        if (nv) partes.push(q(nv, "não vai", "não vão"));
         var ad = conta(function (p) { return p.tipo === "adulto"; }), cr = conta(function (p) { return p.tipo === "crianca"; });
         var m = conta(function (p) { return p.sexo === "m"; }), f = conta(function (p) { return p.sexo === "f"; });
         if (ad || cr) partes.push(q(ad, "adulto", "adultos"), q(cr, "criança", "crianças"));
@@ -544,6 +579,7 @@ textarea.varios{ min-height:120px; margin:10px 0; }
     function convidadosHTML(ev) {
         var lista = convidados(ev.id);
         var enviados = lista.filter(function (p) { return p.enviado; }).length;
+        lista.forEach(function (p) { if (!p.c) { p.c = novoCodigo(); p._codigoNovo = true; } });
         function opcao(i, campo, v, p, texto) {
             return '<button type="button" data-i="' + i + '" data-campo="' + campo + '" data-v="' + v + '"' +
                 (p[campo] === v ? ' class="ativa" aria-pressed="true"' : ' aria-pressed="false"') + '>' + texto + '</button>';
@@ -562,7 +598,7 @@ textarea.varios{ min-height:120px; margin:10px 0; }
                 ? '<ol class="linhas">' + lista.map(function (p, i) {
                     var n = numero(p.whats);
                     var botao = n
-                        ? '<a class="convite' + (p.enviado ? " enviado" : "") + '" data-i="' + i + '" href="https://wa.me/' + n + '?text=' + encodeURIComponent(textoConvite(ev, p.nome)) + '" target="_blank" rel="noopener">' +
+                        ? '<a class="convite' + (p.enviado ? " enviado" : "") + '" data-i="' + i + '" href="https://wa.me/' + n + '?text=' + encodeURIComponent(textoConvite(ev, p)) + '" target="_blank" rel="noopener">' +
                             I.whats + (p.enviado ? "Enviado ✓" : "Enviar convite") + '</a>'
                         : '<span class="convite inativo">sem WhatsApp</span>';
                     return '<li class="linha-conv"><span class="n">' + (i + 1) + '.</span>' +
@@ -572,9 +608,11 @@ textarea.varios{ min-height:120px; margin:10px 0; }
                         '<div class="marcas">' +
                             '<label class="marca" title="O convite já foi enviado"><input type="checkbox" data-i="' + i + '" data-m="enviado"' + (p.enviado ? " checked" : "") + '>Convidado</label>' +
                             '<label class="marca conf" title="A pessoa confirmou presença"><input type="checkbox" data-i="' + i + '" data-m="confirmado"' + (p.confirmado ? " checked" : "") + '>Confirmado</label>' +
+                            '<label class="marca nao" title="A pessoa avisou que não vai"><input type="checkbox" data-i="' + i + '" data-m="naoVai"' + (p.naoVai ? " checked" : "") + '>Não vai</label>' +
                             '<span class="opcoes" role="group" aria-label="Adulto ou criança">' + opcao(i, "tipo", "adulto", p, "Adulto") + opcao(i, "tipo", "crianca", p, "Criança") + '</span>' +
                             '<span class="opcoes" role="group" aria-label="Sexo">' + opcao(i, "sexo", "m", p, "Masculino") + opcao(i, "sexo", "f", p, "Feminino") + '</span>' +
                             '<label class="idade' + (p.tipo === "crianca" ? " visivel" : "") + '">Idade <input data-i="' + i + '" data-c="idade" value="' + esc(p.idade || "") + '" type="number" min="0" max="17" inputmode="numeric" aria-label="Idade"> anos</label>' +
+                            (p.respEm ? '<span class="pelo-link" title="Respondeu pelo link do convite em ' + esc(new Date(p.respEm).toLocaleString("pt-BR")) + '">📩 respondeu pelo link</span>' : "") +
                         '</div></li>';
                   }).join("") + '</ol>' +
                   '<div class="resumo-conv"><span id="resumo-conv">' + resumoConv(lista) + '</span>' +
@@ -623,6 +661,7 @@ textarea.varios{ min-height:120px; margin:10px 0; }
         if (!li || !p) return;
         li.querySelector('[data-m="enviado"]').checked = !!p.enviado;
         li.querySelector('[data-m="confirmado"]').checked = !!p.confirmado;
+        li.querySelector('[data-m="naoVai"]').checked = !!p.naoVai;
         li.querySelectorAll("[data-campo]").forEach(function (b) {
             var on = p[b.getAttribute("data-campo")] === b.getAttribute("data-v");
             b.classList.toggle("ativa", on);
@@ -654,7 +693,9 @@ textarea.varios{ min-height:120px; margin:10px 0; }
             var i = +el.getAttribute("data-i"), pc = convidados(ev.id)[i], m = el.getAttribute("data-m");
             if (el.checked) pc[m] = true; else delete pc[m];
             if (m === "confirmado" && el.checked && !pc.enviado) pc.enviado = true;   // quem confirmou já foi convidado
-            if (m === "enviado" && !el.checked) delete pc.confirmado;
+            if (m === "enviado" && !el.checked) { delete pc.confirmado; delete pc.naoVai; }
+            if (m === "confirmado" && el.checked) delete pc.naoVai;
+            if (m === "naoVai" && el.checked) { delete pc.confirmado; pc.enviado = true; }
             atualizarLinha(i);
             marcarSujo();
             return;
@@ -757,8 +798,9 @@ textarea.varios{ min-height:120px; margin:10px 0; }
 
         if (alvo.classList.contains("convite")) {
             var p = convidados(ev.id)[+alvo.getAttribute("data-i")];
-            if (p && !p.enviado) {
+            if (p && (!p.enviado || p._codigoNovo)) {
                 p.enviado = true;
+                delete p._codigoNovo;
                 atualizarLinha(+alvo.getAttribute("data-i"));
                 salvar(true);
             }
@@ -865,7 +907,7 @@ textarea.varios{ min-height:120px; margin:10px 0; }
 
             case "copiar":
                 var texto = ev.titulo + " (" + EV.dataCurta(ev) + ")\n" + convidados(ev.id).map(function (p, i) {
-                    return (i + 1) + ". " + p.nome + (p.tipo === "crianca" ? " (criança" + (p.idade ? ", " + p.idade + (+p.idade === 1 ? " ano" : " anos") : "") + ")" : "") + (p.confirmado ? " ✅" : "");
+                    return (i + 1) + ". " + p.nome + (p.tipo === "crianca" ? " (criança" + (p.idade ? ", " + p.idade + (+p.idade === 1 ? " ano" : " anos") : "") + ")" : "") + (p.confirmado ? " ✅" : p.naoVai ? " ❌" : "");
                 }).join("\n");
                 navigator.clipboard.writeText(texto).then(function () {
                     alvo.textContent = "Copiado!";
@@ -874,8 +916,8 @@ textarea.varios{ min-height:120px; margin:10px 0; }
                 break;
 
             case "limpar-envios":
-                if (!confirm("Tirar as marcas de Convidado e Confirmado de todos desta lista?\n\nIsso só vale depois de Salvar.")) return;
-                convidados(ev.id).forEach(function (p) { delete p.enviado; delete p.confirmado; });
+                if (!confirm("Tirar as marcas de Convidado, Confirmado e Não vai de todos desta lista?\n\nIsso só vale depois de Salvar.")) return;
+                convidados(ev.id).forEach(function (p) { delete p.enviado; delete p.confirmado; delete p.naoVai; });
                 marcarSujo(); desenhar();
                 break;
         }
@@ -906,6 +948,9 @@ textarea.varios{ min-height:120px; margin:10px 0; }
             var l = (estado.convidados[ev.id] || []).filter(function (p) { return String(p.nome || "").trim(); })
                 .map(function (p) { var o = { nome: String(p.nome).trim() }; if (p.whats) o.whats = String(p.whats).trim(); if (p.enviado) o.enviado = true;
                     if (p.confirmado) o.confirmado = true;
+                    if (p.naoVai) o.naoVai = true;
+                    if (/^[a-z0-9]{8,20}$/.test(p.c || "")) o.c = p.c;
+                    if (p.respEm) o.respEm = p.respEm;
                     if (p.tipo === "adulto" || p.tipo === "crianca") o.tipo = p.tipo;
                     if (p.sexo === "m" || p.sexo === "f") o.sexo = p.sexo;
                     var id = parseInt(p.idade, 10);
