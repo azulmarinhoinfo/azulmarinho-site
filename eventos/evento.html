@@ -238,7 +238,8 @@ main, .rodape{ position:relative; z-index:1; }
                         return '<button data-i="' + i + '" aria-label="Abrir foto ' + (i + 1) + '"><img src="/eventos/' + esc(f) + '" loading="lazy" alt="Foto ' + (i + 1) + ' do evento"></button>';
                       }).join("") + '</div>'
                     : (ev.album ? "" : '<p class="suave">' + (passado ? "As fotos deste evento vão aparecer aqui em breve." : "As fotos vão aparecer aqui depois do evento.") + '</p>')) +
-                (ev.album ? '<a class="btn btn-tema" style="margin-top:14px" href="' + esc(ev.album) + '" target="_blank" rel="noopener">📸 Álbum de fotos</a>' : "") +
+                (ev.album ? '<p class="suave" style="margin-top:6px">Veja todas as fotos no álbum e, se tirou alguma, adicione as suas por lá (no tamanho original).</p>' +
+                    '<a class="btn btn-tema" style="margin-top:14px" href="' + esc(ev.album) + '" target="_blank" rel="noopener">📸 Ver e enviar fotos</a>' : "") +
             '</div>' +
             '<p class="suave" style="grid-column:span 12;text-align:center;font-size:14px">👥 A lista de convidados é privada. ' +
                 '<a class="link-tema" style="margin:0" href="/admin/#' + encodeURIComponent(ev.id) + '">Área do organizador</a></p>' +
