@@ -3,7 +3,8 @@
    Só funciona com o login do Cloudflare Access (lib/acesso.js).
    Os dados ficam no KV "DADOS" do Cloudflare, fora do GitHub:
      eventos     lista de eventos (a mesma estrutura de eventos.js)
-     convidados  { "id-do-evento": [ { nome, whats, enviado } ] }
+     convidados  { "id-do-evento": [ { nome, whats, enviado, confirmado,
+                   tipo: "adulto"|"crianca", sexo: "m"|"f", idade } ] }
      versao      marca da última gravação (evita sobrescrever
                  o que foi salvo em outro aparelho)
      backup:...  cópia anterior de cada gravação (guardada por 90 dias)
