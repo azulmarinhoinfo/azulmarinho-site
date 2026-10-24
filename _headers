@@ -2,3 +2,7 @@
 /admin/*
   X-Robots-Tag: noindex, nofollow
   Cache-Control: no-store
+
+# Scripts do site: o navegador sempre confere se tem versão nova (temas, serviços etc.)
+/assets/js/*
+  Cache-Control: no-cache
