@@ -92,15 +92,6 @@ main, .rodape{ position:relative; z-index:1; }
 }
 .album img{ width:100%; height:100%; object-fit:cover; transition:transform .3s; }
 .album button:hover img{ transform:scale(1.05); }
-.enviar-fotos{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:16px; }
-.enviar-fotos input[type=text]{
-    font:inherit; font-size:15px; padding:11px 14px; border-radius:12px; min-width:0; flex:1 1 200px; max-width:280px;
-    border:1.5px solid var(--t-borda); background:var(--t-cartao); color:var(--t-titulo);
-}
-.enviar-fotos input[type=text]::placeholder{ color:var(--t-texto); opacity:.7; }
-.enviar-fotos .btn{ cursor:pointer; }
-.enviar-fotos .btn[disabled]{ opacity:.6; cursor:wait; }
-#envio-status{ flex-basis:100%; font-size:15px; }
 
 /* Visualizador de fotos */
 .lightbox{
@@ -207,8 +198,7 @@ main, .rodape{ position:relative; z-index:1; }
 
     var dm = EV.diaMes(ev);
     var capa = ev.capa ? "background-image:url('/eventos/" + esc(ev.capa) + "')" : "";
-    var fotos = (ev.fotos || []).map(function (f) { return { mini: "/eventos/" + f, full: "/eventos/" + f }; });
-    var API_FOTOS = "/api/fotos/" + encodeURIComponent(ev.id);
+    var fotos = ev.fotos || [];
 
     var html =
         '<section class="ev-hero"><div class="wrap">' +
@@ -243,105 +233,19 @@ main, .rodape{ position:relative; z-index:1; }
             (ev.playlist ? '<div class="bloco c5 playlist"><h2>🎵 Playlist</h2>' + embedPlaylist(ev.playlist) + '</div>' : "") +
 
             '<div class="bloco c12"><h2>📸 Álbum de fotos</h2>' +
-                '<div id="album-fotos"></div>' +
-                '<div class="enviar-fotos">' +
-                    '<input type="text" id="envio-nome" maxlength="60" placeholder="Seu nome (opcional)" autocomplete="name">' +
-                    '<label class="btn btn-tema" id="envio-botao" for="envio-arquivos">📤 Enviar minhas fotos</label>' +
-                    '<input type="file" id="envio-arquivos" accept="image/*" multiple hidden>' +
-                    (ev.album ? '<a class="btn btn-tema-contorno" href="' + esc(ev.album) + '" target="_blank" rel="noopener">📸 Álbum completo</a>' : "") +
-                    '<span id="envio-status" class="suave"></span>' +
-                '</div>' +
+                (fotos.length
+                    ? '<div class="album">' + fotos.map(function (f, i) {
+                        return '<button data-i="' + i + '" aria-label="Abrir foto ' + (i + 1) + '"><img src="/eventos/' + esc(f) + '" loading="lazy" alt="Foto ' + (i + 1) + ' do evento"></button>';
+                      }).join("") + '</div>'
+                    : (ev.album ? "" : '<p class="suave">' + (passado ? "As fotos deste evento vão aparecer aqui em breve." : "As fotos vão aparecer aqui depois do evento.") + '</p>')) +
+                (ev.album ? '<p class="suave" style="margin-top:6px">Veja todas as fotos no álbum e, se tirou alguma, adicione as suas por lá (no tamanho original).</p>' +
+                    '<a class="btn btn-tema" style="margin-top:14px" href="' + esc(ev.album) + '" target="_blank" rel="noopener">📸 Ver e enviar fotos</a>' : "") +
             '</div>' +
             '<p class="suave" style="grid-column:span 12;text-align:center;font-size:14px">👥 A lista de convidados é privada. ' +
                 '<a class="link-tema" style="margin:0" href="/admin/#' + encodeURIComponent(ev.id) + '">Área do organizador</a></p>' +
         '</div></div>';
 
     alvo.innerHTML = html;
-
-    /* ----- Álbum: fotos do site + fotos enviadas pelos convidados ----- */
-    var caixaAlbum = document.getElementById("album-fotos");
-    function desenharAlbum() {
-        caixaAlbum.innerHTML = fotos.length
-            ? '<div class="album">' + fotos.map(function (f, i) {
-                return '<button data-i="' + i + '" aria-label="Abrir foto ' + (i + 1) + '"><img src="' + esc(f.mini) + '" loading="lazy" alt="Foto ' + (i + 1) + ' do evento"></button>';
-              }).join("") + '</div>'
-            : '<p class="suave">' + (passado ? "Ainda não tem fotos deste evento. Tirou alguma? Envie aqui embaixo!" : "Depois do evento, as fotos aparecem aqui. Quem tirar fotos pode enviar aqui embaixo.") + '</p>';
-    }
-    function fotoDaApi(f) {
-        var base = API_FOTOS + "/" + f.id;
-        return { mini: base + "?mini", full: base, id: f.id };
-    }
-    desenharAlbum();
-    fetch(API_FOTOS).then(function (r) { return r.ok ? r.json() : { fotos: [] }; }).then(function (d) {
-        var novas = (d.fotos || []).map(fotoDaApi);
-        if (novas.length) { fotos = fotos.concat(novas); desenharAlbum(); }
-    }).catch(function () {});
-
-    /* ----- Enviar fotos (o navegador diminui a foto antes de mandar) ----- */
-    function carregarImagem(arquivo) {
-        if (window.createImageBitmap) {
-            return createImageBitmap(arquivo, { imageOrientation: "from-image" }).catch(function () { return viaImg(arquivo); });
-        }
-        return viaImg(arquivo);
-    }
-    function viaImg(arquivo) {
-        return new Promise(function (ok, falha) {
-            var img = new Image(), url = URL.createObjectURL(arquivo);
-            img.onload = function () { ok(img); };
-            img.onerror = function () { URL.revokeObjectURL(url); falha(new Error("ler")); };
-            img.src = url;
-        });
-    }
-    function reduzir(img, max, qualidade) {
-        var w = img.width, h = img.height, k = Math.min(1, max / Math.max(w, h));
-        var c = document.createElement("canvas");
-        c.width = Math.round(w * k); c.height = Math.round(h * k);
-        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
-        return new Promise(function (ok, falha) {
-            c.toBlob(function (b) { b ? ok(b) : falha(new Error("converter")); }, "image/jpeg", qualidade);
-        });
-    }
-    function enviarUma(arquivo, nome) {
-        return carregarImagem(arquivo).then(function (img) {
-            return Promise.all([reduzir(img, 1600, 0.82), reduzir(img, 480, 0.75)]);
-        }).then(function (b) {
-            var form = new FormData();
-            form.append("foto", b[0], "foto.jpg");
-            form.append("mini", b[1], "mini.jpg");
-            form.append("nome", nome);
-            return fetch(API_FOTOS, { method: "POST", body: form });
-        }).then(function (r) {
-            return r.json().catch(function () { return {}; }).then(function (d) {
-                if (!r.ok) throw new Error(d.erro || "envio");
-                return d.foto;
-            });
-        });
-    }
-    var entrada = document.getElementById("envio-arquivos"), botao = document.getElementById("envio-botao"),
-        status = document.getElementById("envio-status"), campoNome = document.getElementById("envio-nome");
-    try { campoNome.value = localStorage.getItem("am-nome-fotos") || ""; } catch (e) {}
-    entrada.addEventListener("change", function () {
-        var lista = Array.prototype.slice.call(entrada.files || []);
-        entrada.value = "";
-        if (!lista.length) return;
-        var nome = campoNome.value.trim(), certas = 0, erradas = 0;
-        try { localStorage.setItem("am-nome-fotos", nome); } catch (e) {}
-        botao.setAttribute("disabled", ""); entrada.disabled = true;
-        var seq = Promise.resolve();
-        lista.forEach(function (arquivo, i) {
-            seq = seq.then(function () {
-                status.textContent = "Enviando " + (i + 1) + " de " + lista.length + "...";
-                return enviarUma(arquivo, nome).then(function (f) {
-                    certas++; fotos.push(fotoDaApi(f)); desenharAlbum();
-                }).catch(function () { erradas++; });
-            });
-        });
-        seq.then(function () {
-            botao.removeAttribute("disabled"); entrada.disabled = false;
-            status.textContent = (certas ? "✓ " + certas + (certas === 1 ? " foto enviada" : " fotos enviadas") + ". Obrigado!" : "") +
-                (erradas ? " " + erradas + (erradas === 1 ? " foto não foi enviada" : " fotos não foram enviadas") + ". Tente de novo." : "");
-        });
-    });
 
     /* ----- Clima ----- */
     var caixa = document.getElementById("clima");
@@ -367,7 +271,7 @@ main, .rodape{ position:relative; z-index:1; }
     var lb = document.getElementById("lightbox"), lbImg = lb.querySelector("img"), lbConta = lb.querySelector(".lb-conta"), atual = 0;
     function mostrar(i) {
         atual = (i + fotos.length) % fotos.length;
-        lbImg.src = fotos[atual].full;
+        lbImg.src = "/eventos/" + fotos[atual];
         lbConta.textContent = (atual + 1) + " de " + fotos.length;
     }
     function abrir(i) { mostrar(i); lb.classList.add("aberto"); document.body.style.overflow = "hidden"; }

@@ -129,13 +129,6 @@ details.varios-box{ margin-top:14px; }
 .lista-contatos small{ color:var(--texto-claro); font-size:13px; white-space:nowrap; }
 .contatos .acoes-c{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
 @media (max-width:600px){ .contatos .filtros{ grid-template-columns:1fr; } .lista-contatos small{ display:none; } }
-.dica-fotos{ color:var(--texto-claro); margin-bottom:14px; }
-.grade-fotos{ display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:12px; }
-.grade-fotos figure{ position:relative; background:var(--fundo-suave); border:1px solid var(--borda); border-radius:12px; overflow:hidden; }
-.grade-fotos img{ display:block; width:100%; aspect-ratio:1; object-fit:cover; }
-.grade-fotos figcaption{ padding:6px 10px 8px; font-size:13px; line-height:1.3; }
-.grade-fotos small{ color:var(--texto-claro); }
-.grade-fotos .remover{ position:absolute; top:6px; right:6px; background:rgba(255,255,255,.92); }
 details.varios-box summary{ cursor:pointer; color:var(--ciano-escuro); font-weight:500; }
 textarea.varios{ min-height:120px; margin:10px 0; }
 
@@ -381,7 +374,6 @@ textarea.varios{ min-height:120px; margin:10px 0; }
             '</aside>' +
             '<section class="caixa" id="editor">' + editorHTML() + '</section>';
         ligarEditor();
-        if (aba === "fotos" && atual) carregarFotos(atual);
     }
 
     function listaHTML() {
@@ -411,9 +403,8 @@ textarea.varios{ min-height:120px; margin:10px 0; }
                 '<button class="b pequeno" data-acao="duplicar">Duplicar</button>' +
                 '<button class="b pequeno perigo" data-acao="excluir">Excluir</button></div></div>' +
             '<div class="abas"><button data-aba="detalhes" class="' + (aba === "detalhes" ? "ativa" : "") + '">Detalhes</button>' +
-                '<button data-aba="convidados" class="' + (aba === "convidados" ? "ativa" : "") + '">Convidados (' + qtd + ')</button>' +
-                '<button data-aba="fotos" class="' + (aba === "fotos" ? "ativa" : "") + '">Fotos enviadas</button></div>' +
-            '<div class="conteudo-aba">' + (aba === "detalhes" ? detalhesHTML(ev) : aba === "fotos" ? fotosHTML(ev) : convidadosHTML(ev)) + '</div>';
+                '<button data-aba="convidados" class="' + (aba === "convidados" ? "ativa" : "") + '">Convidados (' + qtd + ')</button></div>' +
+            '<div class="conteudo-aba">' + (aba === "detalhes" ? detalhesHTML(ev) : convidadosHTML(ev)) + '</div>';
     }
 
     function campo(nome, rotulo, valor, extra) {
@@ -515,31 +506,6 @@ textarea.varios{ min-height:120px; margin:10px 0; }
             '</div></details>';
     }
     var CONTATOS_ABERTOS = [];
-
-    /* Fotos que os convidados enviaram pela página do evento (ficam no KV, fora do Salvar) */
-    function fotosHTML(ev) {
-        return '<p class="dica-fotos">Fotos enviadas pelo botão <b>"Enviar minhas fotos"</b> da página do evento. ' +
-            'Apagar uma foto vale na hora, sem precisar clicar em Salvar.</p>' +
-            '<div id="fotos-enviadas"><p style="color:var(--texto-claro)">Carregando...</p></div>';
-    }
-    function carregarFotos(id) {
-        var caixa = document.getElementById("fotos-enviadas");
-        if (!caixa) return;
-        var base = "/api/fotos/" + encodeURIComponent(id);
-        fetch(base + "?fresco", { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (d) {
-            if (atual !== id || !document.getElementById("fotos-enviadas")) return;
-            var lista = d.fotos || [];
-            caixa.innerHTML = lista.length
-                ? '<p style="margin-bottom:12px">' + lista.length + (lista.length === 1 ? " foto" : " fotos") + '</p><div class="grade-fotos">' + lista.map(function (f) {
-                    return '<figure><a href="' + base + "/" + f.id + '" target="_blank" rel="noopener"><img src="' + base + "/" + f.id + '?mini" loading="lazy" alt=""></a>' +
-                        '<figcaption>' + esc(f.nome || "Sem nome") + '<br><small>' + new Date(f.quando).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) + '</small></figcaption>' +
-                        '<button class="remover" data-apagar-foto="' + esc(f.id) + '" title="Apagar foto" aria-label="Apagar foto">✕</button></figure>';
-                  }).join("") + '</div>'
-                : '<p style="color:var(--texto-claro)">Ninguém enviou fotos para este evento ainda.</p>';
-        }).catch(function () {
-            caixa.innerHTML = '<p style="color:var(--texto-claro)">Não consegui carregar as fotos. Recarregue a página.</p>';
-        });
-    }
 
     function convidadosHTML(ev) {
         var lista = convidados(ev.id);
@@ -707,18 +673,8 @@ textarea.varios{ min-height:120px; margin:10px 0; }
     }
 
     painel.addEventListener("click", function (e) {
-        var alvo = e.target.closest("[data-abrir],[data-acao],[data-aba],[data-remover],[data-esquecer],[data-apagar-foto],.convite");
+        var alvo = e.target.closest("[data-abrir],[data-acao],[data-aba],[data-remover],[data-esquecer],.convite");
         if (!alvo) return;
-
-        if (alvo.hasAttribute("data-apagar-foto")) {
-            if (!confirm("Apagar esta foto do site? Não dá para desfazer.")) return;
-            var idFoto = alvo.getAttribute("data-apagar-foto"), fig = alvo.closest("figure");
-            fig.style.opacity = ".4";
-            fetch("/api/fotos/" + encodeURIComponent(atual) + "/" + idFoto, { method: "DELETE", credentials: "same-origin" })
-                .then(function (r) { if (!r.ok) throw new Error(); carregarFotos(atual); })
-                .catch(function () { fig.style.opacity = ""; mostrarBarra("Não consegui apagar a foto. Tente de novo.", true); });
-            return;
-        }
 
         if (alvo.hasAttribute("data-abrir")) return abrir(alvo.getAttribute("data-abrir"));
         if (alvo.hasAttribute("data-aba")) { aba = alvo.getAttribute("data-aba"); return desenhar(); }
