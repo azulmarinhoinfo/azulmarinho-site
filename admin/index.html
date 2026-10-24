@@ -455,7 +455,8 @@ textarea.varios{ min-height:120px; margin:10px 0; }
 
             '<div class="secao-form">Música e fotos</div>' +
             campo("playlist", "Playlist", ev.playlist || "", { ph: "Link do Apple Music, Spotify ou YouTube" }) +
-            campo("album", "Álbum de fotos", ev.album || "", { ph: "Link do álbum compartilhado (iCloud, Google Fotos...)" }) +
+            campo("album", "Álbum do iPhone (iCloud)", ev.album || "", { ph: "https://www.icloud.com/sharedalbum/...", dica: "Álbum compartilhado com \"Site Público\" ligado." }) +
+            campo("albumGoogle", "Álbum do Android (Google Fotos)", ev.albumGoogle || "", { ph: "https://photos.app.goo.gl/...", dica: "Álbum compartilhado com \"Colaborar\" ligado." }) +
             campo("capa", "Foto de capa (opcional)", ev.capa || "", { ph: "Link de uma imagem", dica: "Aparece no cartão do evento. Sem capa, aparece o emoji do tema." }) +
 
             '<div class="secao-form">Publicação</div>' +
@@ -732,7 +733,7 @@ textarea.varios{ min-height:120px; margin:10px 0; }
                 var dup = copia(ev);
                 dup.titulo = ev.titulo + " (cópia)";
                 dup.id = idLivre(ev.id + "-copia");
-                dup.album = ""; dup.fotos = []; dup.rascunho = true; dup._novo = true;
+                dup.album = ""; dup.albumGoogle = ""; dup.fotos = []; dup.rascunho = true; dup._novo = true;
                 estado.eventos.unshift(dup);
                 marcarSujo();
                 abrir(dup.id);
