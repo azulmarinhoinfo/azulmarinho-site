@@ -111,6 +111,13 @@ main, .rodape{ position:relative; z-index:1; }
 .lb-prox{ right:16px; top:50%; transform:translateY(-50%); }
 .lb-conta{ position:absolute; bottom:18px; left:0; right:0; text-align:center; color:#ddd; font-size:15px; }
 
+/* Confirmação de presença (link pessoal do convite) */
+.rsvp{ text-align:center; border:2px solid var(--t-destaque); }
+.rsvp h2{ justify-content:center; font-size:24px; }
+.rsvp .ev-botoes{ justify-content:center; margin-top:16px; }
+.rsvp .btn{ min-width:150px; justify-content:center; }
+.rsvp .trocar{ background:none; border:0; color:var(--t-destaque); font:inherit; cursor:pointer; text-decoration:underline; margin-top:12px; }
+
 .nao-achou{ text-align:center; padding:120px 20px; }
 .nao-achou h1{ margin-bottom:12px; }
 
@@ -229,6 +236,7 @@ main, .rodape{ position:relative; z-index:1; }
         '</div></section>' +
 
         '<div class="wrap"><div class="blocos">' +
+            '<div class="bloco c12 rsvp" id="rsvp" hidden></div>' +
             '<div class="bloco c4"><h2>📅 Data e hora</h2>' +
                 '<div class="info-grande">' + dm.dia + " de " + EV.dataLonga(ev).split(" de ")[1] + '</div>' +
                 '<p class="suave">' + EV.dataLonga(ev).split(",")[0] + (ev.hora ? ", às " + esc(ev.hora) : "") + '</p></div>' +
@@ -259,6 +267,43 @@ main, .rodape{ position:relative; z-index:1; }
         '</div></div>';
 
     alvo.innerHTML = html;
+
+    /* Confirmação de presença: só com o link pessoal do convite (&c=código) */
+    var codigo = new URLSearchParams(location.search).get("c");
+    var rsvp = document.getElementById("rsvp"), nomeConv = "";
+    function caixaRsvp(resposta, erro) {
+        rsvp.hidden = false;
+        if (resposta === "sim" || resposta === "nao") {
+            rsvp.innerHTML = resposta === "sim"
+                ? '<h2>🎉 Presença confirmada!</h2><p>Obrigado, ' + esc(nomeConv) + '! Te esperamos lá.</p>'
+                : '<h2>😢 Que pena!</h2><p>Obrigado por avisar, ' + esc(nomeConv) + '. Se mudar de ideia, é só voltar neste link.</p>';
+            rsvp.innerHTML += '<button class="trocar" data-rsvp="">Mudar minha resposta</button>';
+            return;
+        }
+        rsvp.innerHTML = '<h2>💌 ' + esc(nomeConv) + ', você vem?</h2>' +
+            '<p class="suave">Confirme sua presença para o organizador saber quantos esperar.</p>' +
+            '<div class="ev-botoes"><button class="btn btn-tema" data-rsvp="sim">✅ Vou</button>' +
+            '<button class="btn btn-tema-contorno" data-rsvp="nao">Não vou</button></div>' +
+            (erro ? '<p class="suave" style="margin-top:12px">' + esc(erro) + '</p>' : "");
+    }
+    if (codigo && !passado) {
+        fetch("/eventos/confirmar?e=" + encodeURIComponent(ev.id) + "&c=" + encodeURIComponent(codigo), { cache: "no-store" })
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (d) { if (d) { nomeConv = d.nome; caixaRsvp(d.resposta); } })
+            .catch(function () {});
+        rsvp.addEventListener("click", function (e) {
+            var b = e.target.closest("[data-rsvp]");
+            if (!b) return;
+            var resposta = b.getAttribute("data-rsvp");
+            if (!resposta) return caixaRsvp("");
+            rsvp.querySelectorAll("button").forEach(function (x) { x.disabled = true; });
+            fetch("/eventos/confirmar", { method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ e: ev.id, c: codigo, resposta: resposta }) })
+                .then(function (r) { return r.json().then(function (d) { if (!r.ok) throw new Error(d.erro); return d; }); })
+                .then(function (d) { caixaRsvp(d.resposta); })
+                .catch(function () { caixaRsvp("", "Não consegui enviar agora. Tente de novo em instantes."); });
+        });
+    }
 
     /* ----- Clima ----- */
     var caixa = document.getElementById("clima");
