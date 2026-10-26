@@ -85,6 +85,29 @@
 .infra .chamada{ text-align:center; margin-top:40px; }
 @media (max-width:900px){ .grade-infra{ grid-template-columns:1fr; } }
 
+.promocoes{ background:var(--fundo-suave); padding:46px 0 0; }
+.grade-promo{ display:grid; grid-template-columns:1fr 1fr; gap:22px; }
+.promo{
+    display:flex; gap:18px; align-items:flex-start; background:var(--branco); border:2px solid var(--ciano);
+    border-radius:var(--raio); padding:24px 26px; box-shadow:0 10px 30px rgba(15,31,71,.07);
+}
+.promo .selo-promo{
+    flex-shrink:0; width:64px; height:64px; border-radius:16px; display:grid; place-items:center;
+    background:var(--marinho); color:var(--ciano); font-family:"Montserrat",sans-serif; font-weight:800; font-size:21px;
+}
+.promo h3{ color:var(--marinho); font-size:19px; margin-bottom:6px; }
+.promo p{ font-size:15.5px; line-height:1.5; }
+.promo small{ display:block; color:var(--texto-claro); font-size:13.5px; margin-top:8px; }
+.promo .btn-whats{
+    margin-top:14px; display:inline-flex; align-items:center; gap:8px; text-decoration:none;
+    color:var(--ciano-escuro); font-weight:500; font-size:15px; border:1.5px solid var(--ciano); border-radius:999px; padding:7px 14px;
+    transition:background .2s, color .2s;
+}
+.promo .btn-whats svg{ width:18px; height:18px; }
+.promo .btn-whats:hover{ background:var(--ciano); color:var(--branco); }
+@media (max-width:900px){ .grade-promo{ grid-template-columns:1fr; } }
+@media (max-width:560px){ .promo{ padding:20px; gap:14px; } .promo .selo-promo{ width:52px; height:52px; font-size:17px; } }
+
 @media (max-width:1000px){ .grade-servicos .card{ flex-basis:calc((100% - 44px) / 3); } }
 @media (max-width:900px){
     .hero .wrap{ grid-template-columns:1fr; }
@@ -136,6 +159,29 @@
         <li>✔ Atendimento para empresas</li>
     </ul>
 </div>
+
+<!-- ===================== PROMOÇÕES ===================== -->
+<section class="promocoes" id="promocoes">
+    <div class="wrap grade-promo">
+        <div class="promo">
+            <div class="selo-promo">1º</div>
+            <div>
+                <h3>1º atendimento grátis para empresas</h3>
+                <p>O primeiro atendimento da sua empresa é por nossa conta, com até 1 hora de duração.</p>
+                <small>Fora de Ipatinga, pode haver taxa de deslocamento.</small>
+                <a class="btn-whats js-whats" data-texto="Olá! Vim pelo site e quero o 1º atendimento grátis para a minha empresa." href="https://wa.me/5531988836857" target="_blank" rel="noopener"><span class="js-icone-whats"></span> Quero para minha empresa</a>
+            </div>
+        </div>
+        <div class="promo">
+            <div class="selo-promo">10%</div>
+            <div>
+                <h3>10% de desconto com o panfleto</h3>
+                <p>Recebeu o panfleto da Azul Marinho? Mostre na hora do atendimento e ganhe 10% de desconto nos nossos serviços.</p>
+                <a class="btn-whats js-whats" data-texto="Olá! Vim pelo site e tenho o panfleto da Azul Marinho (10% de desconto)." href="https://wa.me/5531988836857" target="_blank" rel="noopener"><span class="js-icone-whats"></span> Tenho o panfleto</a>
+            </div>
+        </div>
+    </div>
+</section>
 
 <!-- ===================== SERVIÇOS ===================== -->
 <section class="secao secao-suave" id="servicos">
