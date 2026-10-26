@@ -148,6 +148,45 @@ details.varios-box{ margin-top:14px; }
 details.varios-box summary{ cursor:pointer; color:var(--ciano-escuro); font-weight:500; }
 textarea.varios{ min-height:120px; margin:10px 0; }
 
+/* Respostas (dashboard) */
+.totais{ display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; }
+.total{ border-radius:14px; padding:14px 16px; border:1.5px solid var(--borda); background:var(--branco); }
+.total b{ display:block; font:800 34px/1.1 "Montserrat",sans-serif; color:var(--marinho); }
+.total span{ font-size:14px; color:var(--texto-claro); }
+.total small{ display:block; font-size:12px; color:var(--texto-claro); margin-top:4px; }
+.total.vai{ border-color:#86EFAC; background:#F0FDF4; } .total.vai b{ color:#15803D; }
+.total.nao{ border-color:#FDA4AF; background:#FFF1F2; } .total.nao b{ color:#BE123C; }
+.total.sem{ border-color:#FCD34D; background:#FFFBEB; } .total.sem b{ color:#B45309; }
+.barra-resp{ display:flex; height:10px; border-radius:999px; overflow:hidden; background:var(--fundo-suave); margin:14px 0 4px; }
+.barra-resp i{ display:block; height:100%; }
+.tabela-resp{ width:100%; border-collapse:collapse; margin-top:16px; font-size:15px; }
+.tabela-resp th, .tabela-resp td{ padding:8px 10px; border-bottom:1px solid var(--borda); text-align:center; }
+.tabela-resp th{ font:600 13px "Montserrat",sans-serif; color:var(--texto-claro); }
+.tabela-resp th:first-child, .tabela-resp td:first-child{ text-align:left; }
+.tabela-resp td.v{ color:#15803D; font-weight:500; } .tabela-resp td.x{ color:#BE123C; font-weight:500; } .tabela-resp td.s{ color:#B45309; font-weight:500; }
+.tabela-resp tr.soma td{ font-weight:700; border-bottom:0; }
+.subtitulo-resp{ font:700 13px "Montserrat",sans-serif; letter-spacing:1px; text-transform:uppercase; color:var(--ciano-escuro);
+    margin:26px 0 10px; padding-top:18px; border-top:1px solid var(--borda); }
+.subtitulo-resp:first-child{ margin-top:0; padding-top:0; border-top:0; }
+.filtros-resp{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+.filtros-resp .opcoes button{ padding:6px 13px; font-size:14px; }
+.colunas-resp{ display:grid; grid-template-columns:repeat(3, 1fr); gap:14px; margin-top:14px; }
+.coluna-resp{ border:1.5px solid var(--borda); border-radius:14px; overflow:hidden; background:var(--branco); }
+.coluna-resp h3{ font:700 15px "Montserrat",sans-serif; padding:10px 14px; display:flex; justify-content:space-between; gap:8px; }
+.coluna-resp.vai h3{ background:#DCFCE7; color:#14532D; }
+.coluna-resp.nao h3{ background:#FFE4E6; color:#881337; }
+.coluna-resp.sem h3{ background:#FEF3C7; color:#78350F; }
+.coluna-resp ol{ list-style:none; margin:0; padding:4px 0; max-height:460px; overflow:auto; }
+.coluna-resp li{ padding:7px 14px; border-bottom:1px dashed var(--borda); font-size:15px; }
+.coluna-resp li:last-child{ border-bottom:0; }
+.coluna-resp li small{ display:block; font-size:12px; color:var(--texto-claro); }
+.coluna-resp .vazio{ padding:14px; color:var(--texto-claro); font-size:14px; }
+@media (max-width:760px){
+    .totais{ grid-template-columns:1fr 1fr; }
+    .colunas-resp{ grid-template-columns:1fr; }
+    .tabela-resp{ font-size:14px; } .tabela-resp th, .tabela-resp td{ padding:7px 5px; }
+}
+
 /* Mensagens */
 .aviso{ padding:28px; }
 .aviso h2{ font-size:22px; margin-bottom:10px; }
@@ -451,8 +490,90 @@ textarea.varios{ min-height:120px; margin:10px 0; }
                 '<button class="b pequeno" data-acao="duplicar">Duplicar</button>' +
                 '<button class="b pequeno perigo" data-acao="excluir">Excluir</button></div></div>' +
             '<div class="abas"><button data-aba="detalhes" class="' + (aba === "detalhes" ? "ativa" : "") + '">Detalhes</button>' +
-                '<button data-aba="convidados" class="' + (aba === "convidados" ? "ativa" : "") + '">Convidados (' + qtd + ')</button></div>' +
-            '<div class="conteudo-aba">' + (aba === "detalhes" ? detalhesHTML(ev) : convidadosHTML(ev)) + '</div>';
+                '<button data-aba="convidados" class="' + (aba === "convidados" ? "ativa" : "") + '">Convidados (' + qtd + ')</button>' +
+                '<button data-aba="respostas" class="' + (aba === "respostas" ? "ativa" : "") + '">Respostas</button></div>' +
+            '<div class="conteudo-aba">' + (aba === "detalhes" ? detalhesHTML(ev) : aba === "respostas" ? respostasHTML(ev) : convidadosHTML(ev)) + '</div>';
+    }
+
+    /* ---------------- Respostas: quem vai, quem não vai, quem não respondeu ---------------- */
+
+    var filtroResp = { sexo: "", tipo: "" };
+    function situacao(p) { return p.confirmado ? "vai" : p.naoVai ? "nao" : "sem"; }
+    function detalhePessoa(p) {
+        var d = [];
+        if (p.tipo === "crianca") d.push("Criança" + (p.idade !== undefined && p.idade !== "" ? ", " + p.idade + (+p.idade === 1 ? " ano" : " anos") : ""));
+        else if (p.tipo === "adulto") d.push("Adulto");
+        if (p.sexo === "m") d.push("Masculino"); else if (p.sexo === "f") d.push("Feminino");
+        if (situacao(p) === "sem" && !p.enviado) d.push("convite ainda não enviado");
+        if (p.respEm && situacao(p) !== "sem") d.push("📩 pelo link");
+        return d.join(" • ");
+    }
+
+    function respostasHTML(ev) {
+        var lista = convidados(ev.id).filter(function (p) { return String(p.nome || "").trim(); });
+        if (!lista.length) return '<p style="color:var(--texto-claro)">Nenhum convidado ainda. Cadastre na aba <b>Convidados</b> e as respostas aparecem aqui.</p>';
+        function conta(l, s) { return l.filter(function (p) { return situacao(p) === s; }).length; }
+        function pct(n) { return lista.length ? Math.round(n * 100 / lista.length) : 0; }
+        var vai = conta(lista, "vai"), nao = conta(lista, "nao"), sem = conta(lista, "sem");
+        var naoEnviados = lista.filter(function (p) { return situacao(p) === "sem" && !p.enviado; }).length;
+
+        /* Totais */
+        var html = '<div class="subtitulo-resp">Totais</div>' +
+            '<div class="totais">' +
+                '<div class="total vai"><b>' + vai + '</b><span>✅ Vão</span><small>' + pct(vai) + '% da lista</small></div>' +
+                '<div class="total nao"><b>' + nao + '</b><span>❌ Não vão</span><small>' + pct(nao) + '% da lista</small></div>' +
+                '<div class="total sem"><b>' + sem + '</b><span>⏳ Não responderam</span><small>' + (naoEnviados ? naoEnviados + " sem convite enviado" : pct(sem) + "% da lista") + '</small></div>' +
+                '<div class="total"><b>' + lista.length + '</b><span>👥 Na lista</span><small>todos os convidados</small></div>' +
+            '</div>' +
+            '<div class="barra-resp" aria-hidden="true"><i style="width:' + (vai * 100 / lista.length) + '%;background:#22C55E"></i>' +
+                '<i style="width:' + (nao * 100 / lista.length) + '%;background:#F43F5E"></i><i style="width:' + (sem * 100 / lista.length) + '%;background:#FBBF24"></i></div>';
+
+        /* Contagem por grupo */
+        var grupos = [
+            ["Adultos", function (p) { return p.tipo === "adulto"; }],
+            ["Crianças", function (p) { return p.tipo === "crianca"; }],
+            ["Homens", function (p) { return p.sexo === "m"; }],
+            ["Mulheres", function (p) { return p.sexo === "f"; }]
+        ];
+        var semTipo = lista.filter(function (p) { return !p.tipo; }).length, semSexo = lista.filter(function (p) { return !p.sexo; }).length;
+        if (semTipo) grupos.splice(2, 0, ["Sem adulto/criança marcado", function (p) { return !p.tipo; }]);
+        if (semSexo) grupos.push(["Sem sexo marcado", function (p) { return !p.sexo; }]);
+        html += '<table class="tabela-resp"><thead><tr><th>Grupo</th><th>✅ Vão</th><th>❌ Não vão</th><th>⏳ Não resp.</th><th>Total</th></tr></thead><tbody>' +
+            grupos.map(function (g) {
+                var l = lista.filter(g[1]);
+                return '<tr><td>' + g[0] + '</td><td class="v">' + conta(l, "vai") + '</td><td class="x">' + conta(l, "nao") + '</td><td class="s">' + conta(l, "sem") + '</td><td>' + l.length + '</td></tr>';
+            }).join("") +
+            '<tr class="soma"><td>Todos</td><td class="v">' + vai + '</td><td class="x">' + nao + '</td><td class="s">' + sem + '</td><td>' + lista.length + '</td></tr>' +
+            '</tbody></table>';
+
+        /* Listas com filtro */
+        function botao(campo, v, texto) {
+            var on = filtroResp[campo] === v;
+            return '<button type="button" data-filtro="' + campo + '" data-v="' + v + '"' + (on ? ' class="ativa" aria-pressed="true"' : ' aria-pressed="false"') + '>' + texto + '</button>';
+        }
+        var filtrada = lista.filter(function (p) {
+            return (!filtroResp.sexo || p.sexo === filtroResp.sexo) && (!filtroResp.tipo || p.tipo === filtroResp.tipo);
+        });
+        function coluna(s, titulo) {
+            var l = filtrada.filter(function (p) { return situacao(p) === s; })
+                .sort(function (a, b) { return String(a.nome).localeCompare(String(b.nome), "pt-BR"); });
+            return '<div class="coluna-resp ' + s + '"><h3><span>' + titulo + '</span><span>' + l.length + '</span></h3>' +
+                (l.length ? '<ol>' + l.map(function (p) {
+                    var d = detalhePessoa(p);
+                    return '<li>' + esc(String(p.nome).trim()) + (d ? '<small>' + esc(d) + '</small>' : "") + '</li>';
+                }).join("") + '</ol>' : '<p class="vazio">Ninguém aqui.</p>') + '</div>';
+        }
+        var temFiltro = filtroResp.sexo || filtroResp.tipo;
+        html += '<div class="subtitulo-resp">Quem vai, quem não vai e quem não respondeu</div>' +
+            '<div class="filtros-resp"><span class="rotulo">Mostrar:</span>' +
+                '<span class="opcoes" role="group" aria-label="Filtrar por sexo">' + botao("sexo", "", "Todos") + botao("sexo", "m", "Homens") + botao("sexo", "f", "Mulheres") + '</span>' +
+                '<span class="opcoes" role="group" aria-label="Filtrar por idade">' + botao("tipo", "", "Todos") + botao("tipo", "adulto", "Adultos") + botao("tipo", "crianca", "Crianças") + '</span>' +
+                (temFiltro ? '<span style="color:var(--texto-claro);font-size:14px">' + filtrada.length + ' de ' + lista.length + ' convidados</span>' : "") +
+            '</div>' +
+            '<div class="colunas-resp">' + coluna("vai", "✅ Vão") + coluna("nao", "❌ Não vão") + coluna("sem", "⏳ Não responderam") + '</div>' +
+            '<p style="margin-top:14px;color:var(--texto-claro);font-size:14px">As respostas pelo link do convite entram quando o painel é aberto. Para ver respostas novas, recarregue a página. ' +
+                'Para mudar a resposta de alguém, use as marcas <b>Confirmado</b> e <b>Não vai</b> na aba Convidados.</p>';
+        return html;
     }
 
     function campo(nome, rotulo, valor, extra) {
@@ -788,11 +909,18 @@ textarea.varios{ min-height:120px; margin:10px 0; }
     }
 
     painel.addEventListener("click", function (e) {
-        var alvo = e.target.closest("[data-abrir],[data-acao],[data-aba],[data-remover],[data-esquecer],[data-campo],.convite");
+        var alvo = e.target.closest("[data-abrir],[data-acao],[data-aba],[data-remover],[data-esquecer],[data-campo],[data-filtro],.convite");
         if (!alvo) return;
 
         if (alvo.hasAttribute("data-abrir")) return abrir(alvo.getAttribute("data-abrir"));
         if (alvo.hasAttribute("data-aba")) { aba = alvo.getAttribute("data-aba"); return desenhar(); }
+        if (alvo.hasAttribute("data-filtro")) {
+            filtroResp[alvo.getAttribute("data-filtro")] = alvo.getAttribute("data-v");
+            var y = window.scrollY;
+            desenhar();
+            window.scrollTo(0, y);
+            return;
+        }
 
         var ev = atual && evento(atual);
 

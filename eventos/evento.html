@@ -128,6 +128,14 @@ main, .rodape{ position:relative; z-index:1; }
 .rsvp .btn{ min-width:150px; justify-content:center; }
 .rsvp .trocar{ background:none; border:0; color:var(--t-destaque); font:inherit; cursor:pointer; text-decoration:underline; margin-top:12px; }
 
+/* Quantidades de respostas (só números; nomes ficam no painel) */
+.presencas{ text-align:center; }
+.presencas h2{ justify-content:center; }
+.presencas .numeros{ display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-top:6px; }
+.presencas .numeros div{ background:var(--t-cartao); border-radius:14px; padding:14px 8px; }
+.presencas .numeros b{ display:block; font:800 36px/1.1 "Montserrat",sans-serif; color:var(--t-destaque); }
+.presencas .numeros span{ font-size:14px; opacity:.85; }
+
 .nao-achou{ text-align:center; padding:120px 20px; }
 .nao-achou h1{ margin-bottom:12px; }
 
@@ -255,6 +263,7 @@ main, .rodape{ position:relative; z-index:1; }
                 (ev.endereco ? '<p class="suave">' + esc(ev.endereco) + '</p>' : "") +
                 '<a class="link-tema" href="' + esc(linkMapa) + '" target="_blank" rel="noopener">Ver no mapa →</a></div>' +
             '<div class="bloco c4"><h2>🌤️ Clima</h2><div id="clima" class="suave">Buscando a previsão do tempo...</div></div>' +
+            '<div class="bloco c12 presencas" id="presencas" hidden></div>' +
 
             '<div class="bloco ' + (ev.playlist ? "c7" : "c12") + '"><h2>✨ Sobre o evento</h2>' + paragrafos(ev.descricao) + '</div>' +
             (ev.playlist ? '<div class="bloco c5 playlist"><h2>🎵 Playlist</h2>' + embedPlaylist(ev.playlist) + '</div>' : "") +
@@ -277,6 +286,27 @@ main, .rodape{ position:relative; z-index:1; }
         '</div></div>';
 
     alvo.innerHTML = html;
+
+    /* Quantidades de respostas: só os números (quem são, só no painel) */
+    var presencas = document.getElementById("presencas");
+    function carregarTotais() {
+        fetch("/eventos/totais?e=" + encodeURIComponent(ev.id), { cache: "no-store" })
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (t) {
+                if (!t || !t.total) return;
+                function q(n, um, varios) { return n === 1 ? um : varios; }
+                presencas.hidden = false;
+                presencas.innerHTML = '<h2>👥 ' + (passado ? "Presenças" : "Confirmações de presença") + '</h2>' +
+                    '<div class="numeros">' +
+                        '<div><b>' + t.vai + '</b><span>✅ ' + q(t.vai, "vai", "vão") + '</span></div>' +
+                        '<div><b>' + t.nao + '</b><span>❌ não ' + q(t.nao, "vai", "vão") + '</span></div>' +
+                        '<div><b>' + t.sem + '</b><span>⏳ ainda não ' + q(t.sem, "respondeu", "responderam") + '</span></div>' +
+                    '</div>' +
+                    '<p class="suave" style="margin-top:10px;font-size:14px">' + t.total + q(t.total, " convidado", " convidados") + ' no total</p>';
+            })
+            .catch(function () {});
+    }
+    carregarTotais();
 
     /* Confirmação de presença: só com o link pessoal do convite (&c=código) */
     var codigo = new URLSearchParams(location.search).get("c");
@@ -310,7 +340,7 @@ main, .rodape{ position:relative; z-index:1; }
             fetch("/eventos/confirmar", { method: "POST", headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ e: ev.id, c: codigo, resposta: resposta }) })
                 .then(function (r) { return r.json().then(function (d) { if (!r.ok) throw new Error(d.erro); return d; }); })
-                .then(function (d) { caixaRsvp(d.resposta); })
+                .then(function (d) { caixaRsvp(d.resposta); carregarTotais(); })
                 .catch(function () { caixaRsvp("", "Não consegui enviar agora. Tente de novo em instantes."); });
         });
     }

@@ -51,6 +51,12 @@ No painel você:
   fica no KV (`resposta:<evento>:<código>`, via `functions/eventos/confirmar.js`) e, ao abrir o
   painel, o convidado já aparece como **Confirmado** ou **Não vai** ("📩 respondeu pelo link").
   Convites enviados antes desta função não têm o link pessoal: reenvie se quiser a confirmação.
+- aba **Respostas** (em cada evento): totais de quem **vai**, **não vai** e **não respondeu**
+  (com % e uma tabela por adultos, crianças, homens e mulheres) e as três listas com nomes,
+  com filtro Homens/Mulheres e Adultos/Crianças. Só no painel.
+- na **página pública do evento** aparecem só as **quantidades** (vão / não vão / não responderam),
+  sem nenhum nome: vêm de `/eventos/totais?e=<evento>` (`functions/eventos/totais.js`), que conta
+  também as respostas pelo link ainda não vistas no painel. Sem convidados, o quadro não aparece.
 
 Depois de mexer, clique em **Salvar alterações** (barra azul embaixo). O site atualiza em até 1 minuto.
 Cada gravação guarda uma cópia da versão anterior por 90 dias (no KV, chaves `backup:...`).
