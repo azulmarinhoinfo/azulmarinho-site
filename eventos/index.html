@@ -131,7 +131,7 @@
 <div id="rodape"></div>
 
 <script src="/assets/js/site.js"></script>
-<script src="/assets/js/eventos-comum.js?v=20261024c"></script>
+<script src="/assets/js/eventos-comum.js?v=20261026a"></script>
 <script src="/eventos/dados"></script>
 <script>window.EVENTOS || document.write('<script src="/eventos/eventos.js"><\/script>')</script>
 <script>
@@ -141,7 +141,7 @@
 
     function fundoArte(ev, t) {
         var foto = ev.capa || (ev.fotos && ev.fotos[0]);
-        if (foto) return "background-image:linear-gradient(rgba(0,0,0,.15), rgba(0,0,0,.35)), url('/eventos/" + esc(foto) + "')";
+        if (foto) return "background-image:linear-gradient(rgba(0,0,0,.15), rgba(0,0,0,.35)), url('" + esc(EV.img(foto)) + "')";
         return "background:linear-gradient(135deg," + t.fundo1 + "," + t.fundo2 + ")";
     }
 
