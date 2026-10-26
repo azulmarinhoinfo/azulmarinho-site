@@ -120,6 +120,14 @@ window.EV = (function () {
         return '<img class="emoji-img" src="' + esc(src) + '" alt="" style="height:1.15em;width:auto;vertical-align:-0.2em">';
     }
 
+    /* Caminho de imagem: "fotos/pasta/capa.jpg" (dentro de /eventos/), "/assets/..." ou link completo (https://...). */
+    function img(caminho) {
+        var c = String(caminho || "").trim();
+        if (!c) return "";
+        if (!/^(https?:)?\/\//i.test(c) && c.charAt(0) !== "/") c = "/eventos/" + c.replace(/^\.\//, "");
+        return c.replace(/['"()\\\s]/g, function (ch) { return "%" + ("0" + ch.charCodeAt(0).toString(16).toUpperCase()).slice(-2); });
+    }
+
     function esc(s) {
         return String(s == null ? "" : s).replace(/[&<>"']/g, function (ch) {
             return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch];
@@ -193,6 +201,6 @@ window.EV = (function () {
 
     return {
         separar: separar, buscar: buscar, diasAte: diasAte, dataCurta: dataCurta, dataLonga: dataLonga,
-        diaMes: diaMes, contagem: contagem, tema: tema, linkMapa: linkMapa, clima: clima, esc: esc
+        diaMes: diaMes, contagem: contagem, tema: tema, linkMapa: linkMapa, clima: clima, esc: esc, img: img
     };
 })();

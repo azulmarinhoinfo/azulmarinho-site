@@ -174,7 +174,7 @@ main, .rodape{ position:relative; z-index:1; }
 <div id="rodape"></div>
 
 <script src="/assets/js/site.js"></script>
-<script src="/assets/js/eventos-comum.js?v=20261024c"></script>
+<script src="/assets/js/eventos-comum.js?v=20261026a"></script>
 <script src="/eventos/dados"></script>
 <script>window.EVENTOS || document.write('<script src="/eventos/eventos.js"><\/script>')</script>
 <script>
@@ -223,7 +223,7 @@ main, .rodape{ position:relative; z-index:1; }
     }
 
     var dm = EV.diaMes(ev);
-    var capa = ev.capa ? "background-image:url('/eventos/" + esc(ev.capa) + "')" : "";
+    var capa = ev.capa ? "background-image:url('" + esc(EV.img(ev.capa)) + "')" : "";
     var fotos = ev.fotos || [];
     /* Álbuns: "album" (normalmente o do iCloud) e "albumGoogle". O nome do botão vem do link. */
     function rotuloAlbum(url) {
@@ -271,7 +271,7 @@ main, .rodape{ position:relative; z-index:1; }
             '<div class="bloco c12"><h2>📸 Álbum de fotos</h2>' +
                 (fotos.length
                     ? '<div class="album">' + fotos.map(function (f, i) {
-                        return '<button data-i="' + i + '" aria-label="Abrir foto ' + (i + 1) + '"><img src="/eventos/' + esc(f) + '" loading="lazy" alt="Foto ' + (i + 1) + ' do evento"></button>';
+                        return '<button data-i="' + i + '" aria-label="Abrir foto ' + (i + 1) + '"><img src="' + esc(EV.img(f)) + '" loading="lazy" alt="Foto ' + (i + 1) + ' do evento"></button>';
                       }).join("") + '</div>'
                     : (albuns.length ? "" : '<p class="suave">' + (passado ? "As fotos deste evento vão aparecer aqui em breve." : "As fotos vão aparecer aqui depois do evento.") + '</p>')) +
                 (albuns.length ? '<p class="suave" style="margin-top:6px">' + (albuns.length > 1
@@ -369,7 +369,7 @@ main, .rodape{ position:relative; z-index:1; }
     var lb = document.getElementById("lightbox"), lbImg = lb.querySelector("img"), lbConta = lb.querySelector(".lb-conta"), atual = 0;
     function mostrar(i) {
         atual = (i + fotos.length) % fotos.length;
-        lbImg.src = "/eventos/" + fotos[atual];
+        lbImg.src = EV.img(fotos[atual]);
         lbConta.textContent = (atual + 1) + " de " + fotos.length;
     }
     function abrir(i) { mostrar(i); lb.classList.add("aberto"); document.body.style.overflow = "hidden"; }

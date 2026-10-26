@@ -252,7 +252,7 @@ textarea.varios{ min-height:120px; margin:10px 0; }
 </div>
 
 <script src="/assets/js/site.js"></script>
-<script src="/assets/js/eventos-comum.js?v=20261024c"></script>
+<script src="/assets/js/eventos-comum.js?v=20261026a"></script>
 <!-- Eventos do arquivo do site: usados só na primeira vez, para começar o painel -->
 <script src="/eventos/eventos.js"></script>
 <script>
@@ -626,7 +626,7 @@ textarea.varios{ min-height:120px; margin:10px 0; }
             campo("playlist", "Playlist", ev.playlist || "", { ph: "Link do Apple Music, Spotify ou YouTube" }) +
             campo("album", "Álbum do iPhone (iCloud)", ev.album || "", { ph: "https://www.icloud.com/sharedalbum/...", dica: "Álbum compartilhado com \"Site Público\" ligado." }) +
             campo("albumGoogle", "Álbum do Android (Google Fotos)", ev.albumGoogle || "", { ph: "https://photos.app.goo.gl/...", dica: "Álbum compartilhado com \"Colaborar\" ligado." }) +
-            campo("capa", "Foto de capa (opcional)", ev.capa || "", { ph: "Link de uma imagem", dica: "Aparece no cartão do evento. Sem capa, aparece o emoji do tema." }) +
+            campo("capa", "Foto de capa (opcional)", ev.capa || "", { ph: "Link de uma imagem", dica: "Cole o link direto da imagem (https://..., termina em .jpg, .png ou .webp) ou um caminho do site, como fotos/meu-evento/capa.jpg. Aparece no cartão do evento e na prévia do WhatsApp. Sem capa, aparece o emoji do tema." }) +
 
             '<div class="secao-form">Publicação</div>' +
             '<div class="campo"><label class="check"><input type="checkbox" data-c="rascunho"' + (ev.rascunho ? " checked" : "") + '> Rascunho: esconder este evento do site</label>' +
