@@ -20,6 +20,7 @@ para o ar sozinha em cerca de 1 minuto.
 |---|---|
 | Eventos e convidados | **Painel do organizador**: `azulmarinhoinfo.com.br/admin/` |
 | Serviços de informática | `assets/data/servicos.js` |
+| Promoções da Informática (10% casa, 1º atendimento grátis empresa) | `assets/data/servicos.js` → `PROMOCOES` |
 | WhatsApp, telefone, e-mail, Facebook | `assets/js/site.js` (bloco `window.AZUL`) |
 | Camisas que aparecem na página principal | `assets/data/camisas.js` |
 | Temas (cores) dos eventos | `assets/js/eventos-comum.js` (bloco `window.TEMAS`) |

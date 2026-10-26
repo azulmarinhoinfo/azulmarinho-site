@@ -6,6 +6,7 @@
    icone = um dos nomes da lista ICONES_SERVICO logo abaixo.
    O botão "Pedir pelo WhatsApp" já monta a mensagem com o nome do
    serviço. Para outra mensagem, acrescente  whats: "seu texto"
+   As promoções ficam em PROMOCOES, mais abaixo neste arquivo.
    ========================================================= */
 
 /* Serviços que aparecem em destaque na página principal */
@@ -48,6 +49,35 @@ window.SERVICOS_EMPRESA = [
     { icone: "arte",       nome: "Artes gráficas",               texto: "Logotipos, panfletos, cartões e artes para redes sociais." },
     { icone: "consultoria", nome: "Consultoria e infraestrutura de TI", texto: "Planejamos e cuidamos de toda a estrutura de tecnologia do seu negócio. Veja a lista completa abaixo." }
 ];
+
+/* =========================================================
+   PROMOÇÕES — edite aqui
+   Aparecem numa faixa logo acima dos serviços, uma para cada aba.
+   titulo / texto  = o que aparece na faixa
+   obs             = letra miúda embaixo (pode deixar "")
+   botao / whats   = botão do WhatsApp e a mensagem que ele manda
+   aviso           = linha que entra em TODAS as mensagens de
+                     WhatsApp dos serviços daquela aba (pode deixar "")
+   Para tirar uma promoção, troque o bloco dela por  null
+   ========================================================= */
+window.PROMOCOES = {
+    casa: {
+        titulo: "Ganhe 10% de desconto",
+        texto:  "Diga que viu esta promoção no site ao pedir seu serviço e ganhe 10% de desconto nos nossos serviços.",
+        obs:    "Atendimento fora de Ipatinga sujeito a taxa de deslocamento.",
+        botao:  "Quero meu desconto",
+        whats:  "Olá! Vi no site da Azul Marinho a promoção de 10% de desconto e gostaria de um orçamento.",
+        aviso:  "Vi no site a promoção de 10% de desconto."
+    },
+    empresa: {
+        titulo: "1º atendimento grátis para empresas",
+        texto:  "O primeiro atendimento para a sua empresa é gratuito. Conheça nosso trabalho sem custo.",
+        obs:    "Atendimento de no máximo 1 hora, sujeito a taxa de deslocamento fora de Ipatinga.",
+        botao:  "Agendar atendimento grátis",
+        whats:  "Olá! Vi no site da Azul Marinho que o 1º atendimento para empresas é grátis e gostaria de agendar.",
+        aviso:  "Vi no site que o 1º atendimento para empresas é grátis."
+    }
+};
 
 /* Desenhos dos ícones (não precisa mexer) */
 window.ICONES_SERVICO = {

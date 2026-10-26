@@ -64,6 +64,28 @@
 }
 .card .btn-whats svg{ width:18px; height:18px; }
 .card .btn-whats:hover{ background:var(--ciano); color:var(--branco); }
+.promo{
+    display:flex; align-items:center; gap:22px; margin:0 auto 34px; max-width:980px; padding:22px 26px;
+    border-radius:var(--raio); color:#DCE6F7; border:1px solid rgba(0,173,239,.45);
+    background:radial-gradient(circle at 92% 10%, rgba(0,173,239,.30), transparent 50%),
+        linear-gradient(135deg, var(--marinho-escuro), var(--marinho) 65%, var(--marinho-medio));
+    box-shadow:0 12px 30px rgba(15,31,71,.18);
+}
+.promo[hidden]{ display:none; }
+.promo-selo{
+    flex-shrink:0; width:64px; height:64px; border-radius:18px; background:var(--ciano); color:var(--branco);
+    display:grid; place-items:center;
+}
+.promo-selo svg{ width:34px; height:34px; }
+.promo-texto{ flex:1; }
+.promo-texto strong{ display:block; color:var(--branco); font-family:"Montserrat",sans-serif; font-weight:800; font-size:21px; margin-bottom:4px; }
+.promo-texto p{ font-size:16px; line-height:1.45; }
+.promo-texto small{ display:block; margin-top:6px; color:#9FB2D6; font-size:13.5px; }
+.promo .btn{ flex-shrink:0; }
+@media (max-width:760px){
+    .promo{ flex-direction:column; align-items:flex-start; text-align:left; gap:14px; padding:22px 20px; }
+    .promo .btn{ width:100%; justify-content:center; }
+}
 .infra-grupo li a{ color:inherit; text-decoration:none; border-bottom:1px dashed rgba(255,255,255,.25); }
 .infra-grupo li a:hover{ color:var(--ciano); border-bottom-color:var(--ciano); }
 .infra{ background:linear-gradient(160deg, var(--marinho-escuro), var(--marinho) 60%, var(--marinho-medio)); color:#DCE6F7; }
@@ -133,7 +155,7 @@
         <li>✔ Orçamento sem compromisso</li>
         <li>✔ Atendimento em domicílio</li>
         <li>✔ Suporte remoto</li>
-        <li>✔ Atendimento para empresas</li>
+        <li>✔ 1º atendimento grátis para empresas</li>
     </ul>
 </div>
 
@@ -149,6 +171,7 @@
             <button class="aba" role="tab" id="aba-casa" aria-controls="grade-servicos" data-tipo="casa">🏠 Para sua casa</button>
             <button class="aba" role="tab" id="aba-empresa" aria-controls="grade-servicos" data-tipo="empresa">🏢 Para sua empresa</button>
         </div>
+        <div class="promo" id="promo" hidden></div>
         <div class="grade-servicos" id="grade-servicos" role="tabpanel"></div>
     </div>
 </section>
@@ -193,9 +216,24 @@
     function svg(desenho) {
         return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + desenho + '</svg>';
     }
+    var promos = window.PROMOCOES || {};
     function textoWhats(nome, tipo) {
+        var aviso = promos[tipo] && promos[tipo].aviso;
         return "Olá! Vim pelo site da Azul Marinho e gostaria de um orçamento.\nServiço: *" + nome + "*\nPara: " +
-            (tipo === "empresa" ? "minha empresa" : "minha casa");
+            (tipo === "empresa" ? "minha empresa" : "minha casa") + (aviso ? "\n" + aviso : "");
+    }
+
+    /* ----- Faixa de promoção da aba ----- */
+    var SELO_PROMO = '<path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L2 12V2h10l8.6 8.6a2 2 0 0 1 0 2.8z"/><circle cx="7" cy="7" r="1.5"/>';
+    function mostrarPromo(tipo) {
+        var p = promos[tipo], caixa = document.getElementById("promo");
+        if (!p) { caixa.hidden = true; return; }
+        caixa.innerHTML =
+            '<div class="promo-selo">' + svg(SELO_PROMO) + '</div>' +
+            '<div class="promo-texto"><strong>' + p.titulo + '</strong><p>' + p.texto + '</p>' +
+                (p.obs ? '<small>' + p.obs + '</small>' : '') + '</div>' +
+            '<a class="btn btn-ciano" href="' + A.linkWhats(p.whats) + '" target="_blank" rel="noopener">' + I.whats + ' ' + p.botao + '</a>';
+        caixa.hidden = false;
     }
 
     /* ----- Serviços em abas: casa / empresa ----- */
@@ -203,6 +241,7 @@
     var abas = document.querySelectorAll(".aba");
     function mostrar(tipo) {
         abas.forEach(function (b) { b.setAttribute("aria-selected", b.getAttribute("data-tipo") === tipo); });
+        mostrarPromo(tipo);
         document.getElementById("grade-servicos").innerHTML = listas[tipo].map(function (s) {
             return '<div class="card">' +
                 '<div class="icone">' + svg(window.ICONES_SERVICO[s.icone] || window.ICONES_SERVICO.suporte) + '</div>' +
