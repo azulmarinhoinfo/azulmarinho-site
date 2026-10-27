@@ -743,8 +743,7 @@ body.seq-aberto{ overflow:hidden; }
             },
             reut: {
                 copos: folga(bebem),
-                pratinhos: pratinhosPorPessoa ? folga(comem) : 0, garfinhos: folga(boloPessoas), colherzinhas: folga(boloPessoas),
-                facasSobremesa: tem.bolo ? folga(cortam) : 0,
+                pratinhos: pratinhosPorPessoa ? folga(comem) : 0, garfinhos: folga(boloPessoas),   // garfinho ou colherzinha, 1 por pessoa
                 pratos: folga(almocam), garfos: folga(almocam), facas: folga(cortamAlm)
             }
         };
@@ -836,9 +835,7 @@ body.seq-aberto{ overflow:hidden; }
                     '<div><h4>Reutilizáveis (louça)</h4><ul>' +
                         linha("Copos", fmt(c.reut.copos)) +
                         linhaSe(c.pratinhosPorPessoa, "Pratinhos", c.reut.pratinhos) +
-                        linhaSe(tem.bolo, "Garfinhos", c.reut.garfinhos) +
-                        linhaSe(tem.bolo, "Colherzinhas", c.reut.colherzinhas) +
-                        linhaSe(tem.bolo, "Facas de sobremesa", c.reut.facasSobremesa) +
+                        linhaSe(tem.bolo, "Garfinhos/colherzinhas", c.reut.garfinhos) +
                         linhaSe(alm, "Pratos (almoço)", c.reut.pratos) +
                         linhaSe(alm, "Garfos (almoço)", c.reut.garfos) +
                         linhaSe(alm, "Facas (almoço)", c.reut.facas) +
@@ -848,7 +845,7 @@ body.seq-aberto{ overflow:hidden; }
                     (alm ? ', 1 prato e 1 garfo de almoço por pessoa e 1 faca por adulto e criança de 6+' : '') + ' (talheres com 20% de reserva) e ' + (alm ? R.guardanaposAlm : R.guardanapos) + ' guardanapos por pessoa. ' +
                     'Em pacotes: copos ' + pacotes(c.desc.copos, 50) + ', pratinhos ' + pacotes(c.desc.pratinhos, 10) + ', garfinhos ' + pacotes(c.desc.garfinhos, 50) +
                     (alm ? ', pratos ' + pacotes(c.desc.pratos, 10) + ', garfos ' + pacotes(c.desc.garfos, 50) + ', facas ' + pacotes(c.desc.facas, 50) : '') + ', guardanapos ' + pacotes(c.desc.guardanapos, 50) + '. ' +
-                    'Louça: 1 de cada por pessoa + 10% de reserva; faca só para adulto e criança de 6+.</p></div>' +
+                    'Louça: 1 de cada por pessoa + 10% de reserva (para o bolo, garfinho ou colherzinha); faca de almoço só para adulto e criança de 6+.</p></div>' +
             '</div>';
 
         html += '<div class="subtitulo-resp">Como a conta é feita</div><ul class="regras-compras">' +
@@ -876,8 +873,8 @@ body.seq-aberto{ overflow:hidden; }
             "🪑 Cadeiras: " + c.cadeiras + " • Mesas: " + c.mesas + "\n\n" +
             "Descartáveis: " + itens([[1, c.desc.copos, "copos"], [c.pratinhosPorPessoa, c.desc.pratinhos, "pratinhos"], [tem.bolo, c.desc.garfinhos, "garfinhos (bolo)"],
                 [alm, c.desc.pratos, "pratos (almoço)"], [alm, c.desc.garfos, "garfos (almoço)"], [alm, c.desc.facas, "facas (almoço)"], [1, c.desc.guardanapos, "guardanapos"]]) + "\n" +
-            "Ou louça: " + itens([[1, c.reut.copos, "copos"], [c.pratinhosPorPessoa, c.reut.pratinhos, "pratinhos"], [tem.bolo, c.reut.garfinhos, "garfinhos"], [tem.bolo, c.reut.colherzinhas, "colherzinhas"],
-                [tem.bolo, c.reut.facasSobremesa, "facas de sobremesa"], [alm, c.reut.pratos, "pratos (almoço)"], [alm, c.reut.garfos, "garfos (almoço)"], [alm, c.reut.facas, "facas (almoço)"]]);
+            "Ou louça: " + itens([[1, c.reut.copos, "copos"], [c.pratinhosPorPessoa, c.reut.pratinhos, "pratinhos"], [tem.bolo, c.reut.garfinhos, "garfinhos/colherzinhas"],
+                [alm, c.reut.pratos, "pratos (almoço)"], [alm, c.reut.garfos, "garfos (almoço)"], [alm, c.reut.facas, "facas (almoço)"]]);
     }
 
     function campo(nome, rotulo, valor, extra) {
