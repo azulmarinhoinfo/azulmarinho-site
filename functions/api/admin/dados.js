@@ -8,6 +8,10 @@
                    c: código do link de confirmação, respEm: última resposta já aplicada } ] }
      resposta:<evento>:<código>  resposta do convidado pelo link (functions/eventos/confirmar.js),
                  só nos metadados: { r: "sim"|"nao", em }
+     tarefas     cronograma de cada evento: { "id-do-evento": { base: data do evento quando
+                 o cronograma foi montado, itens: [ { id, t, g, dia, ini, fim, feito } ] } }
+     tarefasPadrao  cronograma padrão guardado pelo organizador (dias antes do evento e horários);
+                 sem ele, o painel usa o padrão que vem no admin/index.html
      versao      marca da última gravação (evita sobrescrever
                  o que foi salvo em outro aparelho)
      backup:...  cópia anterior de cada gravação (guardada por 90 dias)
@@ -43,6 +47,15 @@ function validar(eventos, convidados) {
     return "";
 }
 
+function validarTarefas(tarefas, padrao) {
+    if (tarefas !== undefined && (!tarefas || typeof tarefas !== "object" || Array.isArray(tarefas))) return "Cronograma de tarefas inválido.";
+    for (var k in tarefas || {}) {
+        if (!tarefas[k] || !Array.isArray(tarefas[k].itens)) return "Cronograma de tarefas inválido (" + k + ").";
+    }
+    if (padrao !== undefined && padrao !== null && !Array.isArray(padrao)) return "Cronograma padrão inválido.";
+    return "";
+}
+
 /* Respostas dos convidados pelo link: { evento: { código: { r, em } } } */
 async function lerRespostas(kv) {
     var respostas = {}, cursor;
@@ -74,6 +87,8 @@ export async function onRequestGet(context) {
         eventos: await lerJSON(p.kv, "eventos", null),
         convidados: await lerJSON(p.kv, "convidados", {}),
         respostas: await lerRespostas(p.kv),
+        tarefas: await lerJSON(p.kv, "tarefas", {}),
+        tarefasPadrao: await lerJSON(p.kv, "tarefasPadrao", null),
         versao: (await p.kv.get("versao")) || ""
     });
 }
@@ -85,7 +100,7 @@ export async function onRequestPut(context) {
     var corpo;
     try { corpo = await context.request.json(); } catch (e) { return json({ erro: "Dados inválidos." }, 400); }
 
-    var erro = validar(corpo.eventos, corpo.convidados || {});
+    var erro = validar(corpo.eventos, corpo.convidados || {}) || validarTarefas(corpo.tarefas, corpo.tarefasPadrao);
     if (erro) return json({ erro: erro }, 400);
 
     var atual = (await p.kv.get("versao")) || "";
@@ -93,7 +108,8 @@ export async function onRequestPut(context) {
         return json({ erro: "Os dados foram alterados em outro aparelho. Recarregue a página antes de salvar.", codigo: "conflito" }, 409);
     }
 
-    var antes = { eventos: await lerJSON(p.kv, "eventos", null), convidados: await lerJSON(p.kv, "convidados", {}) };
+    var antes = { eventos: await lerJSON(p.kv, "eventos", null), convidados: await lerJSON(p.kv, "convidados", {}),
+        tarefas: await lerJSON(p.kv, "tarefas", {}), tarefasPadrao: await lerJSON(p.kv, "tarefasPadrao", null) };
     if (antes.eventos) {
         await p.kv.put("backup:" + new Date().toISOString(), JSON.stringify(antes), { expirationTtl: 60 * 60 * 24 * 90 });
     }
@@ -101,6 +117,12 @@ export async function onRequestPut(context) {
     var versao = Date.now().toString(36);
     await p.kv.put("eventos", JSON.stringify(corpo.eventos));
     await p.kv.put("convidados", JSON.stringify(corpo.convidados || {}));
+    /* Painel antigo (sem cronograma) não apaga as tarefas */
+    if (corpo.tarefas !== undefined) await p.kv.put("tarefas", JSON.stringify(corpo.tarefas));
+    if (corpo.tarefasPadrao !== undefined) {
+        if (corpo.tarefasPadrao) await p.kv.put("tarefasPadrao", JSON.stringify(corpo.tarefasPadrao));
+        else await p.kv.delete("tarefasPadrao");
+    }
     await p.kv.put("versao", versao);
     return json({ ok: true, versao: versao });
 }

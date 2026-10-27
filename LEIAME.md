@@ -58,6 +58,18 @@ No painel você:
   sem nenhum nome: vêm de `/eventos/totais?e=<evento>` (`functions/eventos/totais.js`), que conta
   também as respostas pelo link ainda não vistas no painel. Sem convidados, o quadro não aparece.
 
+- aba **Tarefas** (em cada evento): cronograma com dia, hora de começar e de terminar.
+  Todo evento já começa com as tarefas padrão (definir tema, convites, encomendas, compras,
+  limpeza, montagem, churrasqueira...) em dias e horários sugeridos em relação à data da festa;
+  no dia da festa, bolo, salgadinhos e churrasqueira acompanham o horário do evento.
+  Marque a caixinha quando fizer; dá para mudar dia/horário, apagar e criar tarefas.
+  Três jeitos de ver: **Lista** (por dia), **Andamento** (feitas, pendentes, atrasadas, por grupo)
+  e **Calendário** (semana com os horários ocupados, ou mês). Se a data do evento mudar,
+  o painel oferece mover as tarefas junto. **⭐ Usar esta lista como padrão** guarda a lista
+  do evento como padrão dos próximos (chave `tarefasPadrao` no KV; o padrão sugerido fica
+  em `TAREFAS_PADRAO` no `admin/index.html`). As tarefas ficam na chave `tarefas` do KV,
+  nunca no site público.
+
 Depois de mexer, clique em **Salvar alterações** (barra azul embaixo). O site atualiza em até 1 minuto.
 Cada gravação guarda uma cópia da versão anterior por 90 dias (no KV, chaves `backup:...`).
 
