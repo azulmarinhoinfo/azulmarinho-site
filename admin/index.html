@@ -650,28 +650,38 @@ body.seq-aberto{ overflow:hidden; }
 
     /* ---------------- Comes e bebes: lista de compras pelas quantidades de pessoas ---------------- */
 
-    /* Regras de festa (por pessoa). Para mudar uma conta, mude só o número aqui. */
+    /* Regras de festa (por pessoa). Para mudar uma conta, mude só o número aqui.
+       adulto = adulto, grande = criança de 6 anos ou mais, pequena = criança de 1 a 5 anos (bebê não entra). */
     var REGRAS = {
-        refri: { adulto: 600, grande: 400 },               // ml; criança até 5 anos não bebe refri
-        suco: { adulto: 300, grande: 300, pequena: 400 },  // ml; bebê de colo não entra
-        soRefri: { adulto: 900, grande: 700 },             // ml quando a festa só tem refri
-        soSuco: { adulto: 900, grande: 700, pequena: 400 },// ml quando a festa só tem suco
-        salgados: { adulto: 15, grande: 10, pequena: 6 },  // unidades
-        bolo: 100,                                         // gramas por pessoa (1 fatia); bebê não come
-        cadeiraIdade: 3,                                   // menores que isso ficam no colo
+        /* Bebida em ml. Criança até 5 anos não bebe refri. Com almoço a festa é mais longa e bebe-se mais. */
+        bebida: {
+            dois:     { refri: { adulto: 600, grande: 400 }, suco: { adulto: 300, grande: 300, pequena: 400 } },
+            doisAlm:  { refri: { adulto: 800, grande: 500 }, suco: { adulto: 400, grande: 400, pequena: 500 } },
+            refri:    { refri: { adulto: 900, grande: 700 }, suco: {} },
+            refriAlm: { refri: { adulto: 1200, grande: 1000 }, suco: {} },
+            suco:     { refri: {}, suco: { adulto: 900, grande: 700, pequena: 400 } },
+            sucoAlm:  { refri: {}, suco: { adulto: 1200, grande: 1000, pequena: 500 } }
+        },
+        salgados: { adulto: 15, grande: 10, pequena: 6 },        // unidades
+        salgadosAlm: { adulto: 6, grande: 4, pequena: 3 },       // com almoço o salgado vira só entrada
+        almoco: { adulto: 500, grande: 350, pequena: 200 },      // gramas de comida pronta (arroz, feijão, carne, salada...)
+        bolo: 100,                                               // gramas por pessoa (1 fatia); bebê não come
+        cadeiraIdade: 3,                                         // menores que isso ficam no colo
         cadeirasPorMesa: 4,
-        coposDesc: 4, garfosDesc: 1.2, guardanapos: 5,     // pratinhos: 1 para salgado e 1 para bolo
-        folgaReutilizavel: 0.1                             // 10% a mais de louça, para quebra e reposição
+        coposDesc: 4, coposDescAlm: 5,
+        guardanapos: 5, guardanaposAlm: 8,
+        reservaDesc: 0.2,                                        // 20% a mais de talher descartável (cai, quebra)
+        folgaReutilizavel: 0.1                                   // 10% a mais de louça, para quebra e reposição
     };
     var baseCompras = "vai";
-    var ITENS_COMPRA = [["refri", "🥤 Refri"], ["suco", "🧃 Suco"], ["bolo", "🎂 Bolo"], ["salgados", "🥟 Salgados"]];
+    var ITENS_COMPRA = [["refri", "🥤 Refri"], ["suco", "🧃 Suco"], ["bolo", "🎂 Bolo"], ["salgados", "🥟 Salgados"], ["almoco", "🍛 Almoço"]];
 
-    /* O que vai ter na festa: tudo marcado, a não ser que tenha sido desmarcado neste aparelho. */
+    /* O que vai ter na festa: tudo marcado (menos almoço), a não ser que tenha sido mudado neste aparelho. */
     function itensCompras(ev) {
-        var tem = { refri: true, suco: true, bolo: true, salgados: true };
+        var tem = { refri: true, suco: true, bolo: true, salgados: true, almoco: false };
         try {
             var salvo = JSON.parse(localStorage.getItem("compras:" + ev.id) || "{}");
-            Object.keys(tem).forEach(function (k) { if (salvo[k] === false) tem[k] = false; });
+            Object.keys(tem).forEach(function (k) { if (typeof salvo[k] === "boolean") tem[k] = salvo[k]; });
         } catch (e) {}
         return tem;
     }
@@ -698,32 +708,45 @@ body.seq-aberto{ overflow:hidden; }
 
     /* Regras de bebida conforme o que foi marcado: com os dois, divide; com um só, ele leva tudo. */
     function regrasBebida(tem) {
-        var R = REGRAS, vazio = {};
-        if (tem.refri && tem.suco) return { refri: R.refri, suco: R.suco };
-        if (tem.refri) return { refri: R.soRefri, suco: vazio };
-        if (tem.suco) return { refri: vazio, suco: R.soSuco };
-        return { refri: vazio, suco: vazio };
+        var nome = tem.refri && tem.suco ? "dois" : tem.refri ? "refri" : tem.suco ? "suco" : "";
+        return nome ? REGRAS.bebida[nome + (tem.almoco ? "Alm" : "")] : { refri: {}, suco: {} };
     }
 
     function calcularCompras(g, tem) {
         var R = REGRAS, B = regrasBebida(tem);
         function soma(regra) { return (regra.adulto || 0) * g.adulto + (regra.grande || 0) * g.grande + (regra.pequena || 0) * g.pequena; }
         function folga(n) { return n ? Math.ceil(n * (1 + R.folgaReutilizavel)) : 0; }
+        function reserva(n) { return Math.ceil(n * (1 + R.reservaDesc)); }
         var comem = g.adulto + g.grande + g.pequena;              // todo mundo menos bebê
         var bebem = tem.suco ? comem : tem.refri ? g.adulto + g.grande : 0;
+        var cortam = g.adulto + g.grande;                         // faca: criança até 5 anos não usa
         var cadeiras = g.adulto + g.grande + g.pequena + g.bebe - g.colo;
-        var refri = soma(B.refri), suco = soma(B.suco), salgados = tem.salgados ? soma(R.salgados) : 0;
+        var refri = soma(B.refri), suco = soma(B.suco);
+        var salgados = tem.salgados ? soma(tem.almoco ? R.salgadosAlm : R.salgados) : 0;
+        var almoco = tem.almoco ? soma(R.almoco) : 0;
         var boloPessoas = tem.bolo ? comem : 0, bolo = boloPessoas * R.bolo;
-        var pratosPorPessoa = (tem.bolo ? 1 : 0) + (tem.salgados ? 1 : 0);
+        var pratinhosPorPessoa = (tem.bolo ? 1 : 0) + (tem.salgados ? 1 : 0);
+        var almocam = tem.almoco ? comem : 0, cortamAlm = tem.almoco ? cortam : 0;
         return {
-            comem: comem, bebem: bebem, B: B, pratosPorPessoa: pratosPorPessoa,
+            comem: comem, bebem: bebem, B: B, pratinhosPorPessoa: pratinhosPorPessoa,
             refriMl: refri, refriGarrafas: Math.ceil(refri / 2000),
             sucoMl: suco, sucoLitros: Math.ceil(suco / 1000),
             salgados: salgados, salgadosEncomenda: Math.ceil(salgados / 50) * 50,
+            almocoG: almoco, almocoKg: Math.ceil(almoco / 500) / 2,
             boloG: bolo, boloKg: bolo ? Math.max(1, Math.ceil(bolo / 500) / 2) : 0, fatias: boloPessoas,
             cadeiras: cadeiras, mesas: Math.ceil(cadeiras / R.cadeirasPorMesa),
-            desc: { copos: bebem * R.coposDesc, pratos: comem * pratosPorPessoa, garfos: Math.ceil(boloPessoas * R.garfosDesc), guardanapos: comem * R.guardanapos },
-            reut: { copos: folga(bebem), pratos: pratosPorPessoa ? folga(comem) : 0, garfos: folga(boloPessoas) }
+            desc: {
+                copos: bebem * (tem.almoco ? R.coposDescAlm : R.coposDesc),
+                pratinhos: comem * pratinhosPorPessoa, garfinhos: reserva(boloPessoas),
+                pratos: reserva(almocam), garfos: reserva(almocam), facas: reserva(cortamAlm),
+                guardanapos: comem * (tem.almoco ? R.guardanaposAlm : R.guardanapos)
+            },
+            reut: {
+                copos: folga(bebem),
+                pratinhos: pratinhosPorPessoa ? folga(comem) : 0, garfinhos: folga(boloPessoas), colherzinhas: folga(boloPessoas),
+                facasSobremesa: tem.bolo ? folga(cortam) : 0,
+                pratos: folga(almocam), garfos: folga(almocam), facas: folga(cortamAlm)
+            }
         };
     }
 
@@ -747,6 +770,7 @@ body.seq-aberto{ overflow:hidden; }
             return '<button type="button" data-base="' + v + '"' + (on ? ' class="ativa" aria-pressed="true"' : ' aria-pressed="false"') + '>' + texto + '</button>';
         }
         function linha(rot, val) { return '<li><span>' + rot + '</span><b>' + val + '</b></li>'; }
+        function linhaSe(cond, rot, val) { return cond ? linha(rot, fmt(val)) : ""; }
 
         var html = '<div class="base-compras"><span class="rotulo">Contar:</span>' +
                 '<span class="opcoes" role="group" aria-label="Quem entra na conta">' + botao("vai", "✅ Confirmados") + botao("todos", "✅ + ⏳ Não responderam") + '</span>' +
@@ -777,42 +801,61 @@ body.seq-aberto{ overflow:hidden; }
                 '<div><b>' + g.bebe + '</b><span>🍼 Bebês (menos de 1 ano)</span><small>não entram em comida e bebida</small></div>' +
             '</div>';
 
-        var dosDois = tem.refri && tem.suco;
+        var dosDois = tem.refri && tem.suco, alm = tem.almoco;
+        var sAlm = alm ? ' (festa com almoço)' : '';
         html += '<div class="subtitulo-resp">Lista de compras</div>' +
             (dosDois ? '<p class="nota-compras">Refri e suco são para comprar <b>os dois</b>: a bebida de cada pessoa já está dividida entre eles.</p>' : '') +
             '<div class="itens-compras">' +
             (tem.refri ? '<div class="item-compra"><h3>🥤 Refrigerante</h3><div class="qtd">' + c.refriGarrafas + ' <small>' + (c.refriGarrafas === 1 ? "garrafa" : "garrafas") + ' de 2 litros</small></div>' +
-                '<p class="conta">' + litros(c.refriMl) + ' no total: ' + B.refri.adulto + ' ml por adulto e ' + B.refri.grande + ' ml por criança de 6 anos ou mais' + (dosDois ? ' (o resto é suco)' : ' (só refri na festa)') + '.</p></div>' : '') +
+                '<p class="conta">' + litros(c.refriMl) + ' no total: ' + B.refri.adulto + ' ml por adulto e ' + B.refri.grande + ' ml por criança de 6 anos ou mais' + (dosDois ? ' (o resto é suco)' : ' (só refri na festa)') + sAlm + '.</p></div>' : '') +
             (tem.suco ? '<div class="item-compra"><h3>🧃 Suco</h3><div class="qtd">' + c.sucoLitros + ' <small>' + (c.sucoLitros === 1 ? "litro" : "litros") + '</small></div>' +
                 '<p class="conta">' + litros(c.sucoMl) + ' no total: ' + (B.suco.adulto === B.suco.grande ? B.suco.adulto + ' ml por adulto e criança de 6+' : B.suco.adulto + ' ml por adulto, ' + B.suco.grande + ' ml por criança de 6+') +
-                    ', e ' + B.suco.pequena + ' ml por criança de 1 a 5 anos (que não bebe refri)' + (dosDois ? '' : '. Só suco na festa') + '.</p></div>' : '') +
+                    ', e ' + B.suco.pequena + ' ml por criança de 1 a 5 anos (que não bebe refri)' + (dosDois ? '' : '. Só suco na festa') + sAlm + '.</p></div>' : '') +
+            (alm ? '<div class="item-compra"><h3>🍛 Almoço</h3><div class="qtd">' + fmt(c.almocoKg) + ' <small>kg de comida pronta</small></div>' +
+                '<p class="conta">' + R.almoco.adulto + ' g por adulto, ' + R.almoco.grande + ' g por criança de 6+ e ' + R.almoco.pequena + ' g por criança de 1 a 5 anos, somando tudo (arroz, feijão, carne, salada...). Arredondado para cima em meio quilo.</p></div>' : '') +
             (tem.bolo ? '<div class="item-compra"><h3>🎂 Bolo</h3><div class="qtd">' + fmt(c.boloKg) + ' <small>kg (' + plural(c.fatias, "fatia", "fatias") + ')</small></div>' +
-                '<p class="conta">' + R.bolo + ' g (uma fatia) por pessoa: ' + fmt(c.boloG / 1000) + ' kg, arredondado para cima em meio quilo. Bebês com menos de 1 ano não entram.</p></div>' : '') +
+                '<p class="conta">' + R.bolo + ' g (uma fatia) por pessoa: ' + fmt(c.boloG / 1000) + ' kg, arredondado para cima em meio quilo. Bebês com menos de 1 ano não entram.' + (alm ? ' Com almoço o bolo não muda: continua uma fatia por pessoa.' : '') + '</p></div>' : '') +
             (tem.salgados ? '<div class="item-compra"><h3>🥟 Salgados</h3><div class="qtd">' + fmt(c.salgados) + ' <small>salgados</small></div>' +
                 '<ul>' + linha("Para encomendar (de 50 em 50)", fmt(c.salgadosEncomenda)) + '</ul>' +
-                '<p class="conta">' + R.salgados.adulto + ' por adulto, ' + R.salgados.grande + ' por criança de 6+ e ' + R.salgados.pequena + ' por criança de 1 a 5 anos.</p></div>' : '') +
+                '<p class="conta">' + (alm ? R.salgadosAlm : R.salgados).adulto + ' por adulto, ' + (alm ? R.salgadosAlm : R.salgados).grande + ' por criança de 6+ e ' + (alm ? R.salgadosAlm : R.salgados).pequena + ' por criança de 1 a 5 anos' +
+                    (alm ? ' (com almoço, o salgado é só a entrada)' : '') + '.</p></div>' : '') +
             '<div class="item-compra"><h3>🪑 Cadeiras e mesas</h3><div class="qtd">' + c.cadeiras + ' <small>' + (c.cadeiras === 1 ? "cadeira" : "cadeiras") + '</small></div>' +
                 '<ul>' + linha("Mesas (" + R.cadeirasPorMesa + " cadeiras cada)", c.mesas) + '</ul>' +
                 '<p class="conta">Uma cadeira por pessoa. Crianças com menos de ' + R.cadeiraIdade + ' anos ficam no colo' + (g.colo ? ' (' + g.colo + ' nesta conta)' : '') + '. No aluguel, peça ' + plural(c.mesas, "jogo", "jogos") + ' de mesa com 4 cadeiras.</p></div>' +
             '<div class="item-compra"><h3>🍽️ Copos, pratos e talheres</h3>' +
                 '<div class="dupla-compra">' +
                     '<div><h4>Descartáveis</h4><ul>' +
-                        linha("Copos", fmt(c.desc.copos)) + linha("Pratinhos", fmt(c.desc.pratos)) + linha("Garfinhos", fmt(c.desc.garfos)) + linha("Guardanapos", fmt(c.desc.guardanapos)) +
+                        linha("Copos", fmt(c.desc.copos)) +
+                        linhaSe(c.pratinhosPorPessoa, "Pratinhos", c.desc.pratinhos) +
+                        linhaSe(tem.bolo, "Garfinhos (bolo)", c.desc.garfinhos) +
+                        linhaSe(alm, "Pratos (almoço)", c.desc.pratos) +
+                        linhaSe(alm, "Garfos (almoço)", c.desc.garfos) +
+                        linhaSe(alm, "Facas (almoço)", c.desc.facas) +
+                        linha("Guardanapos", fmt(c.desc.guardanapos)) +
                     '</ul></div>' +
                     '<div><h4>Reutilizáveis (louça)</h4><ul>' +
-                        linha("Copos", fmt(c.reut.copos)) + linha("Pratos", fmt(c.reut.pratos)) + linha("Garfos", fmt(c.reut.garfos)) +
+                        linha("Copos", fmt(c.reut.copos)) +
+                        linhaSe(c.pratinhosPorPessoa, "Pratinhos", c.reut.pratinhos) +
+                        linhaSe(tem.bolo, "Garfinhos", c.reut.garfinhos) +
+                        linhaSe(tem.bolo, "Colherzinhas", c.reut.colherzinhas) +
+                        linhaSe(tem.bolo, "Facas de sobremesa", c.reut.facasSobremesa) +
+                        linhaSe(alm, "Pratos (almoço)", c.reut.pratos) +
+                        linhaSe(alm, "Garfos (almoço)", c.reut.garfos) +
+                        linhaSe(alm, "Facas (almoço)", c.reut.facas) +
                     '</ul></div>' +
                 '</div>' +
-                '<p class="conta">Descartáveis: ' + R.coposDesc + ' copos por quem bebe, ' + (c.pratosPorPessoa === 2 ? '2 pratinhos (salgado e bolo)' : c.pratosPorPessoa + (c.pratosPorPessoa === 1 ? ' pratinho' : ' pratinhos')) +
-                    ', 1 garfinho por quem come bolo (+20% de reserva) e ' + R.guardanapos + ' guardanapos por pessoa. ' +
-                    'Em pacotes: copos ' + pacotes(c.desc.copos, 50) + ', pratinhos ' + pacotes(c.desc.pratos, 10) + ', garfinhos ' + pacotes(c.desc.garfos, 50) + ', guardanapos ' + pacotes(c.desc.guardanapos, 50) + '. ' +
-                    'Reutilizáveis: 1 copo, 1 prato e 1 garfo de sobremesa por pessoa + 10% de reserva.</p></div>' +
+                '<p class="conta">Descartáveis: ' + (alm ? R.coposDescAlm : R.coposDesc) + ' copos por quem bebe, 1 pratinho para o salgado e 1 para o bolo, 1 garfinho por quem come bolo' +
+                    (alm ? ', 1 prato e 1 garfo de almoço por pessoa e 1 faca por adulto e criança de 6+' : '') + ' (talheres com 20% de reserva) e ' + (alm ? R.guardanaposAlm : R.guardanapos) + ' guardanapos por pessoa. ' +
+                    'Em pacotes: copos ' + pacotes(c.desc.copos, 50) + ', pratinhos ' + pacotes(c.desc.pratinhos, 10) + ', garfinhos ' + pacotes(c.desc.garfinhos, 50) +
+                    (alm ? ', pratos ' + pacotes(c.desc.pratos, 10) + ', garfos ' + pacotes(c.desc.garfos, 50) + ', facas ' + pacotes(c.desc.facas, 50) : '') + ', guardanapos ' + pacotes(c.desc.guardanapos, 50) + '. ' +
+                    'Louça: 1 de cada por pessoa + 10% de reserva; faca só para adulto e criança de 6+.</p></div>' +
             '</div>';
 
         html += '<div class="subtitulo-resp">Como a conta é feita</div><ul class="regras-compras">' +
             '<li>Com <b>refri e suco</b> marcados, a bebida de cada pessoa é dividida entre os dois e você compra <b>os dois</b>. Com só um marcado, ele leva a bebida toda.</li>' +
             '<li>Só criança <b>acima de 5 anos</b> bebe refri; de 1 a 5 anos, só suco.</li>' +
             '<li>Criança com <b>menos de 1 ano</b> não come bolo (nem salgado, nem bebe refri/suco) e fica no colo.</li>' +
+            '<li>Marcando <b>Almoço</b>: entra a comida, os salgados diminuem (viram entrada), a bebida aumenta (a festa fica mais longa) e entram pratos, garfos e facas de almoço. O bolo não muda.</li>' +
             '<li>As quantidades seguem as médias usadas em festa de aniversário de umas 4 horas, já com uma pequena sobra.</li>' +
             '<li>Ao confirmar mais gente, a conta muda sozinha. As caixinhas de <b>Vai ter na festa</b> ficam guardadas neste aparelho.</li>' +
         '</ul>';
@@ -820,17 +863,21 @@ body.seq-aberto{ overflow:hidden; }
     }
 
     function textoCompras(ev) {
-        var lista = pessoasCompras(ev), g = gruposCompras(lista), tem = itensCompras(ev), c = calcularCompras(g, tem);
+        var lista = pessoasCompras(ev), g = gruposCompras(lista), tem = itensCompras(ev), c = calcularCompras(g, tem), alm = tem.almoco;
+        function itens(l) { return l.filter(function (x) { return x[0]; }).map(function (x) { return fmt(x[1]) + " " + x[2]; }).join(", "); }
         return "🛒 " + ev.titulo + " (" + EV.dataCurta(ev) + ")\n" +
             plural(lista.length, "pessoa", "pessoas") + (baseCompras === "vai" ? " confirmadas" : " (confirmados + quem não respondeu)") + ": " +
             g.adulto + " adultos, " + g.grande + " crianças 6+, " + g.pequena + " crianças de 1 a 5, " + g.bebe + " bebês\n\n" +
             (tem.refri ? "🥤 Refrigerante: " + c.refriGarrafas + " garrafas de 2 L\n" : "") +
             (tem.suco ? "🧃 Suco: " + c.sucoLitros + " L\n" : "") +
+            (alm ? "🍛 Almoço: " + fmt(c.almocoKg) + " kg de comida pronta\n" : "") +
             (tem.bolo ? "🎂 Bolo: " + fmt(c.boloKg) + " kg (" + c.fatias + " fatias)\n" : "") +
             (tem.salgados ? "🥟 Salgados: " + fmt(c.salgados) + " (encomendar " + fmt(c.salgadosEncomenda) + ")\n" : "") +
             "🪑 Cadeiras: " + c.cadeiras + " • Mesas: " + c.mesas + "\n\n" +
-            "Descartáveis: " + fmt(c.desc.copos) + " copos, " + fmt(c.desc.pratos) + " pratinhos, " + fmt(c.desc.garfos) + " garfinhos, " + fmt(c.desc.guardanapos) + " guardanapos\n" +
-            "Ou louça: " + fmt(c.reut.copos) + " copos, " + fmt(c.reut.pratos) + " pratos, " + fmt(c.reut.garfos) + " garfos";
+            "Descartáveis: " + itens([[1, c.desc.copos, "copos"], [c.pratinhosPorPessoa, c.desc.pratinhos, "pratinhos"], [tem.bolo, c.desc.garfinhos, "garfinhos (bolo)"],
+                [alm, c.desc.pratos, "pratos (almoço)"], [alm, c.desc.garfos, "garfos (almoço)"], [alm, c.desc.facas, "facas (almoço)"], [1, c.desc.guardanapos, "guardanapos"]]) + "\n" +
+            "Ou louça: " + itens([[1, c.reut.copos, "copos"], [c.pratinhosPorPessoa, c.reut.pratinhos, "pratinhos"], [tem.bolo, c.reut.garfinhos, "garfinhos"], [tem.bolo, c.reut.colherzinhas, "colherzinhas"],
+                [tem.bolo, c.reut.facasSobremesa, "facas de sobremesa"], [alm, c.reut.pratos, "pratos (almoço)"], [alm, c.reut.garfos, "garfos (almoço)"], [alm, c.reut.facas, "facas (almoço)"]]);
     }
 
     function campo(nome, rotulo, valor, extra) {
