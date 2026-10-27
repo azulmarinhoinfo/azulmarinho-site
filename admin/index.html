@@ -26,7 +26,7 @@ body{ background:var(--fundo-suave); }
 .quem a{ color:var(--ciano); }
 
 .painel{ display:grid; grid-template-columns:300px 1fr; gap:24px; padding:28px 0 120px; align-items:start; }
-.caixa{ background:var(--branco); border:1px solid var(--borda); border-radius:var(--raio); }
+.caixa{ background:var(--branco); border:1px solid var(--borda); border-radius:var(--raio); min-width:0; }
 
 /* Lista de eventos */
 .lateral{ position:sticky; top:84px; max-height:calc(100vh - 110px); display:flex; flex-direction:column; overflow:hidden; }
@@ -258,6 +258,105 @@ body.seq-aberto{ overflow:hidden; }
     .abas button{ padding:10px 9px; font-size:14px; white-space:nowrap; }
 }
 
+/* Tarefas (cronograma) */
+.total.pend{ border-color:#7DD3FC; background:#F0F9FF; } .total.pend b{ color:var(--ciano-escuro); }
+.faixa-azul{ background:var(--ciano-claro); color:var(--marinho); border:1px solid #7DD3FC; border-radius:12px; padding:12px 16px; margin-bottom:18px; font-size:15px;
+    display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
+.vistas-tarefas{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; margin:20px 0 4px; }
+.vistas-tarefas .opcoes button{ padding:7px 14px; font-size:14px; }
+.add-tarefa{ display:grid; grid-template-columns:1.6fr 150px 105px 105px 160px auto; gap:8px; align-items:center;
+    background:var(--fundo-suave); border:1px solid var(--borda); border-radius:12px; padding:12px; margin-top:14px; }
+.add-tarefa input, .add-tarefa select, .linha-tarefa input[type=text], .linha-tarefa input[type=date], .linha-tarefa input[type=time]{
+    font:inherit; font-size:15px; color:var(--texto); border:1.5px solid var(--borda); border-radius:10px; padding:7px 9px; background:var(--branco); width:100%; min-width:0; }
+.add-tarefa input:focus, .add-tarefa select:focus, .linha-tarefa input:focus{ outline:none; border-color:var(--ciano); box-shadow:0 0 0 3px rgba(0,173,239,.18); }
+.dia-tarefas{ margin-top:20px; }
+.dia-tarefas h3{ display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; font:700 15px "Montserrat",sans-serif; color:var(--marinho);
+    padding:0 0 6px; border-bottom:2px solid var(--borda); }
+.dia-tarefas h3 small{ font:500 13px "Ubuntu",sans-serif; color:var(--texto-claro); }
+.dia-tarefas h3 .hj{ background:var(--ciano); color:#fff; border-radius:999px; padding:1px 9px; font-size:12px; }
+.dia-tarefas.festa h3{ border-bottom-color:var(--ciano); }
+.dia-tarefas ul{ list-style:none; margin:0; padding:0; }
+.linha-tarefa{ display:grid; grid-template-columns:30px 1fr auto 34px; gap:8px; align-items:center; padding:7px 0 7px 8px;
+    border-bottom:1px dashed var(--borda); border-left:4px solid transparent; }
+.linha-tarefa .ok{ width:22px; height:22px; margin:0; accent-color:#16A34A; cursor:pointer; }
+.linha-tarefa .tt-box{ display:block; min-width:0; }
+.linha-tarefa .tt-box small{ display:block; font-size:12px; color:var(--texto-claro); margin:3px 0 0 2px; }
+.linha-tarefa .quando{ display:flex; gap:6px; align-items:center; flex-wrap:wrap; justify-content:flex-end; }
+.linha-tarefa .quando input[type=date]{ width:148px; }
+.linha-tarefa .quando input[type=time]{ width:112px; }
+.linha-tarefa .quando > span.as{ font-size:13px; color:var(--texto-claro); }
+.linha-tarefa.s-feita{ border-left-color:#22C55E; }
+.linha-tarefa.s-feita input[type=text]{ text-decoration:line-through; color:var(--texto-claro); }
+.linha-tarefa.s-atrasada{ border-left-color:#F43F5E; background:#FFF1F2; }
+.linha-tarefa.s-agora{ border-left-color:var(--ciano); background:var(--ciano-claro); }
+.linha-tarefa.piscar{ animation:piscar 1.6s ease-out; }
+@keyframes piscar{ from{ background:#FEF08A; } }
+.selo-t{ display:inline-block; font-size:12px; font-weight:700; border-radius:999px; padding:2px 9px; white-space:nowrap; }
+.selo-t.atrasada{ background:#FFE4E6; color:#9F1239; } .selo-t.agora{ background:#E0F2FE; color:#075985; }
+.selo-t.feita{ background:#DCFCE7; color:#14532D; } .selo-t.choque{ background:#FEF3C7; color:#92400E; }
+.padrao-t{ margin-top:26px; padding:14px 16px; border:1px dashed var(--borda); border-radius:12px; font-size:14px; color:var(--texto); }
+.padrao-t p{ margin:0 0 10px; }
+.padrao-t div{ display:flex; gap:8px; flex-wrap:wrap; }
+.grupo-linha{ display:grid; grid-template-columns:190px 1fr 70px; gap:12px; align-items:center; font-size:15px; padding:6px 0; }
+.grupo-linha .barra-resp{ margin:0; height:12px; }
+.grupo-linha b{ text-align:right; color:var(--marinho); font-weight:500; }
+.colunas-t{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.coluna-resp.prox h3{ background:var(--ciano-claro); color:var(--marinho); }
+.coluna-resp li button{ border:0; background:none; padding:0; font:inherit; color:inherit; text-align:left; cursor:pointer; }
+.coluna-resp li button:hover{ color:var(--ciano-escuro); text-decoration:underline; }
+.cal-barra{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:space-between; margin:18px 0 10px; }
+.cal-barra > b{ font:700 16px "Montserrat",sans-serif; color:var(--marinho); }
+.cal-barra .opcoes button{ padding:6px 13px; font-size:14px; }
+.cal-rolagem{ overflow-x:auto; border:1px solid var(--borda); border-radius:12px; background:var(--branco); }
+.cal-semana{ min-width:700px; }
+.cal-cab, .cal-corpo{ display:grid; grid-template-columns:46px repeat(7, minmax(0, 1fr)); }
+.cal-cab{ border-bottom:1px solid var(--borda); }
+.cal-cab span{ text-align:center; padding:8px 2px; font:600 13px "Montserrat",sans-serif; color:var(--texto-claro); line-height:1.3; }
+.cal-cab span b{ display:block; font-size:17px; color:var(--marinho); }
+.cal-cab span.hoje b{ color:var(--ciano-escuro); }
+.cal-cab span.festa{ background:var(--ciano-claro); }
+.cal-horas div{ font-size:11px; color:var(--texto-claro); text-align:right; padding-right:6px; position:relative; top:-7px; }
+.cal-col{ position:relative; border-left:1px solid var(--borda); background-image:repeating-linear-gradient(to bottom, var(--borda) 0, var(--borda) 1px, transparent 1px, transparent 44px); }
+.cal-col.hoje{ background-color:#F0F9FF; }
+.cal-col.festa{ background-color:#F5FBFF; }
+.bloco{ position:absolute; border-radius:6px; padding:2px 5px; font:500 11.5px/1.25 "Ubuntu",sans-serif; overflow:hidden; color:#fff;
+    background:var(--ciano-escuro); border:1px solid #fff; cursor:pointer; text-align:left; }
+.bloco small{ display:block; opacity:.9; font-size:10.5px; }
+.bloco.s-feita{ background:#16A34A; } .bloco.s-atrasada{ background:#E11D48; } .bloco.s-agora{ background:#0369A1; }
+.bloco.festa{ background:var(--marinho); cursor:default; font-weight:700; }
+.agora-linha{ position:absolute; left:0; right:0; height:2px; background:#E11D48; z-index:2; }
+.cal-mes{ display:grid; grid-template-columns:repeat(7, minmax(0, 1fr)); }
+.cal-mes .sem{ text-align:center; padding:8px 2px; font:600 12px "Montserrat",sans-serif; color:var(--texto-claro); border-bottom:1px solid var(--borda); }
+.cal-dia{ min-height:100px; border:0; border-right:1px solid var(--borda); border-bottom:1px solid var(--borda); padding:4px; background:#fff;
+    cursor:pointer; text-align:left; font:inherit; color:var(--texto); display:flex; flex-direction:column; gap:2px; min-width:0; }
+.cal-dia:nth-child(7n+7){ border-right:0; }
+.cal-dia:hover{ background:var(--fundo-suave); }
+.cal-dia.fora{ background:var(--fundo-suave); color:var(--texto-claro); }
+.cal-dia .n{ font-size:13px; font-weight:600; align-self:flex-start; padding:0 6px; border-radius:999px; }
+.cal-dia.hoje .n{ background:var(--ciano); color:#fff; }
+.cal-dia.festa{ background:var(--ciano-claro); }
+.chip{ display:block; font-size:11px; border-radius:4px; padding:1px 4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#fff; background:var(--ciano-escuro); }
+.chip.s-feita{ background:#16A34A; } .chip.s-atrasada{ background:#E11D48; } .chip.s-agora{ background:#0369A1; } .chip.festa{ background:var(--marinho); font-weight:700; }
+.cal-dia .mais{ font-size:11px; color:var(--texto-claro); }
+.legenda{ display:flex; gap:14px; flex-wrap:wrap; font-size:13px; color:var(--texto-claro); margin-top:10px; }
+.legenda i{ display:inline-block; width:12px; height:12px; border-radius:3px; vertical-align:-1px; margin-right:5px; }
+@media (max-width:760px){
+    .add-tarefa{ grid-template-columns:1fr 1fr; }
+    .add-tarefa #nt-titulo, .add-tarefa select, .add-tarefa button{ grid-column:span 2; }
+    .add-tarefa #nt-dia{ grid-column:span 2; }
+    .linha-tarefa{ grid-template-columns:30px 1fr 34px; }
+    .linha-tarefa .quando{ grid-column:2 / -1; grid-row:2; justify-content:flex-start; }
+    .linha-tarefa .quando input[type=date]{ width:140px; }
+    .linha-tarefa .quando input[type=time]{ width:112px; }
+    .linha-tarefa .remover{ grid-column:3; grid-row:1; }
+    .grupo-linha{ grid-template-columns:1fr 60px; }
+    .grupo-linha .barra-resp{ grid-column:1 / -1; grid-row:2; }
+    .colunas-t{ grid-template-columns:1fr; }
+    .cal-dia{ min-height:62px; padding:3px 2px; }
+    .chip{ font-size:0; height:6px; padding:0; border-radius:3px; }
+    .cal-dia .mais{ font-size:10px; }
+}
+
 /* Mensagens */
 .aviso{ padding:28px; }
 .aviso h2{ font-size:22px; margin-bottom:10px; }
@@ -331,7 +430,7 @@ body.seq-aberto{ overflow:hidden; }
     var esc = EV.esc, I = window.ICONES;
     var DO_ARQUIVO = (window.EVENTOS || []).slice();
 
-    var estado = { eventos: [], convidados: {}, versao: "" };
+    var estado = { eventos: [], convidados: {}, tarefas: {}, tarefasPadrao: null, versao: "" };
     var atual = null;          // id do evento aberto
     var aba = "detalhes";
     var sujo = false;
@@ -498,6 +597,8 @@ body.seq-aberto{ overflow:hidden; }
         var primeiraVez = !Array.isArray(d.eventos);
         estado.eventos = primeiraVez ? copia(DO_ARQUIVO) : d.eventos;
         estado.convidados = d.convidados || {};
+        estado.tarefas = d.tarefas || {};
+        estado.tarefasPadrao = Array.isArray(d.tarefasPadrao) ? d.tarefasPadrao : null;
         estado.versao = d.versao || "";
         var novas = aplicarRespostas(d.respostas || {});
         window.EVENTOS = estado.eventos;
@@ -563,8 +664,9 @@ body.seq-aberto{ overflow:hidden; }
             '<div class="abas"><button data-aba="detalhes" class="' + (aba === "detalhes" ? "ativa" : "") + '">Detalhes</button>' +
                 '<button data-aba="convidados" class="' + (aba === "convidados" ? "ativa" : "") + '">Convidados (' + qtd + ')</button>' +
                 '<button data-aba="respostas" class="' + (aba === "respostas" ? "ativa" : "") + '">Respostas</button>' +
-                '<button data-aba="compras" class="' + (aba === "compras" ? "ativa" : "") + '">Compras</button></div>' +
-            '<div class="conteudo-aba">' + (aba === "detalhes" ? detalhesHTML(ev) : aba === "respostas" ? respostasHTML(ev) : aba === "compras" ? comprasHTML(ev) : convidadosHTML(ev)) + '</div>';
+                '<button data-aba="compras" class="' + (aba === "compras" ? "ativa" : "") + '">Compras</button>' +
+                '<button data-aba="tarefas" class="' + (aba === "tarefas" ? "ativa" : "") + '">Tarefas</button></div>' +
+            '<div class="conteudo-aba">' + (aba === "detalhes" ? detalhesHTML(ev) : aba === "respostas" ? respostasHTML(ev) : aba === "compras" ? comprasHTML(ev) : aba === "tarefas" ? tarefasHTML(ev) : convidadosHTML(ev)) + '</div>';
     }
 
     /* ---------------- Respostas: quem vai, quem não vai, quem não respondeu ---------------- */
@@ -831,6 +933,357 @@ body.seq-aberto{ overflow:hidden; }
             "🪑 Cadeiras: " + c.cadeiras + " • Mesas: " + c.mesas + "\n\n" +
             "Descartáveis: " + fmt(c.desc.copos) + " copos, " + fmt(c.desc.pratos) + " pratinhos, " + fmt(c.desc.garfos) + " garfinhos, " + fmt(c.desc.guardanapos) + " guardanapos\n" +
             "Ou louça: " + fmt(c.reut.copos) + " copos, " + fmt(c.reut.pratos) + " pratos, " + fmt(c.reut.garfos) + " garfos";
+    }
+
+    /* ---------------- Tarefas: cronograma do evento ----------------
+       Cada evento tem a sua lista de tarefas (estado.tarefas[id]), que nasce do cronograma padrão.
+       Cada tarefa: { id, t: o que fazer, g: grupo, dia: "AAAA-MM-DD", ini: "HH:MM", fim: "HH:MM", feito } */
+
+    /* Cronograma padrão: [grupo, tarefa, dias em relação ao evento (-1 = véspera, 0 = dia da festa), início, fim].
+       Com número no lugar do horário: início = minutos antes (-) do horário do evento e fim = duração em minutos. */
+    var TAREFAS_PADRAO = [
+        ["Planejamento", "Definir tema", -30, "20:00", "21:00"],
+        ["Convites", "Fazer novo convite", -28, "20:00", "21:30"],
+        ["Convites", "Atualizar grupo de WhatsApp", -25, "20:00", "20:30"],
+        ["Convites", "Enviar o convite", -21, "19:00", "20:30"],
+        ["Encomendas", "Encomendar lembrancinhas e personalizados", -20, "19:00", "20:00"],
+        ["Encomendas", "Encomendar topo do bolo", -20, "20:00", "20:30"],
+        ["Encomendas", "Encomendar doces", -14, "19:00", "19:45"],
+        ["Encomendas", "Encomendar bolo", -10, "19:00", "19:30"],
+        ["Encomendas", "Encomendar salgadinhos", -10, "19:30", "20:00"],
+        ["Planejamento", "Criar playlist", -7, "20:00", "21:00"],
+        ["Convites", "Confirmar presenças na lista", -5, "19:00", "20:30"],
+        ["Compras", "Compras supermercado", -4, "19:00", "21:00"],
+        ["Encomendas", "Buscar e pagar lembrancinhas, personalizados e topo", -3, "18:30", "19:30"],
+        ["Casa", "Ligar congelador", -2, "07:00", "07:15"],
+        ["Limpeza", "Limpar laboratório", -2, "18:30", "20:00"],
+        ["Compras", "Comprar carvão", -2, "20:00", "20:30"],
+        ["Compras", "Comprar refri e carne", -1, "08:00", "09:30"],
+        ["Limpeza", "Cortar grama", -1, "09:30", "11:30"],
+        ["Limpeza", "Limpar piscina", -1, "13:30", "15:00"],
+        ["Limpeza", "Limpar varanda", -1, "15:00", "16:00"],
+        ["Encomendas", "Buscar e pagar doces", -1, "16:00", "17:00"],
+        ["Montagem", "Instalar TV e som", -1, "17:00", "18:30"],
+        ["Montagem", "Ajustar rede Wi-Fi", -1, "18:30", "19:15"],
+        ["Montagem", "Instalar redes para dormir", -1, "19:15", "20:00"],
+        ["Limpeza", "Limpar lixeira", 0, "08:00", "08:30"],
+        ["Montagem", "Instalar cadeiras e mesas", 0, "08:30", "10:30"],
+        ["Encomendas", "Buscar e pagar bolo", 0, -240, 45],
+        ["Encomendas", "Buscar e pagar salgadinhos", 0, -180, 45],
+        ["Dia da festa", "Preparar churrasqueira", 0, -120, 30],
+        ["Dia da festa", "Ligar churrasqueira", 0, -60, 30],
+        ["Depois", "Arrumar a casa e agradecer os convidados", 1, "09:00", "12:00"]
+    ];
+    var GRUPOS_TAREFA = [["Planejamento", "💡"], ["Convites", "💌"], ["Encomendas", "🎂"], ["Compras", "🛒"], ["Limpeza", "🧹"],
+        ["Casa", "🏠"], ["Montagem", "🔧"], ["Dia da festa", "🎉"], ["Depois", "📸"], ["Outras", "📌"]];
+    var SEMANA = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
+    var MESES_T = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+    var vistaTarefas = "lista", calModo = "semana", calRef = null, focarTarefa = null;
+    var PX_HORA = 44;
+
+    function dois(n) { return ("0" + n).slice(-2); }
+    function diaISO(d) { return d.getFullYear() + "-" + dois(d.getMonth() + 1) + "-" + dois(d.getDate()); }
+    function deISO(s) { var p = String(s).split("-"); return new Date(+p[0], +p[1] - 1, +p[2]); }
+    function somarDias(s, n) { var d = deISO(s); d.setDate(d.getDate() + n); return diaISO(d); }
+    function difDias(a, b) { return Math.round((deISO(a) - deISO(b)) / 86400000); }   // a menos b, em dias
+    function minutos(h) { var m = /^(\d{1,2}):(\d{2})/.exec(h || ""); return m ? +m[1] * 60 + +m[2] : null; }
+    function hhmm(min) { min = Math.max(0, Math.min(23 * 60 + 59, min)); return dois(Math.floor(min / 60)) + ":" + dois(min % 60); }
+    function diaCurto(s) { var d = deISO(s); return SEMANA[d.getDay()] + ", " + dois(d.getDate()) + "/" + dois(d.getMonth() + 1); }
+    function iconeGrupo(g) { var x = GRUPOS_TAREFA.filter(function (y) { return y[0] === g; })[0]; return x ? x[1] : "📌"; }
+    function ordemTarefa(a, b) { return (a.dia + (a.ini || "")).localeCompare(b.dia + (b.ini || "")); }
+
+    /* Horário do evento ("15:00" ou "15:00 às 21:00"); sem horário, conta 15h às 19h */
+    function horasEvento(ev) {
+        var r = /(\d{1,2})\s*[:h]\s*(\d{2})?/g, m, h = [];
+        while ((m = r.exec(ev.hora || "")) && h.length < 2) h.push(+m[1] * 60 + +(m[2] || 0));
+        var ini = h.length ? h[0] : 15 * 60, fim = h[1] > ini ? h[1] : Math.min(ini + 240, 24 * 60 - 1);
+        return { ini: ini, fim: fim };
+    }
+    function faixa(t) {       // início e fim em minutos (sem fim, ou fim antes do início, conta meia hora)
+        var i = minutos(t.ini), f = minutos(t.fim);
+        if (i == null) i = 0;
+        if (f == null || f <= i) f = Math.min(i + 30, 24 * 60);
+        return { i: i, f: f };
+    }
+
+    function padraoAtual() { return estado.tarefasPadrao || TAREFAS_PADRAO; }
+    function montarTarefas(ev) {
+        var h = horasEvento(ev).ini;
+        return padraoAtual().map(function (x) {
+            var ini = typeof x[3] === "number" ? hhmm(h + x[3]) : x[3];
+            var fim = typeof x[4] === "number" ? hhmm(minutos(ini) + x[4]) : x[4];
+            return { id: "t" + novoCodigo().slice(0, 8), g: x[0], t: x[1], dia: somarDias(ev.data, x[2]), ini: ini, fim: fim };
+        }).sort(ordemTarefa);
+    }
+    function cronograma(ev) {
+        var c = estado.tarefas[ev.id];
+        if (!c) {
+            c = estado.tarefas[ev.id] = { base: ev.data, itens: montarTarefas(ev) };
+            marcarSujo();
+            mostrarBarra("Montei o cronograma padrão deste evento. Mude o que quiser e clique em Salvar.", false);
+        }
+        return c;
+    }
+    function tarefa(ev, id) { return cronograma(ev).itens.filter(function (t) { return t.id === id; })[0]; }
+
+    function agora() { var a = new Date(); return { dia: diaISO(a), min: a.getHours() * 60 + a.getMinutes() }; }
+    function situacaoTarefa(t, a) {
+        if (t.feito) return "feita";
+        var f = faixa(t);
+        if (t.dia < a.dia || (t.dia === a.dia && f.f <= a.min)) return "atrasada";
+        if (t.dia === a.dia && f.i <= a.min) return "agora";
+        return "pendente";
+    }
+    /* Tarefas (ainda não feitas) que caem no mesmo horário */
+    function choques(itens) {
+        var c = {}, abertas = itens.filter(function (t) { return !t.feito && t.ini; });
+        abertas.forEach(function (a, i) {
+            abertas.slice(i + 1).forEach(function (b) {
+                if (a.dia !== b.dia) return;
+                var fa = faixa(a), fb = faixa(b);
+                if (fa.i < fb.f && fb.i < fa.f) { c[a.id] = true; c[b.id] = true; }
+            });
+        });
+        return c;
+    }
+    function quandoRelativo(dia, ev) {
+        var n = difDias(dia, ev.data);
+        if (n === 0) return "🎉 Dia da festa";
+        if (n === -1) return "Véspera";
+        if (n < 0) return -n + " dias antes";
+        return n === 1 ? "Dia seguinte" : n + " dias depois";
+    }
+    function horasTexto(min) { var h = Math.floor(min / 60), m = min % 60; return h + "h" + (m ? dois(m) : ""); }
+
+    function tarefasHTML(ev) {
+        var c = cronograma(ev), itens = c.itens, a = agora();
+        var n = { feita: 0, pendente: 0, agora: 0, atrasada: 0 };
+        itens.forEach(function (t) { n[situacaoTarefa(t, a)]++; });
+        var total = itens.length, pct = total ? Math.round(n.feita * 100 / total) : 0;
+        function vista(v, texto) {
+            var on = vistaTarefas === v;
+            return '<button type="button" data-acao="tarefas-vista" data-v="' + v + '"' + (on ? ' class="ativa" aria-pressed="true"' : ' aria-pressed="false"') + '>' + texto + '</button>';
+        }
+        var html = "";
+        if (c.base !== ev.data) {
+            var d = difDias(ev.data, c.base);
+            html += '<div class="faixa-azul"><span>📅 A data do evento mudou (' + (d > 0 ? d + " dias para frente" : -d + " dias para trás") + '). Quer mover o cronograma junto?</span>' +
+                '<span style="display:flex;gap:8px;flex-wrap:wrap"><button class="b cheio pequeno" data-acao="tarefas-mover">Mover as tarefas</button>' +
+                '<button class="b pequeno" data-acao="tarefas-manter">Deixar como está</button></span></div>';
+        }
+        html += '<div class="totais">' +
+                '<div class="total vai"><b>' + n.feita + '</b><span>✅ Feitas</span><small>' + pct + '% do cronograma</small></div>' +
+                '<div class="total pend"><b>' + (n.pendente + n.agora) + '</b><span>⏳ Pendentes</span><small>' + (n.agora ? n.agora + " para fazer agora" : "dentro do prazo") + '</small></div>' +
+                '<div class="total nao"><b>' + n.atrasada + '</b><span>🔴 Atrasadas</span><small>' + (n.atrasada ? "o horário já passou" : "nenhuma, tudo em dia") + '</small></div>' +
+                '<div class="total"><b>' + total + '</b><span>📋 Tarefas</span><small>' + EV.contagem(ev).toLowerCase() + '</small></div>' +
+            '</div>' +
+            '<div class="barra-resp" aria-hidden="true"><i style="width:' + (total ? n.feita * 100 / total : 0) + '%;background:#22C55E"></i>' +
+                '<i style="width:' + (total ? n.atrasada * 100 / total : 0) + '%;background:#F43F5E"></i></div>' +
+            '<div class="vistas-tarefas"><span class="opcoes" role="group" aria-label="Como ver as tarefas">' +
+                vista("lista", "📋 Lista") + vista("andamento", "📊 Andamento") + vista("calendario", "📅 Calendário") + '</span>' +
+                '<button class="b pequeno" data-acao="copiar-tarefas">📋 Copiar pendentes</button></div>';
+        if (vistaTarefas === "andamento") return html + andamentoHTML(ev, c, a);
+        if (vistaTarefas === "calendario") return html + calendarioHTML(ev, c, a);
+        return html + listaTarefasHTML(ev, c, a);
+    }
+
+    function listaTarefasHTML(ev, c, a) {
+        var ch = choques(c.itens), dias = [], porDia = {};
+        c.itens.slice().sort(ordemTarefa).forEach(function (t) {
+            if (!porDia[t.dia]) { porDia[t.dia] = []; dias.push(t.dia); }
+            porDia[t.dia].push(t);
+        });
+        var diaNovo = a.dia < ev.data ? a.dia : ev.data;
+        var html = '<div class="add-tarefa">' +
+                '<input id="nt-titulo" placeholder="Nova tarefa (ex.: Encher balões)" autocomplete="off" aria-label="Nova tarefa">' +
+                '<input id="nt-dia" type="date" value="' + diaNovo + '" aria-label="Dia">' +
+                '<input id="nt-ini" type="time" value="19:00" aria-label="Começa">' +
+                '<input id="nt-fim" type="time" value="20:00" aria-label="Termina">' +
+                '<select id="nt-g" aria-label="Grupo">' + GRUPOS_TAREFA.map(function (g) {
+                    return '<option value="' + g[0] + '"' + (g[0] === "Outras" ? " selected" : "") + '>' + g[1] + " " + g[0] + '</option>';
+                }).join("") + '</select>' +
+                '<button class="b cheio" data-acao="tarefa-add">Adicionar</button></div>';
+        if (!dias.length) html += '<p style="margin-top:18px;color:var(--texto-claro)">Nenhuma tarefa. Adicione acima ou use <b>Recomeçar do padrão</b>.</p>';
+        html += dias.map(function (dia) {
+            return '<div class="dia-tarefas' + (dia === ev.data ? " festa" : "") + '"><h3>' + diaCurto(dia) + '<small>' + quandoRelativo(dia, ev) + '</small>' +
+                (dia === a.dia ? '<span class="hj">hoje</span>' : "") + '</h3><ul>' +
+                porDia[dia].map(function (t) {
+                    var s = situacaoTarefa(t, a), invertido = minutos(t.fim) != null && minutos(t.ini) != null && minutos(t.fim) <= minutos(t.ini);
+                    return '<li class="linha-tarefa s-' + s + '" data-linha-tarefa="' + t.id + '">' +
+                        '<input type="checkbox" class="ok" data-tf="feito" data-id="' + t.id + '"' + (t.feito ? " checked" : "") + ' title="Marcar como feita" aria-label="Feita">' +
+                        '<span class="tt-box"><input type="text" data-tf="t" data-id="' + t.id + '" value="' + esc(t.t) + '" aria-label="Tarefa">' +
+                            '<small>' + iconeGrupo(t.g) + " " + esc(t.g || "Outras") + '</small></span>' +
+                        '<span class="quando">' +
+                            (s === "feita" ? '<span class="selo-t feita">Feita ✓</span>' : s === "atrasada" ? '<span class="selo-t atrasada">Atrasada</span>' : s === "agora" ? '<span class="selo-t agora">Agora</span>' : "") +
+                            (ch[t.id] ? '<span class="selo-t choque" title="Outra tarefa no mesmo horário">⚠️ mesmo horário</span>' : "") +
+                            (invertido ? '<span class="selo-t choque">⚠️ termina antes de começar</span>' : "") +
+                            '<input type="date" data-tf="dia" data-id="' + t.id + '" value="' + esc(t.dia) + '" aria-label="Dia">' +
+                            '<input type="time" data-tf="ini" data-id="' + t.id + '" value="' + esc(t.ini || "") + '" aria-label="Começa">' +
+                            '<span class="as">às</span>' +
+                            '<input type="time" data-tf="fim" data-id="' + t.id + '" value="' + esc(t.fim || "") + '" aria-label="Termina">' +
+                        '</span>' +
+                        '<button class="remover" data-acao="tarefa-remover" data-id="' + t.id + '" title="Apagar tarefa" aria-label="Apagar ' + esc(t.t) + '">×</button>' +
+                    '</li>';
+                }).join("") + '</ul></div>';
+        }).join("");
+        html += '<div class="padrao-t"><p><b>Cronograma padrão</b>: todo evento novo já começa com as tarefas padrão, nos dias e horários certos em relação à data da festa. ' +
+                (estado.tarefasPadrao ? 'Você está usando o <b>seu padrão</b> (' + estado.tarefasPadrao.length + ' tarefas).' : 'Agora está o padrão sugerido (' + TAREFAS_PADRAO.length + ' tarefas).') + '</p><div>' +
+                '<button class="b pequeno" data-acao="tarefas-guardar-padrao">⭐ Usar esta lista como padrão</button>' +
+                '<button class="b pequeno" data-acao="tarefas-recomecar">↺ Recomeçar este evento do padrão</button>' +
+                (estado.tarefasPadrao ? '<button class="b pequeno perigo" data-acao="tarefas-padrao-original">Voltar ao padrão sugerido</button>' : "") +
+            '</div></div>';
+        return html;
+    }
+
+    function andamentoHTML(ev, c, a) {
+        var html = '<div class="subtitulo-resp" style="margin-top:22px;padding-top:18px;border-top:1px solid var(--borda)">Andamento por grupo</div>';
+        GRUPOS_TAREFA.forEach(function (g) {
+            var l = c.itens.filter(function (t) { return (t.g || "Outras") === g[0]; });
+            if (!l.length) return;
+            var f = l.filter(function (t) { return t.feito; }).length, at = l.filter(function (t) { return situacaoTarefa(t, a) === "atrasada"; }).length;
+            html += '<div class="grupo-linha"><span>' + g[1] + " " + g[0] + '</span>' +
+                '<div class="barra-resp"><i style="width:' + (f * 100 / l.length) + '%;background:#22C55E"></i><i style="width:' + (at * 100 / l.length) + '%;background:#F43F5E"></i></div>' +
+                '<b>' + f + " de " + l.length + '</b></div>';
+        });
+        var minTot = 0, minFeito = 0;
+        c.itens.forEach(function (t) { var f = faixa(t), m = f.f - f.i; minTot += m; if (t.feito) minFeito += m; });
+        var abertas = c.itens.filter(function (t) { return !t.feito; }).sort(ordemTarefa);
+        var atrasadas = abertas.filter(function (t) { return situacaoTarefa(t, a) === "atrasada"; });
+        var proximas = abertas.filter(function (t) { return situacaoTarefa(t, a) !== "atrasada"; }).slice(0, 8);
+        function item(t) {
+            return '<li><button data-acao="ir-tarefa" data-id="' + t.id + '">' + iconeGrupo(t.g) + " " + esc(t.t) + '</button>' +
+                '<small>' + diaCurto(t.dia) + (t.ini ? ", " + t.ini + (t.fim ? " às " + t.fim : "") : "") + " • " + quandoRelativo(t.dia, ev) + '</small></li>';
+        }
+        html += '<div class="subtitulo-resp">Tempo de trabalho</div>' +
+            '<p>São <b>' + horasTexto(minTot) + '</b> de tarefas no cronograma; <b>' + horasTexto(minFeito) + '</b> já foram feitas e faltam <b>' + horasTexto(minTot - minFeito) + '</b>.</p>' +
+            '<div class="subtitulo-resp">O que falta</div><div class="colunas-t">' +
+                '<div class="coluna-resp nao"><h3><span>🔴 Atrasadas</span><span>' + atrasadas.length + '</span></h3>' +
+                    (atrasadas.length ? '<ol>' + atrasadas.map(item).join("") + '</ol>' : '<p class="vazio">Nenhuma tarefa atrasada. 👏</p>') + '</div>' +
+                '<div class="coluna-resp prox"><h3><span>⏭️ Próximas</span><span>' + proximas.length + '</span></h3>' +
+                    (proximas.length ? '<ol>' + proximas.map(item).join("") + '</ol>' : '<p class="vazio">Tudo feito! 🎉</p>') + '</div>' +
+            '</div>' +
+            '<p style="margin-top:14px;color:var(--texto-claro);font-size:14px">Clique numa tarefa para ir até ela na lista. Uma tarefa fica <b>atrasada</b> quando o horário de terminar passa e ela ainda não foi marcada como feita.</p>';
+        return html;
+    }
+
+    function calendarioHTML(ev, c, a) {
+        if (!calRef) {
+            var prox = c.itens.filter(function (t) { return !t.feito; }).sort(ordemTarefa)[0];
+            calRef = prox ? (prox.dia < a.dia ? a.dia : prox.dia) : ev.data;
+        }
+        function modo(v, texto) {
+            var on = calModo === v;
+            return '<button type="button" data-acao="cal-modo" data-v="' + v + '"' + (on ? ' class="ativa" aria-pressed="true"' : ' aria-pressed="false"') + '>' + texto + '</button>';
+        }
+        var ref = deISO(calRef), titulo;
+        if (calModo === "mes") titulo = MESES_T[ref.getMonth()].charAt(0).toUpperCase() + MESES_T[ref.getMonth()].slice(1) + " de " + ref.getFullYear();
+        else {
+            var ini = somarDias(calRef, -ref.getDay()), fim = somarDias(ini, 6);
+            titulo = dois(deISO(ini).getDate()) + "/" + dois(deISO(ini).getMonth() + 1) + " a " + dois(deISO(fim).getDate()) + "/" + dois(deISO(fim).getMonth() + 1);
+        }
+        var html = '<div class="cal-barra"><span class="opcoes" role="group" aria-label="Ver por">' + modo("semana", "Semana") + modo("mes", "Mês") + '</span>' +
+            '<b>' + titulo + '</b>' +
+            '<span style="display:flex;gap:6px;flex-wrap:wrap"><button class="b pequeno" data-acao="cal-nav" data-v="-1" aria-label="Anterior">‹</button>' +
+                '<button class="b pequeno" data-acao="cal-nav" data-v="hoje">Hoje</button>' +
+                '<button class="b pequeno" data-acao="cal-nav" data-v="festa">🎉 Festa</button>' +
+                '<button class="b pequeno" data-acao="cal-nav" data-v="1" aria-label="Próximo">›</button></span></div>';
+        html += calModo === "mes" ? mesHTML(ev, c, a) : semanaHTML(ev, c, a);
+        html += '<div class="legenda"><span><i style="background:var(--ciano-escuro)"></i>Pendente</span><span><i style="background:#0369A1"></i>Agora</span>' +
+            '<span><i style="background:#16A34A"></i>Feita</span><span><i style="background:#E11D48"></i>Atrasada</span><span><i style="background:var(--marinho)"></i>Festa</span></div>' +
+            '<p style="margin-top:8px;color:var(--texto-claro);font-size:14px">' + (calModo === "mes" ? 'Clique num dia para ver os horários da semana.' : 'Cada bloco ocupa o horário da tarefa. Clique num bloco para editar a tarefa na lista.') + '</p>';
+        return html;
+    }
+
+    /* Põe lado a lado as tarefas que se encostam no mesmo horário */
+    function colunasDia(lista) {
+        var grupos = [], grupo = null, fimGrupo = -1;
+        lista.sort(function (a, b) { return a._f.i - b._f.i || b._f.f - a._f.f; }).forEach(function (t) {
+            if (!grupo || t._f.i >= fimGrupo) { grupo = []; grupos.push(grupo); fimGrupo = -1; }
+            var cols = grupo.cols || (grupo.cols = []), k = 0;
+            while (cols[k] != null && cols[k] > t._f.i) k++;
+            cols[k] = t._f.f; t._col = k; grupo.push(t);
+            fimGrupo = Math.max(fimGrupo, t._f.f);
+        });
+        grupos.forEach(function (g) { g.forEach(function (t) { t._ncol = g.cols.length; }); });
+        return lista;
+    }
+
+    function semanaHTML(ev, c, a) {
+        var ref = deISO(calRef), ini = somarDias(calRef, -ref.getDay()), dias = [];
+        for (var i = 0; i < 7; i++) dias.push(somarDias(ini, i));
+        var festa = horasEvento(ev), h0 = 7, h1 = 22;
+        var daSemana = c.itens.filter(function (t) { return dias.indexOf(t.dia) >= 0; }).map(function (t) {
+            return { t: t, _f: faixa(t) };
+        });
+        if (dias.indexOf(ev.data) >= 0) daSemana.push({ festa: true, _f: { i: festa.ini, f: festa.fim } });
+        daSemana.forEach(function (x) { h0 = Math.min(h0, Math.floor(x._f.i / 60)); h1 = Math.max(h1, Math.ceil(x._f.f / 60)); });
+        var alto = (h1 - h0) * PX_HORA;
+        var html = '<div class="cal-rolagem"><div class="cal-semana"><div class="cal-cab"><span></span>' +
+            dias.map(function (d) {
+                var dd = deISO(d);
+                return '<span class="' + (d === a.dia ? "hoje " : "") + (d === ev.data ? "festa" : "") + '">' + SEMANA[dd.getDay()] + '<b>' + dd.getDate() + '</b></span>';
+            }).join("") + '</div>' +
+            '<div class="cal-corpo"><div class="cal-horas">';
+        for (var h = h0; h < h1; h++) html += '<div style="height:' + PX_HORA + 'px">' + dois(h) + ':00</div>';
+        html += '</div>' + dias.map(function (d) {
+            var lista = colunasDia(daSemana.filter(function (x) { return x.festa ? d === ev.data : x.t.dia === d; }));
+            return '<div class="cal-col' + (d === a.dia ? " hoje" : "") + (d === ev.data ? " festa" : "") + '" style="height:' + alto + 'px">' +
+                lista.map(function (x) {
+                    var topo = (x._f.i - h0 * 60) * PX_HORA / 60, altura = Math.max(18, (x._f.f - x._f.i) * PX_HORA / 60 - 2);
+                    var pos = 'top:' + topo + 'px;height:' + altura + 'px;left:calc(' + (x._col * 100 / x._ncol) + '% + 2px);width:calc(' + (100 / x._ncol) + '% - 4px)';
+                    if (x.festa) return '<div class="bloco festa" style="' + pos + '">🎉 ' + esc(ev.titulo) + '<small>' + hhmm(x._f.i) + ' às ' + hhmm(x._f.f) + '</small></div>';
+                    var t = x.t, s = situacaoTarefa(t, a);
+                    return '<button class="bloco s-' + s + '" style="' + pos + '" data-acao="ir-tarefa" data-id="' + t.id + '" title="' + esc(t.t + " • " + t.ini + (t.fim ? " às " + t.fim : "")) + '">' +
+                        (s === "feita" ? "✓ " : "") + esc(t.t) + (altura > 30 ? '<small>' + esc(t.ini) + (t.fim ? " às " + esc(t.fim) : "") + '</small>' : "") + '</button>';
+                }).join("") +
+                (d === a.dia && a.min >= h0 * 60 && a.min <= h1 * 60 ? '<span class="agora-linha" style="top:' + ((a.min - h0 * 60) * PX_HORA / 60) + 'px" title="Agora"></span>' : "") +
+            '</div>';
+        }).join("") + '</div></div></div>';
+        return html;
+    }
+
+    function mesHTML(ev, c, a) {
+        var ref = deISO(calRef), primeiro = new Date(ref.getFullYear(), ref.getMonth(), 1);
+        var inicio = somarDias(diaISO(primeiro), -primeiro.getDay()), mes = ref.getMonth();
+        var html = '<div class="cal-rolagem"><div class="cal-mes">' + SEMANA.map(function (s) { return '<span class="sem">' + s + '</span>'; }).join("");
+        for (var i = 0; i < 42; i++) {
+            var d = somarDias(inicio, i), dd = deISO(d);
+            if (i === 35 && dd.getMonth() !== mes) break;
+            var l = c.itens.filter(function (t) { return t.dia === d; }).sort(ordemTarefa);
+            var chips = (d === ev.data ? '<span class="chip festa">🎉 Festa</span>' : "") + l.slice(0, 3).map(function (t) {
+                return '<span class="chip s-' + situacaoTarefa(t, a) + '" title="' + esc(t.t) + '">' + esc((t.ini ? t.ini + " " : "") + t.t) + '</span>';
+            }).join("");
+            html += '<button class="cal-dia' + (dd.getMonth() !== mes ? " fora" : "") + (d === a.dia ? " hoje" : "") + (d === ev.data ? " festa" : "") + '" data-acao="cal-dia" data-v="' + d + '">' +
+                '<span class="n">' + dd.getDate() + '</span>' + chips + (l.length > 3 ? '<span class="mais">+' + (l.length - 3) + ' tarefas</span>' : "") + '</button>';
+        }
+        return html + '</div></div>';
+    }
+
+    function textoTarefas(ev) {
+        var c = cronograma(ev), abertas = c.itens.filter(function (t) { return !t.feito; }).sort(ordemTarefa), dia = "";
+        return "📋 Tarefas que faltam: " + ev.titulo + " (" + EV.dataCurta(ev) + ")\n" + abertas.map(function (t) {
+            var cab = t.dia !== dia ? "\n*" + diaCurto(t.dia) + "* (" + quandoRelativo(t.dia, ev).replace("🎉 ", "") + ")\n" : "";
+            dia = t.dia;
+            return cab + "☐ " + (t.ini ? t.ini + (t.fim ? "–" + t.fim : "") + " " : "") + t.t;
+        }).join("\n");
+    }
+
+    /* Redesenha sem perder a posição da tela nem o campo em que o cursor estava */
+    function redesenharTarefas() {
+        var y = window.scrollY, f = document.activeElement, alvo = f && f.getAttribute && f.getAttribute("data-tf") ? [f.getAttribute("data-id"), f.getAttribute("data-tf")] : null;
+        desenhar();
+        window.scrollTo(0, y);
+        if (alvo) { var el = painel.querySelector('[data-id="' + alvo[0] + '"][data-tf="' + alvo[1] + '"]'); if (el) el.focus(); }
+        if (focarTarefa) {
+            var li = painel.querySelector('[data-linha-tarefa="' + focarTarefa + '"]');
+            focarTarefa = null;
+            if (li) { li.scrollIntoView({ block: "center" }); li.classList.add("piscar"); }
+        }
+    }
+    var timerTarefas = null, tarefaMudou = false;
+    function redesenharDepois() {
+        clearTimeout(timerTarefas);
+        timerTarefas = setTimeout(redesenharTarefas, 350);
     }
 
     function campo(nome, rotulo, valor, extra) {
@@ -1180,6 +1633,16 @@ body.seq-aberto{ overflow:hidden; }
         if (!ev) return;
         var el = e.target, c = el.getAttribute("data-c");
 
+        /* Tarefas: o texto muda na hora; dia e horários reorganizam a lista ao sair do campo */
+        if (el.hasAttribute("data-tf")) {
+            var tf = el.getAttribute("data-tf"), tt = tarefa(ev, el.getAttribute("data-id"));
+            if (!tt || tf === "feito") return;
+            if (tf === "dia" && !/^\d{4}-\d{2}-\d{2}$/.test(el.value)) return;
+            tt[tf] = el.value;
+            marcarSujo();
+            return;
+        }
+
         /* Escolher dos convidados já salvos: busca, filtro e marcação */
         if (el.id === "busca-contatos" || el.id === "filtro-evento") return filtrarContatos();
         if (el.hasAttribute("data-contato")) return contarMarcados();
@@ -1242,6 +1705,13 @@ body.seq-aberto{ overflow:hidden; }
     painel.addEventListener("change", function (e) {
         var ev = atual && evento(atual), el = e.target;
         if (!ev) return;
+        if (el.hasAttribute("data-tf")) {
+            var tf = el.getAttribute("data-tf"), tt = tarefa(ev, el.getAttribute("data-id"));
+            if (!tt) return;
+            if (tf === "feito") { if (el.checked) tt.feito = true; else delete tt.feito; marcarSujo(); return redesenharTarefas(); }
+            if (tf !== "t") tarefaMudou = true;
+            return;
+        }
         if (el.hasAttribute("data-item-compra")) {
             marcarItemCompra(ev, el.getAttribute("data-item-compra"), el.checked);
             var yc = window.scrollY;
@@ -1272,6 +1742,10 @@ body.seq-aberto{ overflow:hidden; }
 
     function trocarId(ev, id) {
         if (ev.id === id) return;
+        if (estado.tarefas[ev.id]) {
+            estado.tarefas[id] = estado.tarefas[ev.id];
+            delete estado.tarefas[ev.id];
+        }
         if (estado.convidados[ev.id]) {
             estado.convidados[id] = estado.convidados[ev.id];
             delete estado.convidados[ev.id];
@@ -1301,7 +1775,7 @@ body.seq-aberto{ overflow:hidden; }
         if (!alvo) return;
 
         if (alvo.hasAttribute("data-abrir")) return abrir(alvo.getAttribute("data-abrir"));
-        if (alvo.hasAttribute("data-aba")) { aba = alvo.getAttribute("data-aba"); return desenhar(); }
+        if (alvo.hasAttribute("data-aba")) { aba = alvo.getAttribute("data-aba"); calRef = null; return desenhar(); }
         if (alvo.hasAttribute("data-base")) {
             baseCompras = alvo.getAttribute("data-base");
             var yb = window.scrollY;
@@ -1391,6 +1865,7 @@ body.seq-aberto{ overflow:hidden; }
                 if (!confirm("Excluir o evento \"" + (ev.titulo || ev.id) + "\" e a lista de convidados dele?\n\nIsso só vale depois de Salvar.")) return;
                 estado.eventos = estado.eventos.filter(function (x) { return x !== ev; });
                 delete estado.convidados[ev.id];
+                delete estado.tarefas[ev.id];
                 marcarSujo();
                 abrir(null);
                 break;
@@ -1442,6 +1917,99 @@ body.seq-aberto{ overflow:hidden; }
                 });
                 break;
 
+            case "tarefas-vista":
+                vistaTarefas = alvo.getAttribute("data-v");
+                redesenharTarefas();
+                break;
+
+            case "tarefa-add":
+                var nt = document.getElementById("nt-titulo"), ntDia = document.getElementById("nt-dia").value;
+                if (!nt.value.trim()) { nt.focus(); break; }
+                if (!/^\d{4}-\d{2}-\d{2}$/.test(ntDia)) { document.getElementById("nt-dia").focus(); break; }
+                var nova = { id: "t" + novoCodigo().slice(0, 8), t: nt.value.trim(), g: document.getElementById("nt-g").value, dia: ntDia,
+                    ini: document.getElementById("nt-ini").value, fim: document.getElementById("nt-fim").value };
+                cronograma(ev).itens.push(nova);
+                cronograma(ev).itens.sort(ordemTarefa);
+                marcarSujo();
+                focarTarefa = nova.id;
+                redesenharTarefas();
+                break;
+
+            case "tarefa-remover":
+                var tr = tarefa(ev, alvo.getAttribute("data-id"));
+                if (tr && confirm("Apagar a tarefa \"" + tr.t + "\"?")) {
+                    cronograma(ev).itens = cronograma(ev).itens.filter(function (t) { return t !== tr; });
+                    marcarSujo(); redesenharTarefas();
+                }
+                break;
+
+            case "ir-tarefa":
+                vistaTarefas = "lista";
+                focarTarefa = alvo.getAttribute("data-id");
+                redesenharTarefas();
+                break;
+
+            case "tarefas-mover":
+                var cm = cronograma(ev), dd = difDias(ev.data, cm.base);
+                cm.itens.forEach(function (t) { t.dia = somarDias(t.dia, dd); });
+                cm.base = ev.data; calRef = null;
+                marcarSujo(); redesenharTarefas();
+                mostrarBarra("Tarefas movidas " + Math.abs(dd) + (Math.abs(dd) === 1 ? " dia" : " dias") + (dd > 0 ? " para frente" : " para trás") + ". Clique em Salvar.", false);
+                break;
+
+            case "tarefas-manter":
+                cronograma(ev).base = ev.data;
+                marcarSujo(); redesenharTarefas();
+                break;
+
+            case "tarefas-guardar-padrao":
+                if (!confirm("Usar as tarefas deste evento como padrão para os próximos eventos?\n\nOs dias ficam contados a partir da data da festa (ex.: 3 dias antes). Os eventos que já têm cronograma não mudam.\n\nIsso só vale depois de Salvar.")) break;
+                estado.tarefasPadrao = cronograma(ev).itens.slice().sort(ordemTarefa).map(function (t) {
+                    return [t.g || "Outras", t.t, difDias(t.dia, ev.data), t.ini || "", t.fim || ""];
+                });
+                marcarSujo(); redesenharTarefas();
+                mostrarBarra("Pronto: esta lista vai ser o padrão dos próximos eventos. Clique em Salvar.", false);
+                break;
+
+            case "tarefas-padrao-original":
+                if (!confirm("Voltar a usar o padrão sugerido para os próximos eventos?\n\nIsso só vale depois de Salvar.")) break;
+                estado.tarefasPadrao = null;
+                marcarSujo(); redesenharTarefas();
+                break;
+
+            case "tarefas-recomecar":
+                if (!confirm("Trocar as tarefas deste evento pelas do padrão?\n\nAs tarefas que você criou ou mudou aqui (e as marcas de feita) serão perdidas.\n\nIsso só vale depois de Salvar.")) break;
+                estado.tarefas[ev.id] = { base: ev.data, itens: montarTarefas(ev) };
+                calRef = null;
+                marcarSujo(); redesenharTarefas();
+                break;
+
+            case "cal-modo":
+                calModo = alvo.getAttribute("data-v");
+                redesenharTarefas();
+                break;
+
+            case "cal-nav":
+                var v = alvo.getAttribute("data-v");
+                if (v === "hoje") calRef = agora().dia;
+                else if (v === "festa") calRef = ev.data;
+                else if (calModo === "mes") { var r = deISO(calRef); calRef = diaISO(new Date(r.getFullYear(), r.getMonth() + +v, 1)); }
+                else calRef = somarDias(calRef, 7 * v);
+                redesenharTarefas();
+                break;
+
+            case "cal-dia":
+                calRef = alvo.getAttribute("data-v"); calModo = "semana";
+                redesenharTarefas();
+                break;
+
+            case "copiar-tarefas":
+                navigator.clipboard.writeText(textoTarefas(ev)).then(function () {
+                    alvo.textContent = "Copiado!";
+                    setTimeout(function () { alvo.textContent = "📋 Copiar pendentes"; }, 1800);
+                });
+                break;
+
             case "copiar-compras":
                 navigator.clipboard.writeText(textoCompras(ev)).then(function () {
                     alvo.textContent = "Copiado!";
@@ -1457,7 +2025,16 @@ body.seq-aberto{ overflow:hidden; }
         }
     });
 
+    /* Mudou o dia ou o horário de uma tarefa: reorganiza a lista quando o cursor sai do campo */
+    painel.addEventListener("focusout", function (e) {
+        if (tarefaMudou && e.target.hasAttribute && e.target.hasAttribute("data-tf")) { tarefaMudou = false; redesenharDepois(); }
+    });
+
     painel.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" && e.target.id === "nt-titulo") {
+            e.preventDefault();
+            painel.querySelector('[data-acao="tarefa-add"]').click();
+        }
         if (e.key === "Enter" && (e.target.id === "novo-nome" || e.target.id === "novo-whats")) {
             e.preventDefault();
             painel.querySelector('[data-acao="add-conv"]').click();
@@ -1494,6 +2071,13 @@ body.seq-aberto{ overflow:hidden; }
             if (l.length) conv[ev.id] = l;
         });
         var eventos = estado.eventos.map(function (ev) { var o = copia(ev); delete o._novo; return limpo(o); });
+        var tarefas = {};
+        estado.eventos.forEach(function (ev) {
+            var c = estado.tarefas[ev.id];
+            if (!c) return;
+            tarefas[ev.id] = { base: c.base || ev.data, itens: c.itens.filter(function (t) { return String(t.t || "").trim() && /^\d{4}-\d{2}-\d{2}$/.test(t.dia || ""); })
+                .map(function (t) { var o = { id: t.id, t: String(t.t).trim(), g: t.g || "Outras", dia: t.dia, ini: t.ini || "", fim: t.fim || "" }; if (t.feito) o.feito = true; return o; }) };
+        });
 
         salvando = true;
         var botao = document.getElementById("salvar");
@@ -1503,7 +2087,7 @@ body.seq-aberto{ overflow:hidden; }
         fetch("/api/admin/dados", {
             method: "PUT", credentials: "same-origin",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ eventos: eventos, convidados: conv, versao: estado.versao })
+            body: JSON.stringify({ eventos: eventos, convidados: conv, tarefas: tarefas, tarefasPadrao: estado.tarefasPadrao, versao: estado.versao })
         })
         .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { d._status = r.status; return d; }); })
         .then(function (d) {
