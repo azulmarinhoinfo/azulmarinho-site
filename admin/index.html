@@ -223,6 +223,36 @@ body.seq-aberto{ overflow:hidden; }
     .tabela-resp{ font-size:14px; } .tabela-resp th, .tabela-resp td{ padding:7px 5px; }
 }
 
+/* Compras (comes e bebes) */
+.base-compras{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:16px; }
+.base-compras .opcoes button{ padding:6px 13px; font-size:14px; }
+.grupos-compras{ display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; }
+.grupos-compras div{ border:1.5px solid var(--borda); border-radius:12px; padding:10px 12px; background:var(--branco); }
+.grupos-compras b{ display:block; font:800 26px/1.1 "Montserrat",sans-serif; color:var(--marinho); }
+.grupos-compras span{ font-size:14px; color:var(--texto); }
+.grupos-compras small{ display:block; font-size:12px; color:var(--texto-claro); margin-top:3px; }
+.itens-compras{ display:grid; grid-template-columns:repeat(2, 1fr); gap:12px; }
+.item-compra{ border:1.5px solid var(--borda); border-radius:14px; background:var(--branco); padding:14px 16px; }
+.item-compra h3{ font:700 16px "Montserrat",sans-serif; color:var(--marinho); margin:0 0 8px; display:flex; gap:8px; align-items:center; }
+.item-compra .qtd{ font:800 28px/1.15 "Montserrat",sans-serif; color:var(--ciano-escuro); }
+.item-compra .qtd small{ font:500 15px "Ubuntu",sans-serif; color:var(--texto); }
+.item-compra ul{ list-style:none; margin:8px 0 0; padding:0; }
+.item-compra li{ padding:5px 0; border-top:1px dashed var(--borda); font-size:15px; display:flex; justify-content:space-between; gap:10px; }
+.item-compra li b{ color:var(--marinho); white-space:nowrap; }
+.item-compra .conta{ margin-top:8px; font-size:13px; color:var(--texto-claro); }
+.dupla-compra{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:4px; }
+.dupla-compra > div{ background:var(--fundo-suave); border-radius:10px; padding:8px 10px; }
+.dupla-compra h4{ font:700 12px "Montserrat",sans-serif; letter-spacing:.5px; text-transform:uppercase; color:var(--ciano-escuro); margin:0 0 4px; }
+.dupla-compra li{ border-top:0; padding:3px 0; font-size:14px; }
+.regras-compras{ margin:0; padding-left:20px; font-size:14px; color:var(--texto); }
+.regras-compras li{ margin-bottom:5px; }
+@media (max-width:760px){
+    .grupos-compras{ grid-template-columns:1fr 1fr; }
+    .itens-compras{ grid-template-columns:1fr; }
+    .abas{ gap:0; flex-wrap:wrap; }
+    .abas button{ padding:10px 9px; font-size:14px; white-space:nowrap; }
+}
+
 /* Mensagens */
 .aviso{ padding:28px; }
 .aviso h2{ font-size:22px; margin-bottom:10px; }
@@ -527,8 +557,9 @@ body.seq-aberto{ overflow:hidden; }
                 '<button class="b pequeno perigo" data-acao="excluir">Excluir</button></div></div>' +
             '<div class="abas"><button data-aba="detalhes" class="' + (aba === "detalhes" ? "ativa" : "") + '">Detalhes</button>' +
                 '<button data-aba="convidados" class="' + (aba === "convidados" ? "ativa" : "") + '">Convidados (' + qtd + ')</button>' +
-                '<button data-aba="respostas" class="' + (aba === "respostas" ? "ativa" : "") + '">Respostas</button></div>' +
-            '<div class="conteudo-aba">' + (aba === "detalhes" ? detalhesHTML(ev) : aba === "respostas" ? respostasHTML(ev) : convidadosHTML(ev)) + '</div>';
+                '<button data-aba="respostas" class="' + (aba === "respostas" ? "ativa" : "") + '">Respostas</button>' +
+                '<button data-aba="compras" class="' + (aba === "compras" ? "ativa" : "") + '">Compras</button></div>' +
+            '<div class="conteudo-aba">' + (aba === "detalhes" ? detalhesHTML(ev) : aba === "respostas" ? respostasHTML(ev) : aba === "compras" ? comprasHTML(ev) : convidadosHTML(ev)) + '</div>';
     }
 
     /* ---------------- Respostas: quem vai, quem não vai, quem não respondeu ---------------- */
@@ -610,6 +641,150 @@ body.seq-aberto{ overflow:hidden; }
             '<p style="margin-top:14px;color:var(--texto-claro);font-size:14px">As respostas pelo link do convite entram quando o painel é aberto. Para ver respostas novas, recarregue a página. ' +
                 'Para mudar a resposta de alguém, use as marcas <b>Confirmado</b> e <b>Não vai</b> na aba Convidados.</p>';
         return html;
+    }
+
+    /* ---------------- Comes e bebes: lista de compras pelas quantidades de pessoas ---------------- */
+
+    /* Regras de festa (por pessoa). Para mudar uma conta, mude só o número aqui. */
+    var REGRAS = {
+        refri: { adulto: 600, grande: 400 },               // ml; criança até 5 anos não bebe refri
+        suco: { adulto: 300, grande: 300, pequena: 400 },  // ml; bebê de colo não entra
+        salgados: { adulto: 15, grande: 10, pequena: 6 },  // unidades
+        bolo: 100,                                         // gramas por pessoa (1 fatia); bebê não come
+        cadeiraIdade: 3,                                   // menores que isso ficam no colo
+        cadeirasPorMesa: 4,
+        coposDesc: 4, pratosDesc: 2, garfosDesc: 1.2, guardanapos: 5,
+        folgaReutilizavel: 0.1                             // 10% a mais de louça, para quebra e reposição
+    };
+    var baseCompras = "vai";
+
+    /* Separa as pessoas em adultos, crianças de 6 anos ou mais, de 1 a 5 anos e bebês (menos de 1 ano). */
+    function gruposCompras(lista) {
+        var g = { adulto: 0, grande: 0, pequena: 0, bebe: 0, colo: 0, semTipo: 0, semIdade: 0 };
+        lista.forEach(function (p) {
+            if (p.tipo !== "crianca") { g.adulto++; if (!p.tipo) g.semTipo++; return; }
+            var idade = p.idade === undefined || p.idade === "" ? NaN : +p.idade;
+            if (isNaN(idade)) { g.grande++; g.semIdade++; return; }
+            if (idade < 1) g.bebe++;
+            else if (idade <= 5) g.pequena++;
+            else g.grande++;
+            if (idade < REGRAS.cadeiraIdade) g.colo++;
+        });
+        return g;
+    }
+
+    function calcularCompras(g) {
+        var R = REGRAS;
+        function soma(regra) { return (regra.adulto || 0) * g.adulto + (regra.grande || 0) * g.grande + (regra.pequena || 0) * g.pequena; }
+        function folga(n) { return n ? Math.ceil(n * (1 + R.folgaReutilizavel)) : 0; }
+        var comem = g.adulto + g.grande + g.pequena;              // todo mundo menos bebê
+        var cadeiras = g.adulto + g.grande + g.pequena + g.bebe - g.colo;
+        var refri = soma(R.refri), suco = soma(R.suco), salgados = soma(R.salgados);
+        var bolo = comem * R.bolo;
+        return {
+            comem: comem,
+            refriMl: refri, refriGarrafas: Math.ceil(refri / 2000),
+            sucoMl: suco, sucoLitros: Math.ceil(suco / 1000),
+            salgados: salgados, salgadosEncomenda: Math.ceil(salgados / 50) * 50,
+            boloG: bolo, boloKg: bolo ? Math.max(1, Math.ceil(bolo / 500) / 2) : 0, fatias: comem,
+            cadeiras: cadeiras, mesas: Math.ceil(cadeiras / R.cadeirasPorMesa),
+            desc: { copos: comem * R.coposDesc, pratos: comem * R.pratosDesc, garfos: Math.ceil(comem * R.garfosDesc), guardanapos: comem * R.guardanapos },
+            reut: { copos: folga(comem), pratos: folga(comem), garfos: folga(comem) }
+        };
+    }
+
+    function fmt(x) { return Number(x).toLocaleString("pt-BR"); }
+    function litros(ml) { return fmt(Math.round(ml / 100) / 10) + " L"; }
+    function pacotes(qtd, por) { var p = Math.ceil(qtd / por); return p + (p === 1 ? " pacote" : " pacotes") + " de " + por; }
+    function plural(x, um, varios) { return fmt(x) + " " + (x === 1 ? um : varios); }
+
+    function pessoasCompras(ev) {
+        return convidados(ev.id).filter(function (p) {
+            if (!String(p.nome || "").trim()) return false;
+            var s = situacao(p);
+            return s === "vai" || (baseCompras === "todos" && s === "sem");
+        });
+    }
+
+    function comprasHTML(ev) {
+        var lista = pessoasCompras(ev), g = gruposCompras(lista), c = calcularCompras(g), R = REGRAS;
+        function botao(v, texto) {
+            var on = baseCompras === v;
+            return '<button type="button" data-base="' + v + '"' + (on ? ' class="ativa" aria-pressed="true"' : ' aria-pressed="false"') + '>' + texto + '</button>';
+        }
+        function linha(rot, val) { return '<li><span>' + rot + '</span><b>' + val + '</b></li>'; }
+
+        var html = '<div class="base-compras"><span class="rotulo">Contar:</span>' +
+                '<span class="opcoes" role="group" aria-label="Quem entra na conta">' + botao("vai", "✅ Confirmados") + botao("todos", "✅ + ⏳ Não responderam") + '</span>' +
+                '<button class="b pequeno" data-acao="copiar-compras">📋 Copiar lista de compras</button>' +
+            '</div>';
+
+        if (!lista.length) {
+            html += '<div class="faixa-aviso">' + (baseCompras === "vai"
+                ? 'Ninguém confirmou ainda. Clique em <b>+ Não responderam</b> para ter uma ideia, ou marque <b>Confirmado</b> na aba Convidados.'
+                : 'Ainda não tem ninguém na lista. Cadastre na aba <b>Convidados</b>.') + '</div>';
+        }
+        var avisos = [];
+        if (g.semTipo) avisos.push(plural(g.semTipo, "pessoa está", "pessoas estão") + " sem Adulto/Criança marcado e " + (g.semTipo === 1 ? "foi contada" : "foram contadas") + " como adulto");
+        if (g.semIdade) avisos.push(plural(g.semIdade, "criança está", "crianças estão") + " sem idade e " + (g.semIdade === 1 ? "foi contada" : "foram contadas") + " como acima de 5 anos");
+        if (avisos.length) html += '<div class="faixa-aviso">⚠️ ' + avisos.join("; ") + '. Para a conta ficar exata, complete na aba <b>Convidados</b>.</div>';
+
+        html += '<div class="subtitulo-resp">Quem entra na conta (' + plural(lista.length, "pessoa", "pessoas") + ')</div>' +
+            '<div class="grupos-compras">' +
+                '<div><b>' + g.adulto + '</b><span>🧑 Adultos</span><small>refri, suco, bolo e salgados</small></div>' +
+                '<div><b>' + g.grande + '</b><span>🧒 Crianças de 6 anos ou mais</span><small>refri, suco, bolo e salgados</small></div>' +
+                '<div><b>' + g.pequena + '</b><span>👶 Crianças de 1 a 5 anos</span><small>só suco (sem refri), bolo e salgados</small></div>' +
+                '<div><b>' + g.bebe + '</b><span>🍼 Bebês (menos de 1 ano)</span><small>não entram em comida e bebida</small></div>' +
+            '</div>';
+
+        html += '<div class="subtitulo-resp">Lista de compras</div><div class="itens-compras">' +
+            '<div class="item-compra"><h3>🥤 Refrigerante</h3><div class="qtd">' + c.refriGarrafas + ' <small>' + (c.refriGarrafas === 1 ? "garrafa" : "garrafas") + ' de 2 litros</small></div>' +
+                '<p class="conta">' + litros(c.refriMl) + ' no total: ' + R.refri.adulto + ' ml por adulto e ' + R.refri.grande + ' ml por criança de 6 anos ou mais.</p></div>' +
+            '<div class="item-compra"><h3>🧃 Suco</h3><div class="qtd">' + c.sucoLitros + ' <small>' + (c.sucoLitros === 1 ? "litro" : "litros") + '</small></div>' +
+                '<p class="conta">' + litros(c.sucoMl) + ' no total: ' + R.suco.adulto + ' ml por adulto e criança de 6+, e ' + R.suco.pequena + ' ml por criança de 1 a 5 anos (que não bebe refri).</p></div>' +
+            '<div class="item-compra"><h3>🎂 Bolo</h3><div class="qtd">' + fmt(c.boloKg) + ' <small>kg (' + plural(c.fatias, "fatia", "fatias") + ')</small></div>' +
+                '<p class="conta">' + R.bolo + ' g (uma fatia) por pessoa: ' + fmt(c.boloG / 1000) + ' kg, arredondado para cima em meio quilo. Bebês com menos de 1 ano não entram.</p></div>' +
+            '<div class="item-compra"><h3>🥟 Salgados</h3><div class="qtd">' + fmt(c.salgados) + ' <small>salgados</small></div>' +
+                '<ul>' + linha("Para encomendar (de 50 em 50)", fmt(c.salgadosEncomenda)) + '</ul>' +
+                '<p class="conta">' + R.salgados.adulto + ' por adulto, ' + R.salgados.grande + ' por criança de 6+ e ' + R.salgados.pequena + ' por criança de 1 a 5 anos.</p></div>' +
+            '<div class="item-compra"><h3>🪑 Cadeiras e mesas</h3><div class="qtd">' + c.cadeiras + ' <small>' + (c.cadeiras === 1 ? "cadeira" : "cadeiras") + '</small></div>' +
+                '<ul>' + linha("Mesas (" + R.cadeirasPorMesa + " cadeiras cada)", c.mesas) + '</ul>' +
+                '<p class="conta">Uma cadeira por pessoa. Crianças com menos de ' + R.cadeiraIdade + ' anos ficam no colo' + (g.colo ? ' (' + g.colo + ' nesta conta)' : '') + '. No aluguel, peça ' + plural(c.mesas, "jogo", "jogos") + ' de mesa com 4 cadeiras.</p></div>' +
+            '<div class="item-compra"><h3>🍽️ Copos, pratos e talheres</h3>' +
+                '<div class="dupla-compra">' +
+                    '<div><h4>Descartáveis</h4><ul>' +
+                        linha("Copos", fmt(c.desc.copos)) + linha("Pratinhos", fmt(c.desc.pratos)) + linha("Garfinhos", fmt(c.desc.garfos)) + linha("Guardanapos", fmt(c.desc.guardanapos)) +
+                    '</ul></div>' +
+                    '<div><h4>Reutilizáveis (louça)</h4><ul>' +
+                        linha("Copos", fmt(c.reut.copos)) + linha("Pratos", fmt(c.reut.pratos)) + linha("Garfos", fmt(c.reut.garfos)) +
+                    '</ul></div>' +
+                '</div>' +
+                '<p class="conta">Descartáveis: ' + R.coposDesc + ' copos, ' + R.pratosDesc + ' pratinhos (salgado e bolo), 1 garfinho (+20% de reserva) e ' + R.guardanapos + ' guardanapos por pessoa. ' +
+                    'Em pacotes: copos ' + pacotes(c.desc.copos || 1, 50) + ', pratinhos ' + pacotes(c.desc.pratos || 1, 10) + ', garfinhos ' + pacotes(c.desc.garfos || 1, 50) + ', guardanapos ' + pacotes(c.desc.guardanapos || 1, 50) + '. ' +
+                    'Reutilizáveis: 1 copo, 1 prato e 1 garfo de sobremesa por pessoa + 10% de reserva.</p></div>' +
+            '</div>';
+
+        html += '<div class="subtitulo-resp">Como a conta é feita</div><ul class="regras-compras">' +
+            '<li>Bebida é sempre <b>refrigerante e suco</b>. Só criança <b>acima de 5 anos</b> bebe refri; de 1 a 5 anos, só suco.</li>' +
+            '<li>Criança com <b>menos de 1 ano</b> não come bolo (nem salgado, nem bebe refri/suco) e fica no colo.</li>' +
+            '<li>As quantidades seguem as médias usadas em festa de aniversário de umas 4 horas, já com uma pequena sobra.</li>' +
+            '<li>Ao confirmar mais gente, a conta muda sozinha. Se a festa tiver outras comidas (cachorro-quente, docinhos), dá para pedir um pouco menos de salgado.</li>' +
+        '</ul>';
+        return html;
+    }
+
+    function textoCompras(ev) {
+        var lista = pessoasCompras(ev), g = gruposCompras(lista), c = calcularCompras(g);
+        return "🛒 " + ev.titulo + " (" + EV.dataCurta(ev) + ")\n" +
+            plural(lista.length, "pessoa", "pessoas") + (baseCompras === "vai" ? " confirmadas" : " (confirmados + quem não respondeu)") + ": " +
+            g.adulto + " adultos, " + g.grande + " crianças 6+, " + g.pequena + " crianças de 1 a 5, " + g.bebe + " bebês\n\n" +
+            "🥤 Refrigerante: " + c.refriGarrafas + " garrafas de 2 L\n" +
+            "🧃 Suco: " + c.sucoLitros + " L\n" +
+            "🎂 Bolo: " + fmt(c.boloKg) + " kg (" + c.fatias + " fatias)\n" +
+            "🥟 Salgados: " + fmt(c.salgados) + " (encomendar " + fmt(c.salgadosEncomenda) + ")\n" +
+            "🪑 Cadeiras: " + c.cadeiras + " • Mesas: " + c.mesas + "\n\n" +
+            "Descartáveis: " + fmt(c.desc.copos) + " copos, " + fmt(c.desc.pratos) + " pratinhos, " + fmt(c.desc.garfos) + " garfinhos, " + fmt(c.desc.guardanapos) + " guardanapos\n" +
+            "Ou louça: " + fmt(c.reut.copos) + " copos, " + fmt(c.reut.pratos) + " pratos, " + fmt(c.reut.garfos) + " garfos";
     }
 
     function campo(nome, rotulo, valor, extra) {
@@ -1069,11 +1244,18 @@ body.seq-aberto{ overflow:hidden; }
     }
 
     painel.addEventListener("click", function (e) {
-        var alvo = e.target.closest("[data-abrir],[data-acao],[data-aba],[data-remover],[data-esquecer],[data-campo],[data-filtro],.convite");
+        var alvo = e.target.closest("[data-abrir],[data-acao],[data-aba],[data-remover],[data-esquecer],[data-campo],[data-filtro],[data-base],.convite");
         if (!alvo) return;
 
         if (alvo.hasAttribute("data-abrir")) return abrir(alvo.getAttribute("data-abrir"));
         if (alvo.hasAttribute("data-aba")) { aba = alvo.getAttribute("data-aba"); return desenhar(); }
+        if (alvo.hasAttribute("data-base")) {
+            baseCompras = alvo.getAttribute("data-base");
+            var yb = window.scrollY;
+            desenhar();
+            window.scrollTo(0, yb);
+            return;
+        }
         if (alvo.hasAttribute("data-filtro")) {
             filtroResp[alvo.getAttribute("data-filtro")] = alvo.getAttribute("data-v");
             var y = window.scrollY;
@@ -1204,6 +1386,13 @@ body.seq-aberto{ overflow:hidden; }
                 navigator.clipboard.writeText(texto).then(function () {
                     alvo.textContent = "Copiado!";
                     setTimeout(function () { alvo.textContent = "Copiar lista"; }, 1800);
+                });
+                break;
+
+            case "copiar-compras":
+                navigator.clipboard.writeText(textoCompras(ev)).then(function () {
+                    alvo.textContent = "Copiado!";
+                    setTimeout(function () { alvo.textContent = "📋 Copiar lista de compras"; }, 1800);
                 });
                 break;
 
