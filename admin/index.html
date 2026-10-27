@@ -772,6 +772,8 @@ body.seq-aberto{ overflow:hidden; }
         cadeirasPorMesa: 4,
         coposDesc: 4, coposDescAlm: 5,
         guardanapos: 5, guardanaposAlm: 8,
+        gelo: 2,                                                 // kg por pessoa (bebida gelada e caixa térmica no calor)
+        pessoasPorPapelToalha: 10,                               // 1 rolo de papel-toalha a cada 10 pessoas
         reservaDesc: 0.2,                                        // 20% a mais de talher descartável (cai, quebra)
         folgaReutilizavel: 0.1                                   // 10% a mais de louça, para quebra e reposição
     };
@@ -837,6 +839,8 @@ body.seq-aberto{ overflow:hidden; }
             almocoG: almoco, almocoKg: Math.ceil(almoco / 500) / 2,
             boloG: bolo, boloKg: bolo ? Math.max(1, Math.ceil(bolo / 500) / 2) : 0, fatias: boloPessoas,
             cadeiras: cadeiras, mesas: Math.ceil(cadeiras / R.cadeirasPorMesa),
+            geloKg: comem * R.gelo, geloSacos: Math.ceil(comem * R.gelo / 5),
+            papelToalha: comem ? Math.max(2, Math.ceil(comem / R.pessoasPorPapelToalha)) : 0,
             desc: {
                 copos: bebem * (tem.almoco ? R.coposDescAlm : R.coposDesc),
                 pratinhos: comem * pratinhosPorPessoa, garfinhos: reserva(boloPessoas),
@@ -932,7 +936,6 @@ body.seq-aberto{ overflow:hidden; }
                         linhaSe(alm, "Pratos (almoço)", c.desc.pratos) +
                         linhaSe(alm, "Garfos (almoço)", c.desc.garfos) +
                         linhaSe(alm, "Facas (almoço)", c.desc.facas) +
-                        linha("Guardanapos", fmt(c.desc.guardanapos)) +
                     '</ul></div>' +
                     '<div><h4>Reutilizáveis (louça)</h4><ul>' +
                         linha("Copos", fmt(c.reut.copos)) +
@@ -944,10 +947,15 @@ body.seq-aberto{ overflow:hidden; }
                     '</ul></div>' +
                 '</div>' +
                 '<p class="conta">Descartáveis: ' + (alm ? R.coposDescAlm : R.coposDesc) + ' copos por quem bebe, 1 pratinho para o salgado e 1 para o bolo, 1 garfinho por quem come bolo' +
-                    (alm ? ', 1 prato e 1 garfo de almoço por pessoa e 1 faca por adulto e criança de 6+' : '') + ' (talheres com 20% de reserva) e ' + (alm ? R.guardanaposAlm : R.guardanapos) + ' guardanapos por pessoa. ' +
+                    (alm ? ', 1 prato e 1 garfo de almoço por pessoa e 1 faca por adulto e criança de 6+' : '') + ' (talheres com 20% de reserva). ' +
                     'Em pacotes: copos ' + pacotes(c.desc.copos, 50) + ', pratinhos ' + pacotes(c.desc.pratinhos, 10) + ', garfinhos ' + pacotes(c.desc.garfinhos, 50) +
-                    (alm ? ', pratos ' + pacotes(c.desc.pratos, 10) + ', garfos ' + pacotes(c.desc.garfos, 50) + ', facas ' + pacotes(c.desc.facas, 50) : '') + ', guardanapos ' + pacotes(c.desc.guardanapos, 50) + '. ' +
+                    (alm ? ', pratos ' + pacotes(c.desc.pratos, 10) + ', garfos ' + pacotes(c.desc.garfos, 50) + ', facas ' + pacotes(c.desc.facas, 50) : '') + '. ' +
                     'Louça: 1 de cada por pessoa + 10% de reserva (para o bolo, garfinho ou colherzinha); faca de almoço só para adulto e criança de 6+.</p></div>' +
+            '<div class="item-compra"><h3>🧊 Gelo, guardanapos e papel-toalha</h3><div class="qtd">' + fmt(c.geloKg) + ' <small>kg de gelo</small></div>' +
+                '<ul>' + linha("Sacos de gelo de 5 kg", fmt(c.geloSacos)) + linha("Guardanapos", fmt(c.desc.guardanapos) + " (" + pacotes(c.desc.guardanapos, 50) + ")") +
+                    linha("Rolos de papel-toalha", fmt(c.papelToalha)) + '</ul>' +
+                '<p class="conta">Gelo: ' + R.gelo + ' kg por pessoa (para a bebida e a caixa térmica no calor). Guardanapos: ' + (alm ? R.guardanaposAlm : R.guardanapos) + ' por pessoa, com louça ou descartável. ' +
+                    'Papel-toalha: 1 rolo a cada ' + R.pessoasPorPapelToalha + ' pessoas (mínimo 2), para a cozinha, a churrasqueira e o que derramar. Bebês não entram na conta.</p></div>' +
             '</div>';
 
         html += '<div class="subtitulo-resp">Como a conta é feita</div><ul class="regras-compras">' +
@@ -972,9 +980,11 @@ body.seq-aberto{ overflow:hidden; }
             (alm ? "🍛 Almoço: " + fmt(c.almocoKg) + " kg de comida pronta\n" : "") +
             (tem.bolo ? "🎂 Bolo: " + fmt(c.boloKg) + " kg (" + c.fatias + " fatias)\n" : "") +
             (tem.salgados ? "🥟 Salgados: " + fmt(c.salgados) + " (encomendar " + fmt(c.salgadosEncomenda) + ")\n" : "") +
-            "🪑 Cadeiras: " + c.cadeiras + " • Mesas: " + c.mesas + "\n\n" +
+            "🪑 Cadeiras: " + c.cadeiras + " • Mesas: " + c.mesas + "\n" +
+            "🧊 Gelo: " + fmt(c.geloKg) + " kg (" + c.geloSacos + " sacos de 5 kg)\n" +
+            "🧻 Guardanapos: " + fmt(c.desc.guardanapos) + " • Papel-toalha: " + c.papelToalha + " rolos\n\n" +
             "Descartáveis: " + itens([[1, c.desc.copos, "copos"], [c.pratinhosPorPessoa, c.desc.pratinhos, "pratinhos"], [tem.bolo, c.desc.garfinhos, "garfinhos (bolo)"],
-                [alm, c.desc.pratos, "pratos (almoço)"], [alm, c.desc.garfos, "garfos (almoço)"], [alm, c.desc.facas, "facas (almoço)"], [1, c.desc.guardanapos, "guardanapos"]]) + "\n" +
+                [alm, c.desc.pratos, "pratos (almoço)"], [alm, c.desc.garfos, "garfos (almoço)"], [alm, c.desc.facas, "facas (almoço)"]]) + "\n" +
             "Ou louça: " + itens([[1, c.reut.copos, "copos"], [c.pratinhosPorPessoa, c.reut.pratinhos, "pratinhos"], [tem.bolo, c.reut.garfinhos, "garfinhos/colherzinhas"],
                 [alm, c.reut.pratos, "pratos (almoço)"], [alm, c.reut.garfos, "garfos (almoço)"], [alm, c.reut.facas, "facas (almoço)"]]);
     }
@@ -998,25 +1008,34 @@ body.seq-aberto{ overflow:hidden; }
         ["Planejamento", "Criar playlist", -7, "20:00", "21:00"],
         ["Convites", "Confirmar presenças na lista", -5, "19:00", "20:30"],
         ["Compras", "Compras supermercado", -4, "19:00", "21:00"],
+        ["Planejamento", "Ver previsão e plano B de chuva", -3, "18:00", "18:30"],
         ["Encomendas", "Buscar e pagar lembrancinhas, personalizados e topo", -3, "18:30", "19:30"],
+        ["Planejamento", "Quem olha as crianças na piscina", -3, "19:30", "20:00"],
+        ["Planejamento", "Combinar fotos e envio para o álbum", -3, "20:00", "20:30"],
         ["Casa", "Ligar congelador", -2, "07:00", "07:15"],
         ["Limpeza", "Limpar laboratório", -2, "18:30", "20:00"],
         ["Compras", "Comprar carvão", -2, "20:00", "20:30"],
+        ["Casa", "Separar caixa de primeiros socorros", -2, "20:30", "21:00"],
         ["Compras", "Comprar refri e carne", -1, "08:00", "09:30"],
         ["Limpeza", "Cortar grama", -1, "09:30", "11:30"],
         ["Limpeza", "Limpar piscina", -1, "13:30", "15:00"],
+        ["Convites", "Lembrete aos confirmados (link do local)", -1, "12:00", "12:30"],
         ["Limpeza", "Limpar varanda", -1, "15:00", "16:00"],
         ["Encomendas", "Buscar e pagar doces", -1, "16:00", "17:00"],
         ["Montagem", "Instalar TV e som", -1, "17:00", "18:30"],
         ["Montagem", "Ajustar rede Wi-Fi", -1, "18:30", "19:15"],
         ["Montagem", "Instalar redes para dormir", -1, "19:15", "20:00"],
+        ["Limpeza", "Banheiro: papel higiênico e sabonete", -1, "20:00", "20:45"],
         ["Limpeza", "Limpar lixeira", 0, "08:00", "08:30"],
         ["Montagem", "Instalar cadeiras e mesas", 0, "08:30", "10:30"],
         ["Encomendas", "Buscar e pagar bolo", 0, -240, 45],
         ["Encomendas", "Buscar e pagar salgadinhos", 0, -180, 45],
         ["Dia da festa", "Preparar churrasqueira", 0, -120, 30],
         ["Dia da festa", "Ligar churrasqueira", 0, -60, 30],
-        ["Depois", "Arrumar a casa e agradecer os convidados", 1, "09:00", "12:00"]
+        ["Depois", "Recolher e levar o lixo", 1, "08:00", "09:00"],
+        ["Depois", "Arrumar a casa", 1, "09:00", "12:00"],
+        ["Depois", "Devolver o que foi emprestado", 1, "14:00", "15:30"],
+        ["Depois", "Agradecer com o link das fotos", 1, "19:00", "19:30"]
     ];
     var GRUPOS_TAREFA = [["Planejamento", "💡"], ["Convites", "💌"], ["Encomendas", "🎂"], ["Compras", "🛒"], ["Limpeza", "🧹"],
         ["Casa", "🏠"], ["Montagem", "🔧"], ["Dia da festa", "🎉"], ["Depois", "📸"], ["Outras", "📌"]];
@@ -1173,6 +1192,7 @@ body.seq-aberto{ overflow:hidden; }
         html += '<div class="padrao-t"><p><b>Cronograma padrão</b>: todo evento novo já começa com as tarefas padrão, nos dias e horários certos em relação à data da festa. ' +
                 (estado.tarefasPadrao ? 'Você está usando o <b>seu padrão</b> (' + estado.tarefasPadrao.length + ' tarefas).' : 'Agora está o padrão sugerido (' + TAREFAS_PADRAO.length + ' tarefas).') + '</p><div>' +
                 '<button class="b pequeno" data-acao="tarefas-guardar-padrao">⭐ Usar esta lista como padrão</button>' +
+                '<button class="b pequeno" data-acao="tarefas-completar">➕ Trazer as tarefas do padrão que faltam</button>' +
                 '<button class="b pequeno" data-acao="tarefas-recomecar">↺ Recomeçar este evento do padrão</button>' +
                 (estado.tarefasPadrao ? '<button class="b pequeno perigo" data-acao="tarefas-padrao-original">Voltar ao padrão sugerido</button>' : "") +
             '</div></div>';
@@ -2021,6 +2041,17 @@ body.seq-aberto{ overflow:hidden; }
                 marcarSujo(); redesenharTarefas();
                 break;
 
+            case "tarefas-completar": {
+                /* Acrescenta só as tarefas do padrão que este evento ainda não tem (pelo nome), sem mexer nas outras */
+                var cr = cronograma(ev), tem = {};
+                cr.itens.forEach(function (t) { tem[String(t.t).trim().toLowerCase()] = true; });
+                var novas = montarTarefas(ev).filter(function (t) { return !tem[String(t.t).trim().toLowerCase()]; });
+                if (!novas.length) { mostrarBarra("Este evento já tem todas as tarefas do padrão.", false); break; }
+                cr.itens = cr.itens.concat(novas).sort(ordemTarefa);
+                marcarSujo(); redesenharTarefas();
+                mostrarBarra(novas.length === 1 ? "Acrescentei 1 tarefa do padrão. Clique em Salvar." : "Acrescentei " + novas.length + " tarefas do padrão. Clique em Salvar.", false);
+                break;
+            }
             case "tarefas-recomecar":
                 if (!confirm("Trocar as tarefas deste evento pelas do padrão?\n\nAs tarefas que você criou ou mudou aqui (e as marcas de feita) serão perdidas.\n\nIsso só vale depois de Salvar.")) break;
                 estado.tarefas[ev.id] = { base: ev.data, itens: montarTarefas(ev) };
