@@ -148,6 +148,40 @@ details.varios-box{ margin-top:14px; }
 details.varios-box summary{ cursor:pointer; color:var(--ciano-escuro); font-weight:500; }
 textarea.varios{ min-height:120px; margin:10px 0; }
 
+/* Enviar em sequência */
+.seq-inicio{ display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap;
+    border:1.5px solid #86EFAC; background:#F0FDF4; border-radius:14px; padding:12px 16px; margin-bottom:16px; }
+.seq-inicio span{ font-size:15px; color:#14532D; }
+.seq-inicio small{ display:block; font-size:13px; color:var(--texto-claro); }
+.b.verde{ background:#25D366; border-color:#25D366; color:#fff; font-weight:600; }
+.b.verde:hover{ background:#1DA851; border-color:#1DA851; }
+.seq{ position:fixed; inset:0; z-index:70; background:rgba(8,18,46,.62); display:flex; align-items:center; justify-content:center; padding:16px 16px 72px; }
+.seq-caixa{ background:var(--branco); border-radius:20px; width:100%; max-width:440px; max-height:100%; overflow:auto; padding:20px 20px 18px;
+    box-shadow:0 20px 60px rgba(8,18,46,.35); }
+.seq-topo{ display:flex; justify-content:space-between; align-items:center; gap:10px; }
+.seq-topo b{ font:700 18px "Montserrat",sans-serif; color:var(--marinho); }
+.seq-topo small{ display:block; font-size:13px; color:var(--texto-claro); }
+.seq-prog{ height:12px; border-radius:999px; background:var(--fundo-suave); overflow:hidden; margin:16px 0 6px; }
+.seq-prog i{ display:block; height:100%; background:#25D366; transition:width .3s; }
+.seq-conta{ display:flex; justify-content:space-between; font-size:14px; color:var(--texto-claro); }
+.seq-conta b{ color:var(--marinho); }
+.seq-pessoa{ text-align:center; margin:20px 0 14px; }
+.seq-pessoa small{ display:block; font-size:13px; color:var(--texto-claro); text-transform:uppercase; letter-spacing:1px; }
+.seq-pessoa strong{ display:block; font:800 24px/1.2 "Montserrat",sans-serif; color:var(--marinho); margin:4px 0 2px; overflow-wrap:anywhere; }
+.seq-pessoa span{ color:var(--texto-claro); }
+.seq-enviar{ display:flex; align-items:center; justify-content:center; gap:10px; width:100%; text-decoration:none; text-align:center;
+    background:#25D366; color:#fff; border-radius:16px; padding:18px 14px; font:700 18px "Montserrat",sans-serif; }
+.seq-enviar:hover{ background:#1DA851; }
+.seq-enviar svg{ width:26px; height:26px; flex-shrink:0; }
+.seq-acoes{ display:flex; justify-content:center; gap:8px; margin-top:10px; flex-wrap:wrap; }
+.seq-ultimo{ margin-top:16px; border-radius:12px; background:var(--ciano-claro); color:var(--marinho); padding:10px 12px; font-size:14px; }
+.seq-ultimo a, .seq-ultimo button{ color:var(--ciano-escuro); font:inherit; font-weight:500; background:none; border:0; padding:0; cursor:pointer; text-decoration:underline; }
+.seq-fim{ text-align:center; margin:22px 0 8px; }
+.seq-fim .e{ font-size:52px; display:block; }
+.seq-fim strong{ display:block; font:800 22px "Montserrat",sans-serif; color:var(--marinho); margin:6px 0; }
+.seq-dica{ margin-top:14px; font-size:13px; color:var(--texto-claro); }
+body.seq-aberto{ overflow:hidden; }
+
 /* Respostas (dashboard) */
 .totais{ display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; }
 .total{ border-radius:14px; padding:14px 16px; border:1.5px solid var(--borda); background:var(--branco); }
@@ -200,7 +234,7 @@ textarea.varios{ min-height:120px; margin:10px 0; }
 .faixa-aviso{ background:#FEF3C7; color:#78350F; border:1px solid #FDE68A; border-radius:12px; padding:12px 16px; margin-bottom:18px; font-size:15px; }
 
 /* Barra de salvar */
-.barra{ position:fixed; left:0; right:0; bottom:0; z-index:50; background:var(--marinho); color:#DCE6F7;
+.barra{ position:fixed; left:0; right:0; bottom:0; z-index:80; background:var(--marinho); color:#DCE6F7;
     box-shadow:0 -8px 24px rgba(8,18,46,.25); transform:translateY(100%); transition:transform .25s; }
 .barra.visivel{ transform:none; }
 .barra .wrap{ display:flex; align-items:center; justify-content:space-between; gap:14px; padding:12px 0; }
@@ -705,7 +739,14 @@ textarea.varios{ min-height:120px; margin:10px 0; }
             return '<button type="button" data-i="' + i + '" data-campo="' + campo + '" data-v="' + v + '"' +
                 (p[campo] === v ? ' class="ativa" aria-pressed="true"' : ' aria-pressed="false"') + '>' + texto + '</button>';
         }
-        return '<div class="add-conv">' +
+        var faltam = filaEnvio(ev).length, semWhats = lista.filter(function (p) { return !p.enviado && String(p.nome || "").trim() && !numero(p.whats); }).length;
+        return (faltam
+                ? '<div class="seq-inicio"><span><b>' + faltam + (faltam === 1 ? ' convidado ainda sem convite' : ' convidados ainda sem convite') + '</b>' +
+                    '<small>Abre o WhatsApp de um por um, com o convite pronto. Você só toca em Enviar.' +
+                    (semWhats ? ' (' + semWhats + (semWhats === 1 ? ' sem WhatsApp fica de fora.)' : ' sem WhatsApp ficam de fora.)') : '') + '</small></span>' +
+                    '<button class="b verde" data-acao="sequencia">' + I.whats + 'Enviar em sequência</button></div>'
+                : "") +
+            '<div class="add-conv">' +
                 '<input id="novo-nome" placeholder="Nome do convidado" autocomplete="off" list="sugestoes">' +
                 '<input id="novo-whats" placeholder="WhatsApp com DDD (opcional)" inputmode="tel" autocomplete="off">' +
                 '<button class="b cheio" data-acao="add-conv">Adicionar</button>' +
@@ -741,6 +782,117 @@ textarea.varios{ min-height:120px; margin:10px 0; }
                   (enviados ? '<button class="b pequeno" data-acao="limpar-envios">Desmarcar todos</button>' : "") + '</span></div>'
                 : '<p style="margin-top:18px;color:var(--texto-claro)">Nenhum convidado ainda.</p>');
     }
+
+    /* ---------------- Enviar em sequência ----------------
+       Abre o WhatsApp de um convidado por vez, com o convite pronto.
+       Cada toque abre um convite, marca "Convidado", salva e já mostra o próximo. */
+
+    var seq = null;   // { ev, fila: [índices], pos, pulados, ultimo }
+
+    function filaEnvio(ev) {
+        var fila = [];
+        convidados(ev.id).forEach(function (p, i) {
+            if (String(p.nome || "").trim() && !p.enviado && numero(p.whats)) fila.push(i);
+        });
+        return fila;
+    }
+    function linkConvite(ev, p) {
+        return "https://wa.me/" + numero(p.whats) + "?text=" + encodeURIComponent(textoConvite(ev, p));
+    }
+
+    function abrirSequencia(ev) {
+        convidados(ev.id).forEach(function (p) { if (!p.c) { p.c = novoCodigo(); p._codigoNovo = true; } });
+        seq = { ev: ev, fila: filaEnvio(ev), pos: 0, pulados: 0, ultimo: null };
+        var d = document.getElementById("seq");
+        if (!d) {
+            d = document.createElement("div");
+            d.id = "seq"; d.className = "seq";
+            d.setAttribute("role", "dialog"); d.setAttribute("aria-modal", "true"); d.setAttribute("aria-label", "Enviar convites em sequência");
+            document.body.appendChild(d);
+            d.addEventListener("click", cliqueSequencia);
+        }
+        document.body.classList.add("seq-aberto");
+        desenharSequencia();
+    }
+
+    function fecharSequencia() {
+        var d = document.getElementById("seq");
+        if (d) d.remove();
+        document.body.classList.remove("seq-aberto");
+        seq = null;
+        desenhar();
+    }
+
+    function desenharSequencia() {
+        var d = document.getElementById("seq");
+        if (!d || !seq) return;
+        var ev = seq.ev, lista = convidados(ev.id);
+        var comWhats = lista.filter(function (p) { return String(p.nome || "").trim() && numero(p.whats); });
+        var feitos = comWhats.filter(function (p) { return p.enviado; }).length, total = comWhats.length;
+        var p = seq.pos < seq.fila.length ? lista[seq.fila[seq.pos]] : null;
+        var u = seq.ultimo != null ? lista[seq.ultimo] : null;
+        var primeiro = function (x) { return esc(String(x.nome).trim().split(" ")[0]); };
+
+        d.innerHTML = '<div class="seq-caixa">' +
+            '<div class="seq-topo"><div><b>Enviar em sequência</b><small>' + esc(ev.titulo) + '</small></div>' +
+                '<button class="b pequeno" data-seq="fechar">Fechar</button></div>' +
+            '<div class="seq-prog"><i style="width:' + (total ? Math.round(feitos * 100 / total) : 0) + '%"></i></div>' +
+            '<div class="seq-conta"><span><b>' + feitos + ' de ' + total + '</b> já convidados</span><span>' +
+                (p ? (seq.fila.length - seq.pos) + (seq.fila.length - seq.pos === 1 ? " falta" : " faltam") : "") + '</span></div>' +
+            (p
+                ? '<div class="seq-pessoa"><small>Próximo convite</small><strong>' + esc(p.nome) + '</strong><span>' + esc(p.whats) + '</span></div>' +
+                  '<a class="seq-enviar" data-seq="enviar" href="' + linkConvite(ev, p) + '" target="whats-convite">' + I.whats + 'Abrir convite de ' + primeiro(p) + '</a>' +
+                  '<div class="seq-acoes"><button class="b pequeno" data-seq="pular">Pular ' + primeiro(p) + '</button></div>'
+                : '<div class="seq-fim"><span class="e">🎉</span><strong>Fila concluída!</strong>' +
+                  (seq.pulados ? '<p>' + seq.pulados + (seq.pulados === 1 ? ' pessoa foi pulada e continua' : ' pessoas foram puladas e continuam') + ' sem convite.</p>' : '<p>Todos os convites desta lista foram abertos.</p>') +
+                  '</div><div class="seq-acoes"><button class="b cheio" data-seq="fechar">Voltar para a lista</button></div>') +
+            (u
+                ? '<div class="seq-ultimo">✓ <b>' + esc(u.nome) + '</b> marcado(a) como convidado(a). ' +
+                  '<a href="' + linkConvite(ev, u) + '" target="whats-convite">Abrir de novo</a> · ' +
+                  '<button data-seq="desfazer">Não consegui enviar</button></div>'
+                : "") +
+            '<p class="seq-dica">No WhatsApp, toque em <b>Enviar</b> e volte para esta tela. Para evitar bloqueio do WhatsApp, vá com calma: de preferência em blocos de 20 a 30 convites, com uma pausa entre eles. Pode fechar e continuar depois, que a fila começa de onde parou.</p>' +
+        '</div>';
+    }
+
+    function cliqueSequencia(e) {
+        if (!seq) return;
+        if (e.target === e.currentTarget) return fecharSequencia();
+        var alvo = e.target.closest("[data-seq]");
+        if (!alvo) return;
+        var acao = alvo.getAttribute("data-seq"), lista = convidados(seq.ev.id);
+
+        if (acao === "fechar") return fecharSequencia();
+        if (acao === "enviar") {
+            /* O link abre o WhatsApp normalmente; aqui só marca e avança */
+            var i = seq.fila[seq.pos], p = lista[i];
+            p.enviado = true;
+            delete p._codigoNovo;
+            seq.ultimo = i;
+            seq.pos++;
+            salvar("Convite de " + String(p.nome).trim().split(" ")[0] + " marcado como enviado ✓");
+            setTimeout(desenharSequencia, 0);
+            return;
+        }
+        if (acao === "pular") {
+            seq.pos++; seq.pulados++;
+            seq.ultimo = null;
+            return desenharSequencia();
+        }
+        if (acao === "desfazer" && seq.ultimo != null) {
+            var pu = lista[seq.ultimo];
+            delete pu.enviado; delete pu.confirmado; delete pu.naoVai;
+            seq.pos--;
+            seq.fila[seq.pos] = seq.ultimo;
+            seq.ultimo = null;
+            salvar("Marca de convidado retirada");
+            return desenharSequencia();
+        }
+    }
+
+    document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && seq) fecharSequencia();
+    });
 
     function amostra() {
         var a = document.getElementById("amostra");
@@ -1000,6 +1152,10 @@ textarea.varios{ min-height:120px; margin:10px 0; }
                 abrir(null);
                 break;
 
+            case "sequencia":
+                abrirSequencia(ev);
+                break;
+
             case "add-conv":
                 var n = document.getElementById("novo-nome"), w = document.getElementById("novo-whats");
                 if (adicionar(n.value, w.value)) { marcarSujo(); desenhar(); document.getElementById("novo-nome").focus(); }
@@ -1060,9 +1216,10 @@ textarea.varios{ min-height:120px; margin:10px 0; }
 
     /* ---------------- Salvar ---------------- */
 
-    var salvando = false;
+    var salvando = false, salvarDeNovo = null;
     function salvar(silencioso) {
-        if (salvando) return;
+        /* Se já está salvando (ex.: convites em sequência), salva de novo logo depois */
+        if (salvando) { if (silencioso) salvarDeNovo = silencioso; return; }
         var erro = "";
         estado.eventos.forEach(function (ev) {
             if (!erro && !String(ev.titulo || "").trim()) erro = "Falta o título de um evento.";
@@ -1104,13 +1261,16 @@ textarea.varios{ min-height:120px; margin:10px 0; }
             estado.versao = d.versao;
             estado.eventos.forEach(function (ev) { delete ev._novo; });
             sujo = false;
-            mostrarBarra(silencioso ? "Convite marcado como enviado ✓" : "Tudo salvo ✓ O site atualiza em até 1 minuto.", false);
+            mostrarBarra(typeof silencioso === "string" ? silencioso : silencioso ? "Convite marcado como enviado ✓" : "Tudo salvo ✓ O site atualiza em até 1 minuto.", false);
             setTimeout(function () { if (!sujo) document.getElementById("barra").classList.remove("visivel"); }, 4000);
         })
         .catch(function (err) {
             mostrarBarra("Não salvou: " + err.message, true);
         })
-        .then(function () { salvando = false; botao.disabled = false; });
+        .then(function () {
+            salvando = false; botao.disabled = false;
+            if (salvarDeNovo) { var s = salvarDeNovo; salvarDeNovo = null; salvar(s); }
+        });
     }
 
     document.getElementById("salvar").addEventListener("click", function () { salvar(false); });
