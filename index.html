@@ -109,7 +109,8 @@
 @keyframes enche{ to{ width:100%; } }
 
 /* ---------- Caminhos ---------- */
-.caminhos{ display:grid; grid-template-columns:repeat(3, 1fr); gap:24px; }
+.caminhos{ display:grid; grid-template-columns:repeat(4, 1fr); gap:24px; }
+@media (max-width:1100px){ .caminhos{ grid-template-columns:repeat(2, 1fr); } }
 .caminho{
     position:relative; overflow:hidden; border-radius:22px; padding:34px 30px 30px; text-decoration:none;
     background:linear-gradient(160deg, var(--marinho), var(--marinho-medio)); color:#DCE6F7;
@@ -247,6 +248,12 @@
                 <h3>Eventos</h3>
                 <p>Todo mês um encontro novo. Veja o próximo evento, a playlist, quem vai e as fotos.</p>
                 <span class="ir">Ver eventos →</span>
+            </a>
+            <a class="caminho" href="/piscina/">
+                <span class="ic">🏊</span>
+                <h3>Piscina</h3>
+                <p>Plano de 15 dias da piscina: tarefas da semana, medição, doses e o tempo do filtro.</p>
+                <span class="ir">Ver o plano →</span>
             </a>
             <a class="caminho" href="https://sports.azulmarinhoinfo.com.br" target="_blank" rel="noopener">
                 <span class="ic">⚽</span>

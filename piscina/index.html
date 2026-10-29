@@ -1,0 +1,656 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0F1F47">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<title>Plano da Piscina | Azul Marinho</title>
+<meta name="description" content="Plano de tratamento de 15 dias para piscina de fibra de 27 mil litros com produtos Genco e ionizadores.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F4F7FC; --card:#ffffff; --ink:#0F1F47; --muted:#5b6b82; --line:#dbe4ee;
+  --brand:#0F1F47; --brand-soft:#E6F7FE;
+  --ok:#e3f4e6; --ok-ink:#1e6b33; --warn:#fff6d6; --warn-ink:#7a5a00;
+  --act:#ffe8d1; --act-ink:#8a4a00; --bad:#fde3e3; --bad-ink:#9b1c1c;
+  --wk1:#e8f2fc; --wk2:#f2ecfa; --we:#e6f5ea;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#08122E; --card:#0F1F47; --ink:#e7eef7; --muted:#9aabc0; --line:#24376B;
+    --brand:#00ADEF; --brand-soft:#1A2C5A;
+    --ok:#173a24; --ok-ink:#8fe0a6; --warn:#3a3214; --warn-ink:#f2d67a; --act:#3d2a14; --act-ink:#f5b878; --bad:#3d1717; --bad-ink:#f3a3a3;
+    --wk1:#162a40; --wk2:#251d36; --we:#15301f;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#08122E; --card:#0F1F47; --ink:#e7eef7; --muted:#9aabc0; --line:#24376B;
+  --brand:#00ADEF; --brand-soft:#1A2C5A;
+  --ok:#173a24; --ok-ink:#8fe0a6; --warn:#3a3214; --warn-ink:#f2d67a; --act:#3d2a14; --act-ink:#f5b878; --bad:#3d1717; --bad-ink:#f3a3a3;
+  --wk1:#162a40; --wk2:#251d36; --we:#15301f;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:980px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 64px}
+header{background:radial-gradient(circle at 85% 20%,rgba(0,173,239,.35),transparent 45%),linear-gradient(135deg,#08122E,#0F1F47 60%,#24376B);color:#fff;padding-block:40px 56px}
+header .wrap{padding-block:0}
+header h1{margin:0 0 8px;font-size:clamp(26px,5vw,38px);letter-spacing:-.02em}
+header p{margin:0;opacity:.92;max-width:640px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.chip{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:4px 12px;font-size:14px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--card)}
+nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--card);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;gap:4px;overflow-x:auto;padding-block:0}
+nav a{color:var(--muted);text-decoration:none;padding:12px 12px;font-weight:600;font-size:14px;white-space:nowrap;border-bottom:3px solid transparent}
+nav a:hover{color:var(--brand);border-color:var(--brand)}
+section{margin-top:40px;scroll-margin-top:60px}
+h2{font-size:24px;margin:0 0 6px;letter-spacing:-.01em}
+.lead{color:var(--muted);margin:0 0 18px}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:24px}
+.sum{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 4px 14px rgba(15,40,80,.06)}
+.sum b{display:block;color:var(--brand);font-size:13px;text-transform:uppercase;letter-spacing:.05em}
+.sum span{font-weight:600}
+.tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.tabs button{font:inherit;font-weight:600;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:8px 16px;border-radius:999px;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--brand);border-color:var(--brand);color:#fff}
+.day{background:var(--card);border:1px solid var(--line);border-radius:16px;margin-bottom:14px;overflow:hidden}
+.day-h{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 18px;flex-wrap:wrap}
+.day-h h3{margin:0;font-size:18px}
+.day-h small{color:var(--muted);font-weight:500}
+.opt{border-style:dashed}.opt .day-h{background:var(--bg)}
+.wk1 .day-h{background:var(--wk1)} .wk2 .day-h{background:var(--wk2)} .we .day-h{background:var(--we)}
+.day-b{display:grid;grid-template-columns:1.6fr 1fr;gap:0}
+.steps{padding:14px 18px 16px;margin:0;counter-reset:s;list-style:none}
+.steps > li{counter-increment:s;position:relative;padding:6px 0 6px 36px;border-bottom:1px dashed var(--line)}
+.steps > li:last-child{border-bottom:0}
+.steps > li::before{content:counter(s);position:absolute;left:0;top:6px;width:24px;height:24px;border-radius:50%;background:var(--brand-soft);color:var(--brand);font-weight:700;font-size:13px;display:grid;place-items:center}
+.steps li.key{font-weight:600}
+.steps .sub{display:block;color:var(--muted);font-size:14px;font-weight:400}
+.doses{background:var(--bg);border-left:1px solid var(--line);padding:14px 18px}
+.doses h4{margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.doses ul{margin:0;padding:0;list-style:none}
+.doses li{padding:6px 0;border-bottom:1px solid var(--line);font-size:15px}
+.doses li:last-child{border:0}
+.doses strong{color:var(--brand)}
+.note{margin:0 18px 16px;padding:10px 12px;border-radius:10px;background:var(--warn);color:var(--warn-ink);font-size:14px}
+@media (max-width:720px){.day-b{grid-template-columns:1fr}.doses{border-left:0;border-top:1px solid var(--line)}}
+.tbl{width:100%;border-collapse:separate;border-spacing:0;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:18px}
+.tbl caption{text-align:left;font-weight:700;padding:0 0 8px;font-size:17px}
+.tbl th,.tbl td{padding:10px 14px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line);font-size:15px}
+.tbl th{background:var(--brand-soft);color:var(--brand);font-size:13px;text-transform:uppercase;letter-spacing:.04em}
+.tbl tr:last-child td{border-bottom:0}
+.tag{display:inline-block;padding:2px 10px;border-radius:999px;font-size:13px;font-weight:600;white-space:nowrap}
+.t-ok{background:var(--ok);color:var(--ok-ink)} .t-warn{background:var(--warn);color:var(--warn-ink)} .t-act{background:var(--act);color:var(--act-ink)} .t-bad{background:var(--bad);color:var(--bad-ink)}
+.scroll{overflow-x:auto}
+.ranges{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:24px}
+.range{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+.range b{display:block;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.range span{font-size:22px;font-weight:700}
+.range small{display:block;color:var(--muted)}
+details{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+summary{cursor:pointer;padding:14px 18px;font-weight:600;list-style:none;display:flex;justify-content:space-between;gap:12px}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";color:var(--brand);font-size:20px;line-height:1}
+details[open] summary::after{content:"−"}
+details .in{padding:0 18px 16px;color:var(--ink)}
+details ol,details ul{margin:0;padding-left:20px}
+details li{margin:4px 0}
+.group{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:22px 0 8px;font-weight:700}
+.alert{background:var(--bad);color:var(--bad-ink);border-radius:14px;padding:14px 18px;margin-bottom:12px}
+.alert b{display:block}
+.daily{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.daily div{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+.daily b{display:block;margin-bottom:4px}
+footer{color:var(--muted);font-size:14px;text-align:center;margin-top:48px}
+footer a{color:var(--brand);font-weight:600;text-decoration:none}
+@media print{nav,.tabs{display:none}.panel[hidden]{display:block!important}body{background:#fff}}
+.steps > li{cursor:pointer;padding-right:44px}
+.steps li .chk{position:absolute;right:0;top:6px;width:24px;height:24px;accent-color:var(--brand);cursor:pointer;margin:0}
+.steps > li.done{color:var(--muted);text-decoration:line-through}
+.steps li.done::before{background:var(--ok);color:var(--ok-ink)}
+.progress{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:0 0 14px;padding:10px 14px;background:var(--card);border:1px solid var(--line);border-radius:12px;font-size:14px}
+.bar{flex:1;min-width:120px;height:8px;background:var(--line);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--brand);transition:width .2s}
+.reset{font:inherit;font-size:14px;font-weight:600;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:6px 12px;border-radius:999px;cursor:pointer}
+@media print{.chk,.progress{display:none}}
+.wait{display:block;margin-top:4px;font-size:13px;font-weight:600;color:var(--act-ink);background:var(--act);border-radius:8px;padding:3px 8px;width:fit-content;max-width:100%;text-decoration:none}
+.steps li.done .wait{opacity:.6}
+.how{margin-top:6px;background:var(--brand-soft);border:0;border-radius:10px;text-decoration:none;color:var(--ink)}
+.how summary{padding:6px 10px;font-size:14px;color:var(--brand)}
+.how summary::after{font-size:16px}
+.how-in{padding:0 12px 10px;font-size:14px;font-weight:400}
+.how-in p{margin:4px 0}
+.how-in ol{padding-left:18px;margin:6px 0}
+.how-in li{border:0;padding:2px 0;cursor:auto}
+.how-in li::before{content:none}
+.how-warn{color:var(--bad-ink);font-weight:600}
+.steps li.done .how{text-decoration:none}
+.cfg-cell{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.cfg{font:inherit;width:4.5em;font-variant-numeric:tabular-nums;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:5px 8px}
+.cfg:focus,#cfg-notas:focus{outline:2px solid var(--brand);outline-offset:1px}
+.cfg.diff{border-color:var(--act-ink);background:var(--act)}
+.cfg-box{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:18px;display:grid;gap:8px}
+.cfg-box>label{font-size:13px;font-weight:700;color:var(--muted)}
+#cfg-notas{font:inherit;font-size:15px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 10px;width:100%}
+.cfg-box .form-actions{margin-top:2px}
+.cfg-hist{font-size:14px;color:var(--muted);border-top:1px dashed var(--line);padding-top:8px}
+.cfg-hist b{color:var(--ink)}
+.cfg-hist ul{margin:4px 0 0;padding-left:18px}
+.offline{background:var(--card);border:1px dashed var(--line);border-radius:14px;padding:16px;color:var(--muted)}
+.entry-form{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:20px}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.form-grid label{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:600;color:var(--muted);min-width:0}
+.form-grid .wide{grid-column:1/-1}
+.form-grid input,.form-grid textarea{font:inherit;font-size:15px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 10px;width:100%;min-width:0}
+.form-grid input:focus,.form-grid textarea:focus,.btn:focus-visible,.btn-sm:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.previews{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.previews img{width:84px;height:84px;object-fit:cover;border-radius:10px;border:1px solid var(--line)}
+.form-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px}
+.btn{font:inherit;font-weight:700;background:var(--brand);color:#fff;border:0;border-radius:999px;padding:10px 20px;cursor:pointer}
+.btn[disabled]{opacity:.6;cursor:wait}
+.btn-sm{font:inherit;font-size:13px;font-weight:600;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:5px 12px;cursor:pointer}
+.btn-sm.danger{color:var(--bad-ink);border-color:var(--bad-ink)}
+.status{font-size:14px;color:var(--muted)}
+.entries{display:grid;gap:14px}
+.entry{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 18px;min-width:0}
+.entry-h{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.entry-h h3{margin:0;font-size:17px}
+.thumbs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.thumbs a{display:block}
+.thumbs img{width:120px;height:120px;object-fit:cover;border-radius:10px;border:1px solid var(--line);background:var(--bg)}
+.chips2{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
+.chips2 span{font-size:13px;background:var(--brand-soft);color:var(--brand);border-radius:999px;padding:2px 10px;font-variant-numeric:tabular-nums}
+.obs{color:var(--muted);font-size:14px;margin:6px 0}
+.analise{border-top:1px dashed var(--line);margin-top:12px;padding-top:12px;display:grid;gap:6px}
+.analise h4{margin:0;font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.analise p{margin:0}
+.analise ul{margin:0;padding-left:20px}
+.analise .filtro{font-weight:600}
+.entry-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.empty{color:var(--muted);background:var(--card);border:1px dashed var(--line);border-radius:14px;padding:16px;margin:0}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>Plano da Piscina — 15 dias</h1>
+    <p>Rotina para deixar a piscina pronta de sexta à noite até domingo, com o mínimo de dias de trabalho.</p>
+    <div class="chips">
+      <span class="chip">Fibra · 27 mil litros</span>
+      <span class="chip">Água de poço</span>
+      <span class="chip">Produtos Genco</span>
+      <span class="chip">2 ionizadores de cobre</span>
+      <span class="chip">Filtro automatizado</span>
+    </div>
+  </div>
+</header>
+
+<nav><div class="wrap">
+  <a href="#plano">Plano</a><a href="#medicao">Medição</a><a href="#automacao">Automação</a><a href="#faixas">Faixas ideais</a><a href="#doses">Doses</a><a href="#como">Como fazer</a><a href="#seguranca">Segurança</a>
+</div></nav>
+
+<main class="wrap">
+  <div class="summary">
+    <div class="sum"><b>Domingo à noite</b><span>Medição de tudo e ajustes</span></div>
+    <div class="sum"><b>Segunda à noite</b><span>Aspirar e acertos finos</span></div>
+    <div class="sum"><b>Quarta à noite</b><span>Opcional: conferir o cloro</span></div>
+    <div class="sum"><b>Sexta, antes de usar</b><span>Limpa borda e conferência</span></div>
+    <div class="sum"><b>Sexta a domingo</b><span>Piscina liberada</span></div>
+  </div>
+
+  <section id="plano">
+    <h2>Plano da semana</h2>
+    <p class="lead">As duas semanas são iguais. A única diferença é o algicida, que entra só na segunda da Semana 1 (a cada 15 dias). A quarta é opcional.</p>
+    <div class="tabs" role="tablist">
+      <button role="tab" aria-selected="true" data-tab="s1">Semana 1 · com algicida</button>
+      <button role="tab" aria-selected="false" data-tab="s2">Semana 2 · sem algicida</button>
+    </div>
+
+    <!-- SEMANA 1 -->
+    <div class="panel" id="s1">
+      <div class="progress"><span><b data-count="s1">0 de 0</b> tarefas feitas</span><div class="bar"><i data-bar="s1"></i></div><button class="reset" data-reset="s1">Limpar marcações</button></div>
+      <article class="day wk1">
+        <div class="day-h"><h3>Domingo à noite</h3><small>depois do uso · o dia mais completo</small></div>
+        <div class="day-b">
+          <ol class="steps">
+            <li><b>Completar a água</b> até o nível de sempre<span class="sub">Alguns centímetros acima dos bocais de retorno e do bocal de aspiração. Antes de medir, para a medição já contar com a água nova.</span><span class="wait">⏱ Ligar o filtro e esperar pelo menos 30 min antes de medir. Dá para escovar nesse tempo.</span><details class="how"><summary>Como completar a água</summary><div class="how-in"><ol><li>Colocar a mangueira dentro da piscina.</li><li>Encher até o nível de sempre, alguns centímetros acima dos bocais de retorno e do bocal de aspiração.</li><li>Ligar o filtro e esperar pelo menos 30 min antes de medir, para a água nova se misturar.</li></ol><p class="how-warn">Água de poço: se depois do choque a água ficar amarelada ou marrom, é metal da água nova.</p></div></details></li>
+            <li>Escovar paredes, degraus e fundo<details class="how"><summary>Como escovar</summary><div class="how-in"><ol><li>Usar escova de cerdas macias (nunca de aço na fibra).</li><li>Começar pelas paredes, de cima para baixo.</li><li>Depois os degraus e cantos, onde a sujeira gruda mais.</li><li>Por último o fundo, empurrando a sujeira para o centro ou para o ralo de fundo.</li></ol></div></details></li>
+            <li>Tirar e escovar os eletrodos dos dois ionizadores<details class="how"><summary>Como limpar os eletrodos</summary><div class="how-in"><ol><li><b>Solar:</b> tirar da água, desrosquear o eletrodo de cobre.</li><li><b>Tubulação:</b> desligar a bomba antes de abrir.</li><li>Escovar o eletrodo com a escova que veio com o refil até tirar a crosta.</li><li>Enxaguar com água e recolocar. No da tubulação, conferir se ficou bem fechado antes de religar a bomba.</li></ol><p class="how-warn">Quando o eletrodo estiver muito gasto (fino ou com buracos), trocar pelo refil.</p></div></details></li>
+            <li>Limpar o cesto do pré-filtro da bomba<span class="wait">⏱ Desligar a bomba para abrir e religar depois.</span><details class="how"><summary>Como limpar o pré-filtro</summary><div class="how-in"><ol><li>Desligar a bomba.</li><li>Fechar os registros, se tiver.</li><li>Abrir a tampa transparente do pré-filtro e tirar o cesto.</li><li>Jogar fora as folhas e lavar o cesto com mangueira.</li><li>Recolocar o cesto, fechar bem a tampa (conferir a borracha) e abrir os registros.</li><li>Religar a bomba.</li></ol></div></details></li>
+            <li class="key">Medição de tudo: cloro, pH, alcalinidade e cobre<span class="sub">Veja o que fazer com cada resultado em <a href="#medicao">Medição</a>.</span><details class="how"><summary>Como fazer a medição de tudo</summary><div class="how-in"><p>Primeiro o estojo (cloro e pH), depois a alcalinidade e por último o cobre.</p><ol><li><b>Cloro e pH:</b> Mergulhar o estojo de boca para baixo a uns 30 cm da superfície, longe do retorno, e encher os dois lados até a marca. Lado do <b>pH</b>: 5 gotas de <b>Vermelho Fenol</b> (tampa vermelha). Lado do <b>cloro</b>: 5 gotas de <b>Orto-Tolidina</b> (tampa amarela). Fechar a tampa e virar algumas vezes para misturar. Ler logo, comparando com a escala contra um fundo branco (papel ou parede). Contra o céu as cores parecem mais claras.</li><li><b>Alcalinidade:</b> encher o copinho até 25 ml. Pingar 5 gotas da <b>Solução 2</b> (indicador, tampa rosa) e agitar. Pingar a <b>Solução 1</b> (titulante, tampa branca) uma gota por vez, agitando e contando. Parar na <b>primeira gota</b> em que ficar rosa. Cada gota = 10 ppm. Ideal: 10 a 12 gotas.</li><li><b>Cobre:</b> seguir as instruções do kit de cobre. Ideal: 0,3 a 0,5.</li><li>Anotar os resultados e conferir na tabela <a href="#medicao">Medição</a> o que fazer.</li></ol></div></details></li>
+            <li>Afastar o flutuador do tablete para um canto</li>
+            <li>Choque conforme o cloro<span class="wait">⏱ Esperar 15 min antes do próximo produto.</span><details class="how"><summary>Como fazer o choque</summary><div class="how-in"><ol><li>Ver a dose na tabela: cloro 2 ou mais = nada; 1 = 300 g; 0,5 ou menos, água turva ou depois de chuva = 400 g.</li><li>Usar luvas. Encher o balde com água primeiro e depois colocar o Genclor (cloro granulado).</li><li>Pode dividir em 2 ou 3 baldes. Mexer até dissolver.</li><li>Jogar só a parte dissolvida pela superfície, andando em volta da piscina, com o filtro ligado.</li><li>Não deixar grânulos caírem no fundo da fibra.</li></ol></div></details></li>
+            <li>Alcalinidade abaixo de 10 gotas: pH Certo (elevador de alcalinidade)<span class="sub">Nesse caso, o pH fica para segunda. Alcalinidade OK: corrigir o pH agora, se precisar.</span><span class="wait">⏱ Esperar 15 min antes do clarificante. O pH só pode ser corrigido 24 h depois do pH Certo.</span><details class="how"><summary>Como aplicar o elevador de alcalinidade e o pH</summary><div class="how-in"><ol><li>Dose: <b>500 g para cada gota</b> que faltar até 10 (ex.: deu 8 gotas = 1 kg).</li><li>Encher o balde com água, colocar o pH Certo (elevador de alcalinidade) e mexer. Pode dividir em 2 ou 3 baldes.</li><li>Espalhar pela superfície com o filtro ligado.</li><li>Nesse caso, o pH só é corrigido na segunda (24 h depois).</li><li>Se a alcalinidade estava OK e o pH fora de 7,2 a 7,6: pH+ ou redutor, dose do rótulo começando com metade, diluído no balde.</li></ol></div></details></li>
+            <li>Por último, clarificante espalhado pela superfície<span class="wait">⏱ Uso liberado 30 min depois. Filtro trabalhando a noite toda.</span><details class="how"><summary>Como aplicar o clarificante</summary><div class="how-in"><ol><li>Agitar bem a garrafa.</li><li>Medir na proveta: <b>40 ml</b> (água limpa) ou <b>80 ml</b> (água turva).</li><li>Passar para o aplicador e soltar um filete fino andando em volta da piscina, por toda a superfície. Ou diluir num balde e espalhar.</li><li>Deixar o filtro ligado 6 horas seguidas (já programado na automação). Os flocos assentam no fundo e saem na aspiração de segunda.</li></ol></div></details></li>
+            <li>Cobre acima de 0,5: tirar o ionizador solar da água</li>
+            <li>Conferir se o filtro está programado para 6 horas a partir de agora<details class="how"><summary>Horários do filtro</summary><div class="how-in"><p>Domingo e sábado: 6 horas. Segunda: 2 horas. Demais dias: 1 hora. Veja a seção <a href="#automacao">Automação</a>.</p></div></details></li>
+          </ol>
+          <div class="doses"><h4>Produtos</h4><ul>
+            <li>Genclor (cloro granulado): <strong>0, 300 ou 400 g</strong></li>
+            <li>pH Certo (elevador de alcalinidade): <strong>500 g</strong> por gota que faltar até 10</li>
+            <li>pH+ ou redutor: dose do rótulo, aos poucos</li>
+            <li>Clarificante: <strong>40 ml</strong> (80 ml se turva)</li>
+          </ul></div>
+        </div>
+        <p class="note">Cada produto em balde separado, aplicado em lados diferentes da piscina, com 15 minutos entre um e outro.</p>
+      </article>
+
+      <article class="day wk1">
+        <div class="day-h"><h3>Segunda à noite</h3><small>aspirar e acertos finos</small></div>
+        <div class="day-b">
+          <ol class="steps">
+            <li>Aspirar o fundo<span class="sub">Os flocos do clarificante de domingo já assentaram e saem fácil. Se aspirou em DRENAR, completar a água no fim da noite.</span><span class="wait">⏱ Retrolavagem logo em seguida.</span><details class="how"><summary>Como aspirar</summary><div class="how-in"><ol><li>Bomba desligada. Válvula em <b>FILTRAR</b> (ou <b>DRENAR</b> se tiver muita sujeira, para ela não voltar para a piscina).</li><li>Montar o aspirador no cabo e a mangueira no aspirador.</li><li>Afundar a mangueira inteira até sair todo o ar e ela ficar cheia de água.</li><li>Encaixar a ponta da mangueira no bocal de aspiração.</li><li>Ligar a bomba e passar o aspirador devagar, em faixas, sem levantar a sujeira.</li><li>Ao terminar, desligar a bomba, limpar o cesto do pré-filtro e fazer a retrolavagem.</li></ol><p class="how-warn">Aspirou em DRENAR: a água baixa, completar no fim da noite.</p></div></details></li>
+            <li>Retrolavagem e enxágue<span class="wait">⏱ Deixar o filtro ligado 15 min antes de medir.</span><details class="how"><summary>Como fazer a retrolavagem</summary><div class="how-in">
+<p>É a lavagem da areia do filtro: a água passa ao contrário, solta a sujeira acumulada e manda tudo para o esgoto, não para a piscina.</p>
+<ol>
+<li>Desligar a bomba.</li>
+<li>Girar a válvula em cima do filtro para <b>RETROLAVAR</b>.</li>
+<li>Ligar a bomba por <b>2 a 3 minutos</b>, até a água no visor (a janelinha transparente) sair limpa.</li>
+<li>Desligar. Girar para <b>ENXAGUAR</b> e ligar por <b>30 segundos</b>.</li>
+<li>Desligar. Voltar para <b>FILTRAR</b> e religar.</li>
+</ol>
+<p class="how-warn">Nunca girar a válvula com a bomba ligada. A retrolavagem gasta um pouco de água: se o nível baixar, completar depois.</p>
+</div></details></li>
+            <li>Medir cloro e pH<details class="how"><summary>Como medir cloro e pH</summary><div class="how-in"><ol><li>Mergulhar o estojo de boca para baixo a uns 30 cm da superfície, longe do retorno, e encher os dois lados até a marca.</li><li>Lado do <b>pH</b>: 5 gotas de <b>Vermelho Fenol</b> (tampa vermelha).</li><li>Lado do <b>cloro</b>: 5 gotas de <b>Orto-Tolidina</b> (tampa amarela).</li><li>Fechar a tampa e virar algumas vezes para misturar.</li><li>Ler logo, comparando com a escala contra um fundo branco (papel ou parede). Contra o céu as cores parecem mais claras.</li><li>Ideal: cloro entre 1 e 3, pH entre 7,2 e 7,6.</li></ol></div></details></li>
+            <li>Corrigir o pH se estiver fora de 7,2 a 7,6<span class="sub">Se colocou pH Certo (elevador de alcalinidade) no domingo, já passaram as 24 h.</span><span class="wait">⏱ Esperar 30 min antes do algicida.</span><details class="how"><summary>Como corrigir o pH</summary><div class="how-in"><ol><li>Abaixo de 7,2: <b>pH+</b>. Acima de 7,6: <b>redutor de pH</b>.</li><li>Usar a dose do rótulo, mas começar com metade.</li><li>Diluir no balde com água e espalhar com o filtro ligado.</li><li>Esperar 1 hora e medir de novo. Só repetir se ainda estiver fora.</li></ol></div></details></li>
+            <li class="key">30 min depois, algicida<span class="sub">Só se o cobre de domingo deu abaixo de 0,3.</span><span class="wait">⏱ Uso liberado 30 min depois. Genclor (cloro granulado) só 12 h depois do algicida.</span><details class="how"><summary>Como aplicar o algicida</summary><div class="how-in"><ol><li>Só se o cobre de domingo deu abaixo de 0,3, e com o pH entre 7,2 e 7,6.</li><li>Medir <b>65 ml</b> de algicida de manutenção.</li><li>Diluir num balde com água e espalhar pela superfície, com o filtro ligado.</li><li>O filtro de segunda (2 horas) já espalha o algicida.</li></ol><p class="how-warn">Nunca na mesma noite do Genclor (cloro granulado): 12 horas de intervalo.</p></div></details></li>
+            <li>Filtro: as 2 horas de segunda cobrem a aspiração e o algicida<span class="sub">Programar para começar junto com as tarefas da noite.</span></li>
+          </ol>
+          <div class="doses"><h4>Produtos</h4><ul>
+            <li>pH+ ou redutor: dose do rótulo</li>
+            <li>Algicida de manutenção: <strong>65 ml</strong></li>
+          </ul></div>
+        </div>
+        <p class="note">Não colocar Genclor (cloro granulado) nesta noite. Se o cloro deu abaixo de 1, ele entra na quarta (conferência opcional) ou na sexta.</p>
+      </article>
+
+      <article class="day opt">
+        <div class="day-h"><h3>Quarta à noite</h3><small>opcional · 2 minutos</small></div>
+        <div class="day-b">
+          <ol class="steps">
+            <li>Teste rápido de cloro no estojo<span class="sub">É no meio da semana que o cloro costuma cair.</span><details class="how"><summary>Como medir o cloro</summary><div class="how-in"><ol><li>Mergulhar o estojo de boca para baixo a uns 30 cm da superfície, longe do retorno, e encher os dois lados até a marca.</li><li>Lado do <b>cloro</b>: 5 gotas de <b>Orto-Tolidina</b> (tampa amarela).</li><li>Fechar a tampa e virar algumas vezes para misturar.</li><li>Ler logo, comparando com a escala contra um fundo branco (papel ou parede). Contra o céu as cores parecem mais claras.</li><li>Ideal: entre 1 e 3.</li></ol></div></details></li>
+            <li>Cloro abaixo de 1: Genclor (cloro granulado)<span class="wait">⏱ Aplicar com o filtro ligado (na hora diária programada).</span><details class="how"><summary>Como colocar o Genclor (70 g)</summary><div class="how-in"><ol><li>Pesar <b>70 g</b>.</li><li>Usar luvas.</li><li>Encher um balde com água da piscina (água primeiro, produto depois).</li><li>Colocar o Genclor (cloro granulado) e mexer até dissolver.</li><li>Jogar só a parte dissolvida pela superfície, com o filtro ligado. Se sobrar grânulo no fundo do balde, completar com água, mexer e jogar de novo.</li><li>Nunca deixar grânulos caírem no fundo da fibra: mancha.</li></ol></div></details></li>
+          </ol>
+          <div class="doses"><h4>Produtos</h4><ul>
+            <li>Genclor (cloro granulado): <strong>70 g</strong> (só se cloro abaixo de 1)</li>
+          </ul></div>
+        </div>
+        <p class="note">Não é obrigatório: o tablete e os ionizadores seguram o cloro, e a conferência de sexta pega qualquer problema a tempo.</p>
+      </article>
+
+      <article class="day we">
+        <div class="day-h"><h3>Sexta, antes de usar</h3><small>uns 15 minutos (1 hora a mais se precisar de produto)</small></div>
+        <div class="day-b">
+          <ol class="steps">
+            <li>Teste rápido de cloro e pH no estojo<span class="sub">É o mesmo teste: um lado mede o cloro e o outro o pH.</span><details class="how"><summary>Como medir cloro e pH</summary><div class="how-in"><ol><li>Mergulhar o estojo de boca para baixo a uns 30 cm da superfície, longe do retorno, e encher os dois lados até a marca.</li><li>Lado do <b>pH</b>: 5 gotas de <b>Vermelho Fenol</b> (tampa vermelha).</li><li>Lado do <b>cloro</b>: 5 gotas de <b>Orto-Tolidina</b> (tampa amarela).</li><li>Fechar a tampa e virar algumas vezes para misturar.</li><li>Ler logo, comparando com a escala contra um fundo branco (papel ou parede). Contra o céu as cores parecem mais claras.</li><li>Ideal: cloro entre 1 e 3, pH entre 7,2 e 7,6.</li></ol></div></details></li>
+            <li>Se precisar, corrigir<span class="sub">pH fora de 7,2 a 7,6: pH+ ou redutor. Cloro abaixo de 1: Genclor (cloro granulado), 15 min depois do pH.</span><span class="wait">⏱ Se colocou algum produto, esperar 1 hora com o filtro ligado antes de usar.</span><details class="how"><summary>Como corrigir antes de usar</summary><div class="how-in"><ol><li><b>pH fora de 7,2 a 7,6:</b> pH+ ou redutor, dose do rótulo começando com metade, diluído no balde.</li><li><b>Cloro abaixo de 1:</b> 70 g de Genclor (cloro granulado), dissolvido no balde, 15 min depois do pH.</li><li>Espalhar com o filtro ligado e esperar 1 hora antes de usar.</li></ol></div></details></li>
+            <li>Por último, <b>limpa borda</b> na linha da água (esponja macia)<span class="wait">⏱ Sem produto no passo anterior, pode usar a piscina logo depois.</span><details class="how"><summary>Como usar o limpa borda</summary><div class="how-in"><ol><li>Molhar uma esponja macia (nunca a parte verde abrasiva).</li><li>Colocar um pouco de limpa borda na esponja.</li><li>Passar na faixa da linha da água, onde fica a gordura e a marca escura.</li><li>Ir dando a volta na piscina. Nas partes mais sujas, esfregar com movimentos circulares.</li></ol><p class="how-warn">Nada abrasivo na fibra: risca o gel.</p></div></details></li>
+            <li class="key">Cloro entre 1 e 3 e pH entre 7,2 e 7,6: piscina liberada até domingo</li>
+          </ol>
+          <div class="doses"><h4>Produtos</h4><ul>
+            <li>pH+ ou redutor: dose do rótulo (só se precisar)</li>
+            <li>Genclor (cloro granulado): <strong>70 g</strong> (só se cloro abaixo de 1)</li>
+            <li>Limpa borda</li>
+          </ul></div>
+        </div>
+      </article>
+    </div>
+
+    <!-- SEMANA 2 -->
+    <div class="panel" id="s2" hidden>
+      <div class="progress"><span><b data-count="s2">0 de 0</b> tarefas feitas</span><div class="bar"><i data-bar="s2"></i></div><button class="reset" data-reset="s2">Limpar marcações</button></div>
+      <article class="day wk2">
+        <div class="day-h"><h3>Domingo à noite</h3><small>depois do uso · igual à Semana 1</small></div>
+        <div class="day-b">
+          <ol class="steps">
+            <li><b>Completar a água</b> até o nível de sempre<span class="wait">⏱ Ligar o filtro e esperar pelo menos 30 min antes de medir. Dá para escovar nesse tempo.</span><details class="how"><summary>Como completar a água</summary><div class="how-in"><ol><li>Colocar a mangueira dentro da piscina.</li><li>Encher até o nível de sempre, alguns centímetros acima dos bocais de retorno e do bocal de aspiração.</li><li>Ligar o filtro e esperar pelo menos 30 min antes de medir, para a água nova se misturar.</li></ol><p class="how-warn">Água de poço: se depois do choque a água ficar amarelada ou marrom, é metal da água nova.</p></div></details></li>
+            <li>Escovar paredes, degraus e fundo<details class="how"><summary>Como escovar</summary><div class="how-in"><ol><li>Usar escova de cerdas macias (nunca de aço na fibra).</li><li>Começar pelas paredes, de cima para baixo.</li><li>Depois os degraus e cantos, onde a sujeira gruda mais.</li><li>Por último o fundo, empurrando a sujeira para o centro ou para o ralo de fundo.</li></ol></div></details></li>
+            <li>Tirar e escovar os eletrodos dos dois ionizadores<details class="how"><summary>Como limpar os eletrodos</summary><div class="how-in"><ol><li><b>Solar:</b> tirar da água, desrosquear o eletrodo de cobre.</li><li><b>Tubulação:</b> desligar a bomba antes de abrir.</li><li>Escovar o eletrodo com a escova que veio com o refil até tirar a crosta.</li><li>Enxaguar com água e recolocar. No da tubulação, conferir se ficou bem fechado antes de religar a bomba.</li></ol><p class="how-warn">Quando o eletrodo estiver muito gasto (fino ou com buracos), trocar pelo refil.</p></div></details></li>
+            <li>Limpar o cesto do pré-filtro da bomba<span class="wait">⏱ Desligar a bomba para abrir e religar depois.</span><details class="how"><summary>Como limpar o pré-filtro</summary><div class="how-in"><ol><li>Desligar a bomba.</li><li>Fechar os registros, se tiver.</li><li>Abrir a tampa transparente do pré-filtro e tirar o cesto.</li><li>Jogar fora as folhas e lavar o cesto com mangueira.</li><li>Recolocar o cesto, fechar bem a tampa (conferir a borracha) e abrir os registros.</li><li>Religar a bomba.</li></ol></div></details></li>
+            <li class="key">Medição de tudo: cloro, pH, alcalinidade e cobre<details class="how"><summary>Como fazer a medição de tudo</summary><div class="how-in"><p>Primeiro o estojo (cloro e pH), depois a alcalinidade e por último o cobre.</p><ol><li><b>Cloro e pH:</b> Mergulhar o estojo de boca para baixo a uns 30 cm da superfície, longe do retorno, e encher os dois lados até a marca. Lado do <b>pH</b>: 5 gotas de <b>Vermelho Fenol</b> (tampa vermelha). Lado do <b>cloro</b>: 5 gotas de <b>Orto-Tolidina</b> (tampa amarela). Fechar a tampa e virar algumas vezes para misturar. Ler logo, comparando com a escala contra um fundo branco (papel ou parede). Contra o céu as cores parecem mais claras.</li><li><b>Alcalinidade:</b> encher o copinho até 25 ml. Pingar 5 gotas da <b>Solução 2</b> (indicador, tampa rosa) e agitar. Pingar a <b>Solução 1</b> (titulante, tampa branca) uma gota por vez, agitando e contando. Parar na <b>primeira gota</b> em que ficar rosa. Cada gota = 10 ppm. Ideal: 10 a 12 gotas.</li><li><b>Cobre:</b> seguir as instruções do kit de cobre. Ideal: 0,3 a 0,5.</li><li>Anotar os resultados e conferir na tabela <a href="#medicao">Medição</a> o que fazer.</li></ol></div></details></li>
+            <li>Afastar o flutuador do tablete para um canto</li>
+            <li>Choque conforme o cloro<span class="wait">⏱ Esperar 15 min antes do próximo produto.</span><details class="how"><summary>Como fazer o choque</summary><div class="how-in"><ol><li>Ver a dose na tabela: cloro 2 ou mais = nada; 1 = 300 g; 0,5 ou menos, água turva ou depois de chuva = 400 g.</li><li>Usar luvas. Encher o balde com água primeiro e depois colocar o Genclor (cloro granulado).</li><li>Pode dividir em 2 ou 3 baldes. Mexer até dissolver.</li><li>Jogar só a parte dissolvida pela superfície, andando em volta da piscina, com o filtro ligado.</li><li>Não deixar grânulos caírem no fundo da fibra.</li></ol></div></details></li>
+            <li>Alcalinidade abaixo de 10 gotas: pH Certo (elevador de alcalinidade)<span class="sub">Alcalinidade OK: corrigir o pH agora, se precisar.</span><span class="wait">⏱ Esperar 15 min antes do clarificante. O pH só pode ser corrigido 24 h depois do pH Certo.</span><details class="how"><summary>Como aplicar o elevador de alcalinidade e o pH</summary><div class="how-in"><ol><li>Dose: <b>500 g para cada gota</b> que faltar até 10 (ex.: deu 8 gotas = 1 kg).</li><li>Encher o balde com água, colocar o pH Certo (elevador de alcalinidade) e mexer. Pode dividir em 2 ou 3 baldes.</li><li>Espalhar pela superfície com o filtro ligado.</li><li>Nesse caso, o pH só é corrigido na segunda (24 h depois).</li><li>Se a alcalinidade estava OK e o pH fora de 7,2 a 7,6: pH+ ou redutor, dose do rótulo começando com metade, diluído no balde.</li></ol></div></details></li>
+            <li>Por último, clarificante espalhado pela superfície<span class="wait">⏱ Uso liberado 30 min depois. Filtro trabalhando a noite toda.</span><details class="how"><summary>Como aplicar o clarificante</summary><div class="how-in"><ol><li>Agitar bem a garrafa.</li><li>Medir na proveta: <b>40 ml</b> (água limpa) ou <b>80 ml</b> (água turva).</li><li>Passar para o aplicador e soltar um filete fino andando em volta da piscina, por toda a superfície. Ou diluir num balde e espalhar.</li><li>Deixar o filtro ligado 6 horas seguidas (já programado na automação). Os flocos assentam no fundo e saem na aspiração de segunda.</li></ol></div></details></li>
+            <li>Cobre acima de 0,5: tirar o ionizador solar da água</li>
+            <li>Conferir se o filtro está programado para 6 horas a partir de agora<details class="how"><summary>Horários do filtro</summary><div class="how-in"><p>Domingo e sábado: 6 horas. Segunda: 2 horas. Demais dias: 1 hora. Veja a seção <a href="#automacao">Automação</a>.</p></div></details></li>
+          </ol>
+          <div class="doses"><h4>Produtos</h4><ul>
+            <li>Genclor (cloro granulado): <strong>0, 300 ou 400 g</strong></li>
+            <li>pH Certo (elevador de alcalinidade): <strong>500 g</strong> por gota que faltar até 10</li>
+            <li>pH+ ou redutor: dose do rótulo, aos poucos</li>
+            <li>Clarificante: <strong>40 ml</strong> (80 ml se turva)</li>
+          </ul></div>
+        </div>
+      </article>
+
+      <article class="day wk2">
+        <div class="day-h"><h3>Segunda à noite</h3><small>aspirar e acertos finos · sem algicida</small></div>
+        <div class="day-b">
+          <ol class="steps">
+            <li>Aspirar o fundo<span class="sub">Os flocos do clarificante de domingo já assentaram e saem fácil. Se aspirou em DRENAR, completar a água no fim da noite.</span><span class="wait">⏱ Retrolavagem logo em seguida.</span><details class="how"><summary>Como aspirar</summary><div class="how-in"><ol><li>Bomba desligada. Válvula em <b>FILTRAR</b> (ou <b>DRENAR</b> se tiver muita sujeira, para ela não voltar para a piscina).</li><li>Montar o aspirador no cabo e a mangueira no aspirador.</li><li>Afundar a mangueira inteira até sair todo o ar e ela ficar cheia de água.</li><li>Encaixar a ponta da mangueira no bocal de aspiração.</li><li>Ligar a bomba e passar o aspirador devagar, em faixas, sem levantar a sujeira.</li><li>Ao terminar, desligar a bomba, limpar o cesto do pré-filtro e fazer a retrolavagem.</li></ol><p class="how-warn">Aspirou em DRENAR: a água baixa, completar no fim da noite.</p></div></details></li>
+            <li>Retrolavagem e enxágue<span class="wait">⏱ Deixar o filtro ligado 15 min antes de medir.</span><details class="how"><summary>Como fazer a retrolavagem</summary><div class="how-in">
+<p>É a lavagem da areia do filtro: a água passa ao contrário, solta a sujeira acumulada e manda tudo para o esgoto, não para a piscina.</p>
+<ol>
+<li>Desligar a bomba.</li>
+<li>Girar a válvula em cima do filtro para <b>RETROLAVAR</b>.</li>
+<li>Ligar a bomba por <b>2 a 3 minutos</b>, até a água no visor (a janelinha transparente) sair limpa.</li>
+<li>Desligar. Girar para <b>ENXAGUAR</b> e ligar por <b>30 segundos</b>.</li>
+<li>Desligar. Voltar para <b>FILTRAR</b> e religar.</li>
+</ol>
+<p class="how-warn">Nunca girar a válvula com a bomba ligada. A retrolavagem gasta um pouco de água: se o nível baixar, completar depois.</p>
+</div></details></li>
+            <li>Medir cloro e pH<details class="how"><summary>Como medir cloro e pH</summary><div class="how-in"><ol><li>Mergulhar o estojo de boca para baixo a uns 30 cm da superfície, longe do retorno, e encher os dois lados até a marca.</li><li>Lado do <b>pH</b>: 5 gotas de <b>Vermelho Fenol</b> (tampa vermelha).</li><li>Lado do <b>cloro</b>: 5 gotas de <b>Orto-Tolidina</b> (tampa amarela).</li><li>Fechar a tampa e virar algumas vezes para misturar.</li><li>Ler logo, comparando com a escala contra um fundo branco (papel ou parede). Contra o céu as cores parecem mais claras.</li><li>Ideal: cloro entre 1 e 3, pH entre 7,2 e 7,6.</li></ol></div></details></li>
+            <li>Corrigir o pH se estiver fora de 7,2 a 7,6<span class="sub">Se colocou pH Certo (elevador de alcalinidade) no domingo, já passaram as 24 h.</span><span class="wait">⏱ Esperar 15 min antes do Genclor (cloro granulado).</span><details class="how"><summary>Como corrigir o pH</summary><div class="how-in"><ol><li>Abaixo de 7,2: <b>pH+</b>. Acima de 7,6: <b>redutor de pH</b>.</li><li>Usar a dose do rótulo, mas começar com metade.</li><li>Diluir no balde com água e espalhar com o filtro ligado.</li><li>Esperar 1 hora e medir de novo. Só repetir se ainda estiver fora.</li></ol></div></details></li>
+            <li>Cloro abaixo de 1: Genclor (cloro granulado)<span class="wait">⏱ Aplicar com o filtro ligado (na hora diária programada).</span><details class="how"><summary>Como colocar o Genclor (70 g)</summary><div class="how-in"><ol><li>Pesar <b>70 g</b>.</li><li>Usar luvas.</li><li>Encher um balde com água da piscina (água primeiro, produto depois).</li><li>Colocar o Genclor (cloro granulado) e mexer até dissolver.</li><li>Jogar só a parte dissolvida pela superfície, com o filtro ligado. Se sobrar grânulo no fundo do balde, completar com água, mexer e jogar de novo.</li><li>Nunca deixar grânulos caírem no fundo da fibra: mancha.</li></ol></div></details></li>
+          </ol>
+          <div class="doses"><h4>Produtos</h4><ul>
+            <li>pH+ ou redutor: dose do rótulo</li>
+            <li>Genclor (cloro granulado): <strong>70 g</strong> (só se cloro abaixo de 1)</li>
+          </ul></div>
+        </div>
+      </article>
+
+      <article class="day opt">
+        <div class="day-h"><h3>Quarta à noite</h3><small>opcional · 2 minutos</small></div>
+        <div class="day-b">
+          <ol class="steps">
+            <li>Teste rápido de cloro no estojo<span class="sub">É no meio da semana que o cloro costuma cair.</span><details class="how"><summary>Como medir o cloro</summary><div class="how-in"><ol><li>Mergulhar o estojo de boca para baixo a uns 30 cm da superfície, longe do retorno, e encher os dois lados até a marca.</li><li>Lado do <b>cloro</b>: 5 gotas de <b>Orto-Tolidina</b> (tampa amarela).</li><li>Fechar a tampa e virar algumas vezes para misturar.</li><li>Ler logo, comparando com a escala contra um fundo branco (papel ou parede). Contra o céu as cores parecem mais claras.</li><li>Ideal: entre 1 e 3.</li></ol></div></details></li>
+            <li>Cloro abaixo de 1: Genclor (cloro granulado)<span class="wait">⏱ Aplicar com o filtro ligado (na hora diária programada).</span><details class="how"><summary>Como colocar o Genclor (70 g)</summary><div class="how-in"><ol><li>Pesar <b>70 g</b>.</li><li>Usar luvas.</li><li>Encher um balde com água da piscina (água primeiro, produto depois).</li><li>Colocar o Genclor (cloro granulado) e mexer até dissolver.</li><li>Jogar só a parte dissolvida pela superfície, com o filtro ligado. Se sobrar grânulo no fundo do balde, completar com água, mexer e jogar de novo.</li><li>Nunca deixar grânulos caírem no fundo da fibra: mancha.</li></ol></div></details></li>
+          </ol>
+          <div class="doses"><h4>Produtos</h4><ul>
+            <li>Genclor (cloro granulado): <strong>70 g</strong> (só se cloro abaixo de 1)</li>
+          </ul></div>
+        </div>
+        <p class="note">Não é obrigatório: o tablete e os ionizadores seguram o cloro, e a conferência de sexta pega qualquer problema a tempo.</p>
+      </article>
+
+      <article class="day we">
+        <div class="day-h"><h3>Sexta, antes de usar</h3><small>uns 15 minutos (1 hora a mais se precisar de produto)</small></div>
+        <div class="day-b">
+          <ol class="steps">
+            <li>Teste rápido de cloro e pH no estojo<span class="sub">É o mesmo teste: um lado mede o cloro e o outro o pH.</span><details class="how"><summary>Como medir cloro e pH</summary><div class="how-in"><ol><li>Mergulhar o estojo de boca para baixo a uns 30 cm da superfície, longe do retorno, e encher os dois lados até a marca.</li><li>Lado do <b>pH</b>: 5 gotas de <b>Vermelho Fenol</b> (tampa vermelha).</li><li>Lado do <b>cloro</b>: 5 gotas de <b>Orto-Tolidina</b> (tampa amarela).</li><li>Fechar a tampa e virar algumas vezes para misturar.</li><li>Ler logo, comparando com a escala contra um fundo branco (papel ou parede). Contra o céu as cores parecem mais claras.</li><li>Ideal: cloro entre 1 e 3, pH entre 7,2 e 7,6.</li></ol></div></details></li>
+            <li>Se precisar, corrigir<span class="sub">pH fora de 7,2 a 7,6: pH+ ou redutor. Cloro abaixo de 1: Genclor (cloro granulado), 15 min depois do pH.</span><span class="wait">⏱ Se colocou algum produto, esperar 1 hora com o filtro ligado antes de usar.</span><details class="how"><summary>Como corrigir antes de usar</summary><div class="how-in"><ol><li><b>pH fora de 7,2 a 7,6:</b> pH+ ou redutor, dose do rótulo começando com metade, diluído no balde.</li><li><b>Cloro abaixo de 1:</b> 70 g de Genclor (cloro granulado), dissolvido no balde, 15 min depois do pH.</li><li>Espalhar com o filtro ligado e esperar 1 hora antes de usar.</li></ol></div></details></li>
+            <li>Por último, <b>limpa borda</b> na linha da água (esponja macia)<span class="wait">⏱ Sem produto no passo anterior, pode usar a piscina logo depois.</span><details class="how"><summary>Como usar o limpa borda</summary><div class="how-in"><ol><li>Molhar uma esponja macia (nunca a parte verde abrasiva).</li><li>Colocar um pouco de limpa borda na esponja.</li><li>Passar na faixa da linha da água, onde fica a gordura e a marca escura.</li><li>Ir dando a volta na piscina. Nas partes mais sujas, esfregar com movimentos circulares.</li></ol><p class="how-warn">Nada abrasivo na fibra: risca o gel.</p></div></details></li>
+            <li class="key">Cloro entre 1 e 3 e pH entre 7,2 e 7,6: piscina liberada até domingo</li>
+          </ol>
+          <div class="doses"><h4>Produtos</h4><ul>
+            <li>pH+ ou redutor: dose do rótulo (só se precisar)</li>
+            <li>Genclor (cloro granulado): <strong>70 g</strong> (só se cloro abaixo de 1)</li>
+            <li>Limpa borda</li>
+          </ul></div>
+        </div>
+        <p class="note">No domingo seguinte, recomeça a Semana 1.</p>
+      </article>
+    </div>
+
+    <h3 class="group">Todos os dias (sem esforço)</h3>
+    <div class="daily">
+      <div><b>Filtro automatizado</b>Sábado e domingo 6 h, segunda 2 h, demais dias 1 h. Veja <a href="#automacao">Automação</a>.</div>
+      <div><b>Tablete no flutuador</b>1 tablete Genclor T-200 (cloro em pastilha) sempre na água. Trocar quando acabar. Para aplicar produtos, só afastar o flutuador.</div>
+      <div><b>Ionizadores</b>O da tubulação liga com a bomba. O solar fica na água, exceto com cobre acima de 0,5.</div>
+      <div><b>Folhas</b>Peneirar quando tiver. Sem coadeira na piscina, a peneira é o que tira o que boia.</div>
+    </div>
+  </section>
+
+  <section id="medicao">
+    <h2>O que fazer com cada resultado</h2>
+    <p class="lead">Todo domingo à noite, depois de escovar: medição de tudo. Na segunda e na sexta, só cloro e pH. Na quarta (opcional), só cloro.</p>
+    <div class="scroll">
+    <table class="tbl">
+      <caption>Cloro — choque de domingo</caption>
+      <tr><th>Resultado</th><th>O que fazer</th></tr>
+      <tr><td>2 ou mais, água cristalina</td><td><span class="tag t-ok">Sem choque</span> O tablete dá conta.</td></tr>
+      <tr><td>1, água cristalina</td><td><span class="tag t-warn">Choque leve</span> 300 g de Genclor (cloro granulado)</td></tr>
+      <tr><td>0,5 ou transparente</td><td><span class="tag t-act">Choque</span> 400 g de Genclor (cloro granulado)</td></tr>
+      <tr><td>Água turva, esverdeada ou depois de chuva forte</td><td><span class="tag t-act">Choque</span> 400 g de Genclor (cloro granulado), qualquer que seja o cloro</td></tr>
+    </table>
+    <table class="tbl">
+      <caption>Cloro — segunda, quarta e sexta</caption>
+      <tr><th>Resultado</th><th>O que fazer</th></tr>
+      <tr><td>Abaixo de 1</td><td><span class="tag t-warn">Repor</span> 70 g de Genclor (cloro granulado). Na segunda da Semana 1 (noite do algicida), deixar para a quarta ou a sexta</td></tr>
+    </table>
+    <table class="tbl">
+      <caption>Alcalinidade — domingo</caption>
+      <tr><th>Resultado</th><th>O que fazer</th></tr>
+      <tr><td>10 a 12 gotas</td><td><span class="tag t-ok">Ótima</span> Não mexer.</td></tr>
+      <tr><td>Abaixo de 10 gotas</td><td><span class="tag t-warn">Subir</span> pH Certo (elevador de alcalinidade): 500 g para cada gota que faltar até 10 (ex.: 8 gotas = 1 kg). O pH fica para segunda.</td></tr>
+      <tr><td>Acima de 12 gotas</td><td><span class="tag t-warn">Esperar</span> Não colocar pH Certo (elevador de alcalinidade). O tablete baixa a alcalinidade sozinho.</td></tr>
+    </table>
+    <table class="tbl">
+      <caption>pH — domingo, ou segunda se colocou o elevador de alcalinidade; conferido de novo na sexta</caption>
+      <tr><th>Resultado</th><th>O que fazer</th></tr>
+      <tr><td>7,2 a 7,6</td><td><span class="tag t-ok">Certo</span> Não mexer.</td></tr>
+      <tr><td>Abaixo de 7,2</td><td><span class="tag t-warn">Subir</span> pH+ (dose do rótulo, aos poucos). Medir de novo antes de repetir.</td></tr>
+      <tr><td>Acima de 7,6</td><td><span class="tag t-warn">Baixar</span> Redutor de pH (dose do rótulo, aos poucos). Medir de novo antes de repetir.</td></tr>
+    </table>
+    <table class="tbl">
+      <caption>Cobre — domingo</caption>
+      <tr><th>Resultado</th><th>O que fazer</th></tr>
+      <tr><td>Abaixo de 0,3</td><td><span class="tag t-ok">Normal</span> Ionizadores ligados. Algicida 65 ml na segunda da Semana 1.</td></tr>
+      <tr><td>0,3 a 0,5</td><td><span class="tag t-warn">Na faixa</span> Ionizadores ligados. Sem algicida nesta quinzena.</td></tr>
+      <tr><td>Acima de 0,5</td><td><span class="tag t-bad">Alto</span> Tirar o ionizador solar e não colocar algicida. Medir de novo no domingo seguinte.</td></tr>
+    </table>
+    </div>
+  </section>
+
+  <section id="automacao">
+    <h2>Automação do filtro</h2>
+    <p class="lead">Fase de teste: menos horas para economizar energia, sem deixar nenhum dia parado. A coluna "Ideal" é a referência; em "Configurado" você registra o que programou de verdade e vai ajustando com a experiência.</p>
+    <div class="scroll">
+    <table class="tbl">
+      <tr><th>Dia</th><th>Ideal</th><th>Configurado</th><th>Sugestão de horário</th><th>Por quê</th></tr>
+      <tr><td><b>Domingo</b></td><td><span class="tag t-act">6 horas</span></td><td><span class="cfg-cell"><input class="cfg" id="cfg-dom" data-dia="dom" inputmode="decimal" placeholder="—" aria-label="Horas configuradas: domingo"> h</span></td><td>À noite, começando logo depois dos produtos</td><td>Choque e clarificante precisam de filtro longo. O clarificante só funciona com 6 horas seguidas.</td></tr>
+      <tr><td><b>Segunda</b></td><td><span class="tag t-warn">2 horas</span></td><td><span class="cfg-cell"><input class="cfg" id="cfg-seg" data-dia="seg" inputmode="decimal" placeholder="—" aria-label="Horas configuradas: segunda"> h</span></td><td>À noite, junto com as tarefas</td><td>Aspiração, retrolavagem e algicida usam a bomba e precisam de circulação.</td></tr>
+      <tr><td><b>Terça</b></td><td><span class="tag t-ok">1 hora</span></td><td><span class="cfg-cell"><input class="cfg" id="cfg-ter" data-dia="ter" inputmode="decimal" placeholder="—" aria-label="Horas configuradas: terça"> h</span></td><td>Mesmo horário todo dia</td><td>Circular o cloro do tablete e ligar o ionizador da tubulação.</td></tr>
+      <tr><td><b>Quarta</b></td><td><span class="tag t-ok">1 hora</span></td><td><span class="cfg-cell"><input class="cfg" id="cfg-qua" data-dia="qua" inputmode="decimal" placeholder="—" aria-label="Horas configuradas: quarta"> h</span></td><td>Mesmo horário todo dia</td><td>Idem. Se fizer a conferência opcional, aplicar o Genclor (cloro granulado) dentro dessa hora.</td></tr>
+      <tr><td><b>Quinta</b></td><td><span class="tag t-ok">1 hora</span></td><td><span class="cfg-cell"><input class="cfg" id="cfg-qui" data-dia="qui" inputmode="decimal" placeholder="—" aria-label="Horas configuradas: quinta"> h</span></td><td>Mesmo horário todo dia</td><td>Idem.</td></tr>
+      <tr><td><b>Sexta</b></td><td><span class="tag t-ok">1 hora</span></td><td><span class="cfg-cell"><input class="cfg" id="cfg-sex" data-dia="sex" inputmode="decimal" placeholder="—" aria-label="Horas configuradas: sexta"> h</span></td><td>No fim da tarde, antes de usar</td><td>Se precisar de produto antes de usar, ele circula nessa hora.</td></tr>
+      <tr><td><b>Sábado</b></td><td><span class="tag t-act">6 horas</span></td><td><span class="cfg-cell"><input class="cfg" id="cfg-sab" data-dia="sab" inputmode="decimal" placeholder="—" aria-label="Horas configuradas: sábado"> h</span></td><td>Durante e depois do uso</td><td>Dia de mais uso: suor, protetor solar e sujeira entram na água.</td></tr>
+      <tr><td><b>Total</b></td><td><b>18 h</b></td><td><b id="cfg-total">—</b></td><td colspan="2">Antes eram cerca de 42 horas por semana (6 por dia).</td></tr>
+    </table>
+    </div>
+    <div class="cfg-box">
+      <label for="cfg-notas">Anotações da configuração</label>
+      <textarea id="cfg-notas" rows="2" placeholder="ex.: dividi a 1 hora em 30 min de manhã e 30 à noite"></textarea>
+      <div class="form-actions"><button type="button" id="cfg-salvar" class="btn">Salvar configuração</button><span id="cfg-status" class="status" role="status"></span></div>
+      <div id="cfg-hist" class="cfg-hist" hidden></div>
+    </div>
+    <div class="daily">
+      <div><b>Sinais para aumentar o tempo</b>Água perdendo o brilho ou turva, cloro caindo rápido entre domingo e sexta, parede ou degrau escorregadio, cheiro forte.</div>
+      <div><b>Sinais de que dá para reduzir mais</b>Água cristalina a semana toda, cloro estável entre 1 e 3, sem sujeira acumulada no fundo na segunda.</div>
+      <div><b>Fotos para avaliar</b>Domingo e sexta: foto da piscina de dia, de cima, mostrando o fundo, e foto do estojo de cloro e pH contra fundo branco.</div>
+      <div><b>Ionizadores</b>O da tubulação só funciona com a bomba ligada. Com menos horas de filtro, o solar faz a maior parte do trabalho: manter os eletrodos limpos.</div>
+    </div>
+  </section>
+
+  <section id="faixas">
+    <h2>Faixas ideais</h2>
+    <div class="ranges">
+      <div class="range"><b>Cloro</b><span>1 a 3</span><small>Só entrar com 3 ou menos</small></div>
+      <div class="range"><b>pH</b><span>7,2 a 7,6</span><small>Estojo, lado vermelho</small></div>
+      <div class="range"><b>Alcalinidade</b><span>10 a 12 gotas</span><small>100 a 120 ppm</small></div>
+      <div class="range"><b>Cobre</b><span>0,3 a 0,5</span><small>ppm, kit de cobre</small></div>
+    </div>
+  </section>
+
+  <section id="doses">
+    <h2>Produtos e doses</h2>
+    <p class="lead">Calculadas para 27 m³ (27 mil litros).</p>
+    <div class="scroll">
+    <table class="tbl">
+      <tr><th>Produto</th><th>Quando</th><th>Dose</th><th>Origem</th></tr>
+      <tr><td>Genclor (cloro granulado)</td><td>Reposição, cloro abaixo de 1</td><td><b>70 g</b></td><td>Rótulo: 2 a 3 g/m³</td></tr>
+      <tr><td>Genclor (cloro granulado)</td><td>Choque leve (cloro deu 1)</td><td><b>300 g</b></td><td>Deixa o cloro em ~6</td></tr>
+      <tr><td>Genclor (cloro granulado)</td><td>Choque (cloro baixo, turva ou chuva)</td><td><b>400 g</b></td><td>Deixa o cloro em ~8</td></tr>
+      <tr><td>pH Certo (elevador de alcalinidade)</td><td>Alcalinidade abaixo de 10 gotas</td><td><b>500 g por gota</b></td><td>Observado na sua piscina</td></tr>
+      <tr><td>Algicida de manutenção</td><td>Segunda da Semana 1, cobre abaixo de 0,3</td><td><b>65 ml</b></td><td>Metade do rótulo, por causa dos ionizadores</td></tr>
+      <tr><td>Clarificante</td><td>Domingo, água limpa</td><td><b>40 ml</b></td><td>Rótulo: 1,5 ml/m³</td></tr>
+      <tr><td>Clarificante</td><td>Domingo, água turva</td><td><b>80 ml</b></td><td>Rótulo: 3 a 6 ml/m³</td></tr>
+      <tr><td>Tablete Genclor T-200 (cloro em pastilha)</td><td>Sempre no flutuador</td><td><b>1 tablete</b></td><td>Rótulo: 1 para cada 30 m³</td></tr>
+    </table>
+    </div>
+  </section>
+
+  <section id="como">
+    <h2>Como fazer</h2>
+    <h3 class="group">Testes</h3>
+    <details><summary>Alcalinidade (kit HidroAll)</summary><div class="in"><ol>
+      <li>Encher o copinho até a marca de 25 ml, com água de uns 30 cm abaixo da superfície, longe do retorno.</li>
+      <li>Pingar 5 gotas da <b>Solução 2</b> (indicador, tampa rosa) e agitar.</li>
+      <li>Pingar a <b>Solução 1</b> (titulante, tampa branca) uma gota por vez, agitando e contando.</li>
+      <li>Parar na <b>primeira gota</b> em que a água ficar rosa. Gotas depois disso só escurecem o rosa.</li>
+      <li>Cada gota = 10 ppm. Ideal: 10 a 12 gotas.</li>
+    </ol></div></details>
+    <details><summary>Cloro e pH (estojo HidroAll)</summary><div class="in"><ol>
+      <li>Mergulhar o estojo de boca para baixo a uns 30 cm e encher os dois lados até a marca.</li>
+      <li>Lado do pH: 5 gotas de Vermelho Fenol (tampa vermelha).</li>
+      <li>Lado do cloro: 5 gotas de Orto-Tolidina (tampa amarela).</li>
+      <li>Fechar, virar algumas vezes e ler logo.</li>
+      <li>Comparar contra um fundo branco (papel ou parede). Contra o céu as cores parecem mais claras.</li>
+    </ol></div></details>
+    <details><summary>Cobre</summary><div class="in"><p>Seguir as instruções do kit. Ideal: 0,3 a 0,5 ppm.</p></div></details>
+    <details><summary>Fitas de teste</summary><div class="in"><p>Só para conferência rápida. Fita vencida não serve. Guardar bem fechada, longe de umidade e sol. Para decidir dose, vale o estojo de gotas.</p></div></details>
+
+    <h3 class="group">Limpeza</h3>
+    <details><summary>Completar a piscina · domingo</summary><div class="in"><p>Antes de escovar e medir, completar até o nível de sempre, alguns centímetros acima dos bocais de retorno e do bocal de aspiração. Se a água baixar até esses bocais, a bomba puxa ar e pode estragar. Também completar na segunda se aspirou em DRENAR.</p><p>Como a água é de poço, se depois do choque ela ficar amarelada ou marrom, é metal da água nova.</p></div></details>
+    <details><summary>Escovar · domingo</summary><div class="in"><p>Antes da medição. Paredes, depois degraus, depois fundo, empurrando a sujeira para o centro ou para o ralo de fundo.</p></div></details>
+    <details><summary>Eletrodos dos ionizadores · domingo</summary><div class="in"><p>Retirar, escovar com a escova que veio com o refil até tirar a crosta, enxaguar e recolocar.</p></div></details>
+    <details><summary>Aspirar · segunda</summary><div class="in"><p>Com a válvula em FILTRAR. Se tiver muita sujeira (por exemplo, depois do clarificante com água turva), usar DRENAR para não devolver a sujeira à piscina, e completar a água depois.</p></div></details>
+    <details><summary>Retrolavagem · segunda</summary><div class="in"><ol>
+      <li>Desligar a bomba.</li>
+      <li>Válvula em RETROLAVAR.</li>
+      <li>Ligar por 2 a 3 minutos, até a água no visor sair limpa.</li>
+      <li>Desligar. Válvula em ENXAGUAR e ligar por 30 segundos.</li>
+      <li>Desligar. Válvula de volta em FILTRAR.</li>
+    </ol><p><b>Nunca girar a válvula com a bomba ligada.</b></p></div></details>
+    <details><summary>Limpa borda · sexta, antes de usar</summary><div class="in"><p>Última tarefa da semana. Aplicar com esponja macia na faixa da linha da água. Nada abrasivo, para não riscar a fibra.</p></div></details>
+    <details><summary>Pré-filtro da bomba</summary><div class="in"><p>Limpar o cesto no domingo e sempre que tiver muitas folhas.</p></div></details>
+
+    <h3 class="group">Aplicar produtos</h3>
+    <details><summary>Regra geral</summary><div class="in"><p>Encher o balde com água primeiro, colocar o produto depois, misturar e espalhar pela superfície, com o filtro ligado. Afastar o flutuador do tablete do ponto de aplicação.</p></div></details>
+    <details><summary>Vários produtos na mesma noite</summary><div class="in"><p>Cada produto em balde separado, aplicado em lados diferentes da piscina, com uns 15 minutos entre um e outro.</p></div></details>
+    <details><summary>Genclor (cloro granulado)</summary><div class="in"><p>Dissolver no balde e jogar só a parte dissolvida. Na fibra, não deixar grânulos caírem no fundo.</p></div></details>
+    <details><summary>Clarificante</summary><div class="in"><p>Agitar a garrafa, medir na proveta e aplicar com o aplicador (filete fino, andando em volta da piscina) ou diluído no balde. Uso liberado 30 minutos depois.</p></div></details>
+    <details><summary>Algicida de manutenção</summary><div class="in"><p>Diluir no balde e espalhar, com o pH entre 7,2 e 7,6. Uso liberado 30 minutos depois. Nunca na mesma noite do Genclor, o cloro granulado (12 horas de intervalo).</p></div></details>
+    <details><summary>pH Certo (elevador de alcalinidade)</summary><div class="in"><p>Dissolver no balde (pode dividir em 2 ou 3 baldes) e espalhar. Corrigir o pH só 24 horas depois.</p></div></details>
+  </section>
+
+  <section id="seguranca">
+    <h2>Segurança</h2>
+    <div class="alert"><b>Tablete x Genclor (cloro granulado)</b>Nunca misturar o tablete (tricloro) com o Genclor (cloro granulado, dicloro) concentrado: risco de fogo ou explosão. Balde do tablete separado e só para ele. Não guardar tablete molhado na embalagem.</div>
+    <div class="alert"><b>Algicida x cloro granulado</b>Mínimo de 12 horas entre um e outro.</div>
+    <div class="daily">
+      <div><b>Proteção</b>Luvas e óculos ao manusear os produtos. Guardar longe de crianças e animais.</div>
+      <div><b>Uso da piscina</b>Só entrar com cloro em 3 ou menos e pH entre 7,2 e 7,6.</div>
+      <div><b>Água primeiro</b>Sempre água no balde primeiro, produto depois. Nunca o contrário.</div>
+    </div>
+  </section>
+
+  <footer>Plano de tratamento · piscina de fibra 27 m³ · produtos Genco · <a href="https://azulmarinhoinfo.com.br">Azul Marinho</a></footer>
+</main>
+
+<script>
+document.querySelectorAll('.tabs button').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    document.querySelectorAll('.tabs button').forEach(function(b){b.setAttribute('aria-selected', b===btn ? 'true':'false');});
+    document.querySelectorAll('.panel').forEach(function(p){p.hidden = p.id !== btn.dataset.tab;});
+  });
+});
+</script>
+<script>
+(function(){
+  var KEY='plano-piscina-feito';
+  var state={};
+  try{state=JSON.parse(localStorage.getItem(KEY))||{};}catch(e){state={};}
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+  function update(pid){
+    var items=document.querySelectorAll('#'+pid+' .steps > li');
+    var done=document.querySelectorAll('#'+pid+' .steps > li.done').length;
+    document.querySelector('[data-count="'+pid+'"]').textContent=done+' de '+items.length;
+    document.querySelector('[data-bar="'+pid+'"]').style.width=(items.length?done/items.length*100:0)+'%';
+  }
+  ['s1','s2'].forEach(function(pid){
+    document.querySelectorAll('#'+pid+' .steps > li').forEach(function(li,i){
+      var id=pid+'-'+i;
+      var cb=document.createElement('input');
+      cb.type='checkbox'; cb.className='chk'; cb.setAttribute('aria-label','Marcar como feito');
+      cb.checked=!!state[id]; li.classList.toggle('done',cb.checked);
+      cb.addEventListener('change',function(){state[id]=cb.checked; li.classList.toggle('done',cb.checked); save(); update(pid);});
+      li.addEventListener('click',function(e){ if(e.target===cb||e.target.tagName==='A'||e.target.closest('details')) return; cb.checked=!cb.checked; cb.dispatchEvent(new Event('change')); });
+      li.appendChild(cb);
+    });
+    document.querySelector('[data-reset="'+pid+'"]').addEventListener('click',function(){
+      document.querySelectorAll('#'+pid+' .steps > li').forEach(function(li,i){
+        var cb=li.querySelector('.chk'); cb.checked=false; li.classList.remove('done'); delete state[pid+'-'+i];
+      });
+      save(); update(pid);
+    });
+    update(pid);
+  });
+})();
+</script>
+<script>
+(function(){
+  var IDEAL={dom:6,seg:2,ter:1,qua:1,qui:1,sex:1,sab:6};
+  var NOMES={dom:'Dom',seg:'Seg',ter:'Ter',qua:'Qua',qui:'Qui',sex:'Sex',sab:'Sáb'};
+  var KEY='plano-piscina-filtro', DOCPATH='config/filtro';
+  var inputs=Array.prototype.slice.call(document.querySelectorAll('.cfg'));
+  var notas=document.getElementById('cfg-notas'), btn=document.getElementById('cfg-salvar'), st=document.getElementById('cfg-status'), histEl=document.getElementById('cfg-hist'), totEl=document.getElementById('cfg-total');
+  var state={horas:{},notas:'',atualizado:0,historico:[]}, DB=null;
+  function num(v){v=String(v==null?'':v).replace(',','.').trim();if(v==='')return null;var n=parseFloat(v);return isFinite(n)?n:null;}
+  function fmt(n){return String(n).replace('.',',');}
+  function quando(t){if(!t)return '';var d=new Date(t);return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();}
+  function resumo(h){return Object.keys(NOMES).map(function(k){return NOMES[k]+' '+(h&&h[k]!=null?fmt(h[k])+' h':'—');}).join(', ');}
+  function atualizarTotais(){
+    var tot=0,algum=false;
+    inputs.forEach(function(i){var n=num(i.value);i.classList.toggle('diff',n!=null&&n!==IDEAL[i.dataset.dia]);if(n!=null){tot+=n;algum=true;}});
+    totEl.textContent=algum?fmt(Math.round(tot*10)/10)+' h':'—';
+  }
+  function aplicar(){
+    inputs.forEach(function(i){var v=state.horas&&state.horas[i.dataset.dia];i.value=v==null?'':fmt(v);});
+    notas.value=state.notas||''; atualizarTotais();
+    st.textContent=state.atualizado?'Última configuração salva em '+quando(state.atualizado)+'.':'';
+    histEl.textContent='';
+    var h=state.historico||[];
+    if(h.length){
+      histEl.hidden=false; histEl.appendChild(document.createElement('b')).textContent='Configurações anteriores';
+      var ul=document.createElement('ul');
+      h.slice().reverse().forEach(function(x){var li=document.createElement('li');li.textContent=quando(x.atualizado)+': '+resumo(x.horas)+(x.notas?'. '+x.notas:'');ul.appendChild(li);});
+      histEl.appendChild(ul);
+    } else histEl.hidden=true;
+  }
+  window.__cfgFiltro=function(){return state;};
+  window.__cfgResumo=function(){return state.atualizado?resumo(state.horas)+(state.notas?' ('+state.notas+')':''):'';};
+  try{var raw=localStorage.getItem(KEY);if(raw)state=JSON.parse(raw)||state;}catch(e){}
+  aplicar();
+  inputs.forEach(function(i){i.addEventListener('input',atualizarTotais);});
+  btn.addEventListener('click',async function(){
+    var horas={};inputs.forEach(function(i){var n=num(i.value);if(n!=null)horas[i.dataset.dia]=n;});
+    var nova={horas:horas,notas:notas.value.trim(),atualizado:Date.now()};
+    var hist=(state.historico||[]).slice();
+    if(state.atualizado&&(JSON.stringify(state.horas)!==JSON.stringify(horas)||(state.notas||'')!==nova.notas)) hist.push({horas:state.horas,notas:state.notas||'',atualizado:state.atualizado});
+    nova.historico=hist.slice(-10);
+    btn.disabled=true; st.textContent='Salvando…';
+    var ok=false;
+    if(DB){try{await DB.doc(DOCPATH).set(nova);ok=true;}catch(e){}}
+    try{localStorage.setItem(KEY,JSON.stringify(nova));ok=true;}catch(e){}
+    state=nova; aplicar(); btn.disabled=false;
+    if(!ok) st.textContent='Não foi possível salvar neste navegador.';
+  });
+  if(window.claude&&window.claude.use){
+    window.claude.use('db').then(function(db){
+      if(!db) return; DB=db;
+      db.doc(DOCPATH).get().then(function(snap){if(snap.exists){var d=snap.data();if(!state.atualizado||d.atualizado>=state.atualizado){state=JSON.parse(JSON.stringify(d));aplicar();}}}).catch(function(){});
+    }).catch(function(){});
+  }
+})();
+</script>
+</body>
+</html>
