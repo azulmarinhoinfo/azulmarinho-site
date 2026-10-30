@@ -10,7 +10,7 @@
    ========================================================= */
 
 import { conferirAcesso, json } from "../../../lib/acesso.js";
-import { lerDiario, gravarDiario, chaveFoto, ID_OK } from "../../../lib/piscina.js";
+import { lerDiario, gravarDiario, chaveFoto, chaveFoto64, ID_OK } from "../../../lib/piscina.js";
 
 var MODELO_CLAUDE = "claude-sonnet-5-5";
 var MODELO_GEMINI = "gemini-flash-latest";
@@ -62,6 +62,14 @@ function limpar(r) {
     };
 }
 
+/* Monta o JSON com marcadores no lugar das fotos e encaixa o base64 depois:
+   passar fotos grandes pelo JSON.stringify gasta tempo de processamento à toa */
+function corpoComFotos(obj, fotos) {
+    var s = JSON.stringify(obj);
+    for (var i = 0; i < fotos.length; i++) s = s.split('"@@FOTO' + i + '@@"').join('"' + fotos[i].dados + '"');
+    return s;
+}
+
 function erroHttp(status, qual) {
     return status === 429 ? "Muitos pedidos agora. Tente de novo em alguns minutos."
         : (status === 401 || status === 403) ? "A chave da IA não foi aceita. Confira a " + qual + " no Cloudflare."
@@ -69,16 +77,16 @@ function erroHttp(status, qual) {
 }
 
 async function gemini(env, fotos, texto) {
-    var partes = fotos.map(function (f) { return { inline_data: { mime_type: f.tipo, data: f.dados } }; });
+    var partes = fotos.map(function (f, i) { return { inline_data: { mime_type: f.tipo, data: "@@FOTO" + i + "@@" } }; });
     partes.push({ text: texto });
     var r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + (env.GEMINI_MODEL || MODELO_GEMINI) + ":generateContent", {
         method: "POST",
         headers: { "content-type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
-        body: JSON.stringify({
+        body: corpoComFotos({
             systemInstruction: { parts: [{ text: CONTEXTO }] },
             contents: [{ role: "user", parts: partes }],
             generationConfig: { responseMimeType: "application/json", maxOutputTokens: 4096 }
-        })
+        }, fotos)
     });
     var resp = await r.json().catch(function () { return {}; });
     if (!r.ok) return { erro: r.status === 400 && /API key/i.test(JSON.stringify(resp)) ? erroHttp(401, "GEMINI_API_KEY") : erroHttp(r.status, "GEMINI_API_KEY") };
@@ -88,12 +96,12 @@ async function gemini(env, fotos, texto) {
 }
 
 async function claude(env, fotos, texto) {
-    var conteudo = fotos.map(function (f) { return { type: "image", source: { type: "base64", media_type: f.tipo, data: f.dados } }; });
+    var conteudo = fotos.map(function (f, i) { return { type: "image", source: { type: "base64", media_type: f.tipo, data: "@@FOTO" + i + "@@" } }; });
     conteudo.push({ type: "text", text: texto });
     var r = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
         headers: { "content-type": "application/json", "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
-        body: JSON.stringify({ model: env.ANTHROPIC_MODEL || MODELO_CLAUDE, max_tokens: 1500, system: CONTEXTO, messages: [{ role: "user", content: conteudo }] })
+        body: corpoComFotos({ model: env.ANTHROPIC_MODEL || MODELO_CLAUDE, max_tokens: 1500, system: CONTEXTO, messages: [{ role: "user", content: conteudo }] }, fotos)
     });
     var resp = await r.json().catch(function () { return {}; });
     if (!r.ok) return { erro: erroHttp(r.status, "ANTHROPIC_API_KEY") };
@@ -129,8 +137,11 @@ export async function onRequestPost(context) {
         return json({ erro: "A análise automática ainda não está ligada.", codigo: "sem-chave", registro: reg }, 503);
     }
 
+    /* a foto já vem em base64 do navegador; só as antigas, de antes disso, são convertidas aqui */
     var fotos = [];
     for (var i = 0; i < (reg.fotos || []).length; i++) {
+        var f64 = await env.DADOS.getWithMetadata(chaveFoto64(reg.fotos[i]));
+        if (f64.value) { fotos.push({ tipo: (f64.metadata && f64.metadata.tipo) || "image/jpeg", dados: f64.value }); continue; }
         var f = await env.DADOS.getWithMetadata(chaveFoto(reg.fotos[i]), { type: "arrayBuffer" });
         if (f.value) fotos.push({ tipo: (f.metadata && f.metadata.tipo) || "image/jpeg", dados: base64(f.value) });
     }

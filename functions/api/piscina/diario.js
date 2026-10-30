@@ -7,7 +7,7 @@
    ========================================================= */
 
 import { conferirAcesso, json } from "../../../lib/acesso.js";
-import { lerDiario, gravarDiario, chaveFoto, novoId, ID_OK, MAX_REGISTROS } from "../../../lib/piscina.js";
+import { lerDiario, gravarDiario, chaveFoto, chaveFoto64, apagarFotos, novoId, ID_OK, MAX_REGISTROS } from "../../../lib/piscina.js";
 
 var DATA_OK = /^\d{4}-\d{2}-\d{2}$/;
 var MAX_FOTO = 4 * 1024 * 1024;
@@ -37,6 +37,7 @@ export async function onRequest(context) {
         };
         var obs = texto(form.get("obs"), 1000);
         var arquivos = form.getAll("fotos").filter(function (f) { return f && typeof f === "object" && f.size; }).slice(0, 3);
+        var textos64 = form.getAll("fotos64").map(String);
         for (var i = 0; i < arquivos.length; i++) {
             if (arquivos[i].size > MAX_FOTO) return json({ erro: "Foto grande demais. Tente outra.", codigo: "foto-grande" }, 413);
             if (!/^image\//.test(arquivos[i].type || "")) return json({ erro: "Só dá para enviar fotos." }, 400);
@@ -49,6 +50,10 @@ export async function onRequest(context) {
         for (var j = 0; j < arquivos.length; j++) {
             var fid = novoId();
             await env.DADOS.put(chaveFoto(fid), await arquivos[j].arrayBuffer(), { metadata: { tipo: arquivos[j].type } });
+            var b64 = textos64[j] || "";
+            if (b64 && b64.length < MAX_FOTO * 1.4 && /^[A-Za-z0-9+/=]+$/.test(b64.slice(0, 200))) {
+                await env.DADOS.put(chaveFoto64(fid), b64, { metadata: { tipo: arquivos[j].type } });
+            }
             fotos.push(fid);
         }
 
@@ -56,9 +61,7 @@ export async function onRequest(context) {
         lista.unshift(reg);
         /* registros que passarem do limite saem junto com as fotos */
         var sobra = lista.slice(MAX_REGISTROS);
-        for (var k = 0; k < sobra.length; k++) {
-            for (var m = 0; m < (sobra[k].fotos || []).length; m++) await env.DADOS.delete(chaveFoto(sobra[k].fotos[m]));
-        }
+        for (var k = 0; k < sobra.length; k++) await apagarFotos(env, sobra[k].fotos);
         await gravarDiario(env, lista);
         return json({ ok: true, registro: reg });
     }
@@ -68,7 +71,7 @@ export async function onRequest(context) {
         if (!ID_OK.test(id)) return json({ erro: "Registro inválido." }, 400);
         var alvo = lista.find(function (r) { return r.id === id; });
         if (!alvo) return json({ ok: true });
-        for (var n = 0; n < (alvo.fotos || []).length; n++) await env.DADOS.delete(chaveFoto(alvo.fotos[n]));
+        await apagarFotos(env, alvo.fotos);
         await gravarDiario(env, lista.filter(function (r) { return r.id !== id; }));
         return json({ ok: true });
     }

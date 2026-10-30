@@ -690,27 +690,31 @@ document.querySelectorAll('.tabs button').forEach(function(btn){
   function foto(id){return '/api/piscina/foto?id='+encodeURIComponent(id);}
   async function api(url,opts){
     var r=await fetch(url,Object.assign({credentials:'same-origin',cache:'no-store'},opts||{}));
-    var d=await r.json().catch(function(){return {};});
+    var d=await r.json().catch(function(){return {erro:'O site não respondeu direito (erro '+r.status+'). Tente de novo.'};});
     d.status=r.status; return d;
   }
-  function reduzir(file){
+  function reduzir(file,max,q){
     return new Promise(function(res,rej){
       var url=URL.createObjectURL(file), img=new Image();
       img.onload=function(){
-        var max=1600, w=img.naturalWidth, h=img.naturalHeight, k=Math.min(1,max/Math.max(w,h));
+        var w=img.naturalWidth, h=img.naturalHeight, k=Math.min(1,max/Math.max(w,h));
         var c=document.createElement('canvas'); c.width=Math.round(w*k); c.height=Math.round(h*k);
         c.getContext('2d').drawImage(img,0,0,c.width,c.height); URL.revokeObjectURL(url);
-        c.toBlob(function(b){b?res(b):rej(new Error('blob'));},'image/jpeg',0.85);
+        c.toBlob(function(b){b?res(b):rej(new Error('blob'));},'image/jpeg',q);
       };
       img.onerror=function(){URL.revokeObjectURL(url);rej(new Error('img'));};
       img.src=url;
     });
+  }
+  function emBase64(blob){
+    return new Promise(function(res,rej){var fr=new FileReader();fr.onload=function(){res(String(fr.result).split(',')[1]||'');};fr.onerror=rej;fr.readAsDataURL(blob);});
   }
   function trocar(reg){DOCS=DOCS.map(function(x){return x.id===reg.id?reg:x;});render();}
   async function analisar(id){
     var d=DOCS.find(function(x){return x.id===id;}); if(d){d.status='analisando';render();}
     var r=await api('/api/piscina/analisar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id,filtro:(window.__cfgResumo&&window.__cfgResumo())||''})});
     if(r.registro) trocar(r.registro);
+    else if(d){d.status='erro';d.erro=r.erro||'Não foi possível analisar agora. Peça de novo.';render();}
     if(r.codigo==='sem-chave'){ANALISE=false;render();}
     return !!r.ok;
   }
@@ -797,7 +801,7 @@ document.querySelectorAll('.tabs button').forEach(function(btn){
     if(!files.length&&!val('d-cloro')&&!val('d-ph')&&!val('d-alc')&&!val('d-cobre')&&!val('d-obs')){status.textContent='Adicione pelo menos uma foto, uma leitura ou uma observação.';return;}
     btn.disabled=true;
     try{
-      for(var i=0;i<files.length;i++){status.textContent='Preparando a foto '+(i+1)+' de '+files.length+'…';fd.append('fotos',await reduzir(files[i]),'foto'+(i+1)+'.jpg');}
+      for(var i=0;i<files.length;i++){status.textContent='Preparando a foto '+(i+1)+' de '+files.length+'…';fd.append('fotos',await reduzir(files[i],1600,0.85),'foto'+(i+1)+'.jpg');fd.append('fotos64',await emBase64(await reduzir(files[i],1024,0.8)));}
       status.textContent=files.length?'Enviando…':'Salvando…';
       var r=await api('/api/piscina/diario',{method:'POST',body:fd});
       if(!r.ok){status.textContent=r.erro||'Não foi possível salvar. Tente de novo.';btn.disabled=false;if(r.status===401)carregar();return;}
