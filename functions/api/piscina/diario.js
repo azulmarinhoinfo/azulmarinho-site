@@ -23,7 +23,7 @@ export async function onRequest(context) {
     var lista = await lerDiario(env);
 
     if (request.method === "GET") {
-        return json({ registros: lista, analise: !!env.ANTHROPIC_API_KEY });
+        return json({ registros: lista, analise: !!(env.GEMINI_API_KEY || env.ANTHROPIC_API_KEY) });
     }
 
     if (request.method === "POST") {

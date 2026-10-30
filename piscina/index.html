@@ -472,7 +472,7 @@ footer a{color:var(--brand);font-weight:600;text-decoration:none}
 
   <section id="diario">
     <h2>Diário da piscina</h2>
-    <p class="lead">Registre fotos da água e do estojo, com as leituras se tiver. Cada registro recebe uma análise do Claude com base neste plano e no filtro que você configurou.</p>
+    <p class="lead">Registre fotos da água e do estojo, com as leituras se tiver. Cada registro recebe uma análise da inteligência artificial com base neste plano e no filtro que você configurou.</p>
     <p id="diario-off" class="offline">Carregando o diário…</p>
     <form id="diario-login" class="entry-form" hidden>
       <div class="form-grid">
@@ -736,7 +736,7 @@ document.querySelectorAll('.tabs button').forEach(function(btn){
       if(d.obs) card.appendChild(el('p','obs',d.obs));
       if(a){
         var b=el('div','analise');
-        b.appendChild(el('h4',null,'Análise do Claude'));
+        b.appendChild(el('h4',null,'Análise da IA'));
         if(a.resumo) b.appendChild(el('p',null,a.resumo));
         if(a.agua){var pa=el('p');pa.appendChild(el('b',null,'Água: '));pa.appendChild(document.createTextNode(a.agua));b.appendChild(pa);}
         if(a.leituras){var pl=el('p');pl.appendChild(el('b',null,'Leituras: '));pl.appendChild(document.createTextNode(a.leituras));b.appendChild(pl);}
@@ -744,7 +744,7 @@ document.querySelectorAll('.tabs button').forEach(function(btn){
         if(a.filtro){var fl={manter:'Filtro: manter o tempo atual.',aumentar:'Filtro: aumentar o tempo.',reduzir:'Filtro: dá para reduzir.'}[a.filtro];b.appendChild(el('p','filtro',fl+(a.filtro_motivo?' '+a.filtro_motivo:'')));}
         card.appendChild(b);
       } else if(d.status==='erro'&&d.erro){card.appendChild(el('p','obs',d.erro));}
-      else if(d.status==='sem_analise'){card.appendChild(el('p','obs',ANALISE?'Registro salvo sem análise.':'Registro salvo. A análise do Claude ainda não está ligada no site.'));}
+      else if(d.status==='sem_analise'){card.appendChild(el('p','obs',ANALISE?'Registro salvo sem análise.':'Registro salvo. A análise automática ainda não está ligada no site.'));}
       var acts=el('div','entry-actions');
       if(ANALISE&&d.status!=='analisando'){
         var ra=el('button','btn-sm',a?'Analisar de novo':'Pedir análise');ra.type='button';
@@ -804,7 +804,7 @@ document.querySelectorAll('.tabs button').forEach(function(btn){
       DOCS.unshift(r.registro);
       form.reset(); document.getElementById('d-data').value=hoje(); prev.textContent='';
       btn.disabled=false;
-      if(ANALISE){status.textContent='Salvo. O Claude está analisando…';var ok=await analisar(r.registro.id);status.textContent=ok?'Análise pronta.':'Salvo, mas a análise não saiu. Use "Pedir análise" no registro.';}
+      if(ANALISE){status.textContent='Salvo. A IA está analisando…';var ok=await analisar(r.registro.id);status.textContent=ok?'Análise pronta.':'Salvo, mas a análise não saiu. Use "Pedir análise" no registro.';}
       else{status.textContent='Salvo.';render();}
     }catch(err){status.textContent='Não foi possível salvar. Tente de novo.';btn.disabled=false;}
   });

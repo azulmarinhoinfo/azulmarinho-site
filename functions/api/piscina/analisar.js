@@ -1,15 +1,19 @@
 /* =========================================================
-   /api/piscina/analisar — o Claude avalia um registro do diário
+   /api/piscina/analisar — a IA avalia um registro do diário
    POST { id, filtro }  (filtro = resumo das horas que o dono configurou)
-   Precisa da variável ANTHROPIC_API_KEY (tipo "Secret") no Cloudflare Pages.
-   Opcional: ANTHROPIC_MODEL para trocar o modelo.
+   Precisa de uma destas variáveis (tipo "Secret") no Cloudflare Pages:
+     GEMINI_API_KEY     IA do Google, com cota grátis (aistudio.google.com)
+     ANTHROPIC_API_KEY  Claude, pago por uso (console.anthropic.com)
+   Se as duas existirem, vale a do Gemini.
+   Opcional: GEMINI_MODEL / ANTHROPIC_MODEL para trocar o modelo.
    Só com o login do painel.
    ========================================================= */
 
 import { conferirAcesso, json } from "../../../lib/acesso.js";
 import { lerDiario, gravarDiario, chaveFoto, ID_OK } from "../../../lib/piscina.js";
 
-var MODELO = "claude-sonnet-5-5";
+var MODELO_CLAUDE = "claude-sonnet-5-5";
+var MODELO_GEMINI = "gemini-flash-latest";
 
 var CONTEXTO = [
     "Você é um técnico de piscinas avaliando o diário de uma piscina residencial. Responda em português do Brasil, de forma simples e direta, para um leigo.",
@@ -58,6 +62,44 @@ function limpar(r) {
     };
 }
 
+function erroHttp(status, qual) {
+    return status === 429 ? "Muitos pedidos agora. Tente de novo em alguns minutos."
+        : (status === 401 || status === 403) ? "A chave da IA não foi aceita. Confira a " + qual + " no Cloudflare."
+        : "Não foi possível analisar agora. Peça de novo.";
+}
+
+async function gemini(env, fotos, texto) {
+    var partes = fotos.map(function (f) { return { inline_data: { mime_type: f.tipo, data: f.dados } }; });
+    partes.push({ text: texto });
+    var r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + (env.GEMINI_MODEL || MODELO_GEMINI) + ":generateContent", {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
+        body: JSON.stringify({
+            systemInstruction: { parts: [{ text: CONTEXTO }] },
+            contents: [{ role: "user", parts: partes }],
+            generationConfig: { responseMimeType: "application/json", maxOutputTokens: 4096 }
+        })
+    });
+    var resp = await r.json().catch(function () { return {}; });
+    if (!r.ok) return { erro: r.status === 400 && /API key/i.test(JSON.stringify(resp)) ? erroHttp(401, "GEMINI_API_KEY") : erroHttp(r.status, "GEMINI_API_KEY") };
+    var c = (resp.candidates || [])[0];
+    var txt = ((c && c.content && c.content.parts) || []).map(function (p) { return p.text || ""; }).join("");
+    return { texto: txt };
+}
+
+async function claude(env, fotos, texto) {
+    var conteudo = fotos.map(function (f) { return { type: "image", source: { type: "base64", media_type: f.tipo, data: f.dados } }; });
+    conteudo.push({ type: "text", text: texto });
+    var r = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
+        body: JSON.stringify({ model: env.ANTHROPIC_MODEL || MODELO_CLAUDE, max_tokens: 1500, system: CONTEXTO, messages: [{ role: "user", content: conteudo }] })
+    });
+    var resp = await r.json().catch(function () { return {}; });
+    if (!r.ok) return { erro: erroHttp(r.status, "ANTHROPIC_API_KEY") };
+    return { texto: (resp.content || []).filter(function (c) { return c.type === "text"; }).map(function (c) { return c.text; }).join("") };
+}
+
 async function salvar(env, id, mudancas) {
     var lista = await lerDiario(env);
     var reg = lista.find(function (r) { return r.id === id; });
@@ -82,34 +124,25 @@ export async function onRequestPost(context) {
     var reg = lista.find(function (r) { return r.id === id; });
     if (!reg) return json({ erro: "Registro não encontrado." }, 404);
 
-    if (!env.ANTHROPIC_API_KEY) {
+    if (!env.GEMINI_API_KEY && !env.ANTHROPIC_API_KEY) {
         reg = await salvar(env, id, { status: "sem_analise", erro: "" });
         return json({ erro: "A análise automática ainda não está ligada.", codigo: "sem-chave", registro: reg }, 503);
     }
 
-    var conteudo = [];
+    var fotos = [];
     for (var i = 0; i < (reg.fotos || []).length; i++) {
         var f = await env.DADOS.getWithMetadata(chaveFoto(reg.fotos[i]), { type: "arrayBuffer" });
-        if (f.value) conteudo.push({ type: "image", source: { type: "base64", media_type: (f.metadata && f.metadata.tipo) || "image/jpeg", data: base64(f.value) } });
+        if (f.value) fotos.push({ tipo: (f.metadata && f.metadata.tipo) || "image/jpeg", dados: base64(f.value) });
     }
-    conteudo.push({ type: "text", text: pedido(reg, lista, String(corpo.filtro || "").slice(0, 400), conteudo.length) });
+    var texto = pedido(reg, lista, String(corpo.filtro || "").slice(0, 400), fotos.length);
 
     try {
-        var r = await fetch("https://api.anthropic.com/v1/messages", {
-            method: "POST",
-            headers: { "content-type": "application/json", "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
-            body: JSON.stringify({ model: env.ANTHROPIC_MODEL || MODELO, max_tokens: 1500, system: CONTEXTO, messages: [{ role: "user", content: conteudo }] })
-        });
-        var resp = await r.json().catch(function () { return {}; });
-        if (!r.ok) {
-            var msg = r.status === 429 ? "Muitos pedidos agora. Tente de novo em alguns minutos."
-                : r.status === 401 ? "A chave da API do Claude não foi aceita. Confira a ANTHROPIC_API_KEY no Cloudflare."
-                : "Não foi possível analisar agora. Peça de novo.";
-            reg = await salvar(env, id, { status: "erro", erro: msg });
-            return json({ erro: msg, registro: reg }, 502);
+        var res = env.GEMINI_API_KEY ? await gemini(env, fotos, texto) : await claude(env, fotos, texto);
+        if (res.erro) {
+            reg = await salvar(env, id, { status: "erro", erro: res.erro });
+            return json({ erro: res.erro, registro: reg }, 502);
         }
-        var txt = (resp.content || []).filter(function (c) { return c.type === "text"; }).map(function (c) { return c.text; }).join("");
-        var ini = txt.indexOf("{"), fim = txt.lastIndexOf("}");
+        var txt = res.texto, ini = txt.indexOf("{"), fim = txt.lastIndexOf("}");
         var obj = JSON.parse(txt.slice(ini, fim + 1));
         reg = await salvar(env, id, { analise: limpar(obj), status: "ok", erro: "" });
         return json({ ok: true, registro: reg });
