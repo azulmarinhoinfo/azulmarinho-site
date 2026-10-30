@@ -13,7 +13,7 @@ import { conferirAcesso, json } from "../../../lib/acesso.js";
 import { lerDiario, gravarDiario, chaveFoto, chaveFoto64, ID_OK } from "../../../lib/piscina.js";
 
 var MODELO_CLAUDE = "claude-sonnet-5-5";
-var MODELO_GEMINI = "gemini-flash-latest";
+var MODELO_GEMINI = "gemini-3.5-flash";
 
 var CONTEXTO = [
     "Você é um técnico de piscinas avaliando o diário de uma piscina residencial. Responda em português do Brasil, de forma simples e direta, para um leigo.",

@@ -39,8 +39,8 @@ export async function onRequestGet(context) {
     var chave = env.GEMINI_API_KEY;
     var resultados = await Promise.all([
         teste("lista de modelos", BASE + "models?pageSize=100", { headers: { "x-goog-api-key": chave } }),
-        oi(env.GEMINI_MODEL || "gemini-flash-latest", chave),
-        oi("gemini-2.5-flash-lite", chave)
+        oi(env.GEMINI_MODEL || "gemini-3.5-flash", chave),
+        oi("gemini-3.5-flash-lite", chave)
     ]);
     var lista = resultados[0];
     try {
