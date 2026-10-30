@@ -45,7 +45,7 @@ window.ICONES = {
             '<span class="ls-palavra">AZUL MARINH' + icone + '</span><span class="ls-sub">' + nome + '</span></a>';
     }
     function seloAtivo(nome) { return pagina === nome ? ' aria-current="page" data-ativo' : ""; }
-    var linkSports = selo(A.sports, I.bola, "Sports", ' target="_blank" rel="noopener"');
+    var linkSports = selo(A.sports, I.bola, "Sports");
     /* Logo do grupo (portal e eventos): só "AZUL MARINHO", sem o "Suporte em Informática" */
     var logoGrupo = '<span class="logo-grupo">AZUL MARINH' + I.anel + '</span>';
 
@@ -94,7 +94,7 @@ window.ICONES = {
                     '<a href="' + base + '/informatica/">Informática</a>' +
                     '<a href="' + base + '/eventos/">Eventos</a>' +
                     '<a href="' + base + '/piscina/">Piscina</a>') +
-                    '<a href="' + A.sports + '" target="_blank" rel="noopener">Azul Marinho Sports</a>' +
+                    '<a href="' + A.sports + '">Azul Marinho Sports</a>' +
                 '</nav>' +
                 '<p><a href="' + A.linkWhats() + '" target="_blank" rel="noopener">' + A.telefone + '</a> • ' +
                     '<a href="mailto:' + A.email + '">' + A.email + '</a> • ' +
