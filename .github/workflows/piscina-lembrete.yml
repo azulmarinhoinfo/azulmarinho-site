@@ -1,0 +1,17 @@
+# Aviso no celular nos dias de trabalho da piscina.
+# Todo dia às 9h (Brasília) chama o site, que decide se hoje tem tarefa e deixa o
+# aviso agendado no app ntfy para a hora certa: domingo 20h, segunda/quarta/sexta 23h
+# (functions/api/piscina/lembrete.js e piscina/agenda.js). Dias livres não avisam.
+name: Lembrete da piscina
+
+on:
+  schedule:
+    - cron: "0 12 * * *"
+  workflow_dispatch:
+
+jobs:
+  avisar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Chamar o site
+        run: curl -fsS -X POST https://azulmarinhoinfo.com.br/api/piscina/lembrete

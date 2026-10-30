@@ -174,6 +174,36 @@ footer a{color:var(--brand);font-weight:600;text-decoration:none}
 .entry-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .empty{color:var(--muted);background:var(--card);border:1px dashed var(--line);border-radius:14px;padding:16px;margin:0}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.cal{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:16px}
+.cal-top{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.cal-top h3{margin:0 auto 0 4px;font-size:18px;order:-1;flex:1}
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.cal-wd{font-size:12px;font-weight:700;color:var(--muted);text-align:center;padding:4px 0;text-transform:uppercase}
+.cal-d{font:inherit;text-align:left;background:var(--bg);border:1px solid transparent;border-radius:10px;min-height:76px;padding:6px;cursor:pointer;color:var(--ink);display:flex;flex-direction:column;gap:3px;min-width:0}
+.cal-d.fora{opacity:.4}
+.cal-d.hoje{border-color:var(--brand);box-shadow:inset 0 0 0 1px var(--brand)}
+.cal-d.sel{background:var(--brand-soft)}
+.cal-d .n{font-size:13px;font-weight:700;display:flex;justify-content:space-between;gap:4px}
+.cal-d .n small{font-weight:600;color:var(--muted);font-size:10px}
+.cal-d .t{font-size:11px;line-height:1.25;border-radius:6px;padding:2px 5px;font-weight:600;overflow:hidden;text-overflow:ellipsis}
+.t-dom,.lg-dom{background:var(--act);color:var(--act-ink)}
+.t-seg,.lg-seg{background:var(--brand-soft);color:var(--brand)}
+.t-alg,.lg-alg{background:var(--bad);color:var(--bad-ink)}
+.t-qua,.lg-qua{background:var(--bg);color:var(--muted);border:1px dashed var(--line)}
+.t-sex,.lg-sex{background:var(--ok);color:var(--ok-ink)}
+.t-foto{background:var(--warn);color:var(--warn-ink)}
+.cal-leg{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.cal-leg .lg{font-size:12px;font-weight:600;border-radius:999px;padding:2px 10px}
+.cal-dia{margin-top:12px;border-top:1px dashed var(--line);padding-top:12px}
+.cal-dia h4{margin:0 0 6px;font-size:16px}
+.cal-dia ul{margin:0;padding-left:20px}
+.cal-dia p{margin:0;color:var(--muted)}
+.cal-apple{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:14px;border-top:1px dashed var(--line);padding-top:12px}
+.cal-apple .btn{text-decoration:none;display:inline-block}
+.cal-cfg h3{margin:0 0 10px;font-size:16px}
+.chk-line{flex-direction:row!important;align-items:center;gap:8px!important;font-size:14px!important;color:var(--ink)!important}
+.chk-line input{width:auto!important}
+@media (max-width:560px){.cal{padding:10px}.cal-d{min-height:58px;padding:4px}.cal-d .t{font-size:0;padding:0;height:6px}.cal-d .n small{display:none}}
 </style>
 </head>
 <body>
@@ -192,7 +222,7 @@ footer a{color:var(--brand);font-weight:600;text-decoration:none}
 </header>
 
 <nav><div class="wrap">
-  <a href="#plano">Plano</a><a href="#medicao">Medição</a><a href="#automacao">Automação</a><a href="#diario">Diário</a><a href="#faixas">Faixas ideais</a><a href="#doses">Doses</a><a href="#como">Como fazer</a><a href="#seguranca">Segurança</a>
+  <a href="#plano">Plano</a><a href="#calendario">Calendário</a><a href="#medicao">Medição</a><a href="#automacao">Automação</a><a href="#diario">Diário</a><a href="#faixas">Faixas ideais</a><a href="#doses">Doses</a><a href="#como">Como fazer</a><a href="#seguranca">Segurança</a>
 </div></nav>
 
 <main class="wrap">
@@ -396,6 +426,36 @@ footer a{color:var(--brand);font-weight:600;text-decoration:none}
       <div><b>Tablete no flutuador</b>1 tablete Genclor T-200 (cloro em pastilha) sempre na água. Trocar quando acabar. Para aplicar produtos, só afastar o flutuador.</div>
       <div><b>Ionizadores</b>O da tubulação liga com a bomba. O solar fica na água, exceto com cobre acima de 0,5.</div>
       <div><b>Folhas</b>Peneirar quando tiver. Sem coadeira na piscina, a peneira é o que tira o que boia.</div>
+    </div>
+  </section>
+
+  <section id="calendario">
+    <h2>Calendário</h2>
+    <p class="lead">Os dias de trabalho do plano, mês a mês: domingo às 20h e segunda, quarta e sexta às 23h. Toque num dia para ver as tarefas.</p>
+    <div class="cal">
+      <div class="cal-top">
+        <button type="button" class="btn-sm" id="cal-ant" aria-label="Mês anterior">‹</button>
+        <h3 id="cal-mes"></h3>
+        <button type="button" class="btn-sm" id="cal-prox" aria-label="Próximo mês">›</button>
+        <button type="button" class="btn-sm" id="cal-hoje">Hoje</button>
+      </div>
+      <div class="cal-grid" id="cal-grid" role="grid"></div>
+      <div class="cal-leg"><span class="lg lg-dom">Domingo: medição e choque</span><span class="lg lg-seg">Segunda: aspirar</span><span class="lg lg-alg">+ algicida (Semana 1)</span><span class="lg lg-qua">Quarta: opcional</span><span class="lg lg-sex">Sexta: conferir</span></div>
+      <div class="cal-dia" id="cal-dia" aria-live="polite"></div>
+      <div class="cal-apple">
+        <a class="btn" href="webcal://azulmarinhoinfo.com.br/api/piscina/agenda.ics">📅 Colocar no Calendário do iPhone</a>
+        <span class="status">Domingo às 20h e segunda, quarta e sexta às 23h, com alerta na hora. Atualiza sozinho.</span>
+      </div>
+    </div>
+    <div class="cal-cfg entry-form" id="cal-cfg">
+      <h3>Agenda e avisos no celular</h3>
+      <div class="form-grid">
+        <label for="cal-inicio">Domingo que começa a Semana 1 (com algicida)<input type="date" id="cal-inicio"></label>
+        <label class="chk-line"><input type="checkbox" id="cal-quarta"> Avisar também na quarta (opcional)</label>
+        <label class="chk-line"><input type="checkbox" id="cal-avisos" checked> Avisos no celular ligados</label>
+      </div>
+      <p class="status" id="cal-topico"></p>
+      <div class="form-actions"><button type="button" class="btn" id="cal-salvar">Salvar</button><button type="button" class="btn-sm" id="cal-testar">Mandar aviso de teste</button><span class="status" id="cal-status" role="status"></span></div>
     </div>
   </section>
 
@@ -722,6 +782,7 @@ document.querySelectorAll('.tabs button').forEach(function(btn){
     return !!r.ok;
   }
   function render(){
+    window.dispatchEvent(new CustomEvent('diario-atualizado',{detail:DOCS.map(function(d){return d.data;})}));
     list.textContent='';
     if(!DOCS.length){list.appendChild(el('p','empty','Nenhum registro ainda. Tire uma foto da piscina de dia, de cima, e uma do estojo contra um fundo branco, e salve o primeiro registro.'));return;}
     DOCS.forEach(function(d){
@@ -786,7 +847,7 @@ document.querySelectorAll('.tabs button').forEach(function(btn){
     b.disabled=true; st.textContent='Entrando…';
     var r=await api('/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({senha:document.getElementById('d-senha').value})});
     b.disabled=false;
-    if(r.ok){st.textContent='';document.getElementById('d-senha').value='';carregar();}
+    if(r.ok){st.textContent='';document.getElementById('d-senha').value='';carregar();window.dispatchEvent(new Event('diario-login'));}
     else st.textContent=r.erro||'Não foi possível entrar.';
   });
   fotosIn.addEventListener('change',function(){
@@ -818,6 +879,86 @@ document.querySelectorAll('.tabs button').forEach(function(btn){
   document.getElementById('d-data').value=hoje();
   carregar().catch(function(){off.textContent='O diário funciona no site publicado (azulmarinhoinfo.com.br/piscina/).';});
 })();
+</script>
+<script type="module">
+/* Calendário: dias de trabalho do plano (piscina/agenda.js) + configuração dos avisos */
+import { tarefasDoDia, hojeBrasilia, INICIO_PADRAO } from '/piscina/agenda.js';
+var MESES=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+var SEM=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+var CLS={0:'t-dom',1:'t-seg',3:'t-qua',5:'t-sex'};
+var grid=document.getElementById('cal-grid'), titulo=document.getElementById('cal-mes'), painel=document.getElementById('cal-dia');
+var hoje=hojeBrasilia(), cfg={inicioSemana1:'',quarta:false,avisos:true,logado:false};
+var ano=+hoje.slice(0,4), mes=+hoje.slice(5,7)-1, sel=hoje, fotos={};
+function iso(a,m,d){var x=new Date(Date.UTC(a,m,d));return x.toISOString().slice(0,10);}
+function inicio(){return cfg.inicioSemana1||INICIO_PADRAO;}
+function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e;}
+function desenhar(){
+  titulo.textContent=MESES[mes].charAt(0).toUpperCase()+MESES[mes].slice(1)+' de '+ano;
+  grid.textContent='';
+  SEM.forEach(function(s){grid.appendChild(el('div','cal-wd',s));});
+  var primeiro=new Date(Date.UTC(ano,mes,1)).getUTCDay();
+  for(var i=0;i<42;i++){
+    var d=iso(ano,mes,1-primeiro+i), t=tarefasDoDia(d,inicio());
+    if(i>=35&&+d.slice(5,7)-1!==mes&&i%7===0) break;
+    var b=el('button','cal-d'); b.type='button'; b.dataset.d=d;
+    if(+d.slice(5,7)-1!==mes) b.classList.add('fora');
+    if(d===hoje) b.classList.add('hoje');
+    if(d===sel) b.classList.add('sel');
+    var n=el('span','n'); n.appendChild(el('span',null,String(+d.slice(8))));
+    if(t&&t.dia===0) n.appendChild(el('small',null,'Sem. '+t.semana));
+    b.appendChild(n);
+    if(t){
+      b.appendChild(el('span','t '+CLS[t.dia],t.dia===1?'Aspirar':t.curto));
+      if(t.dia===1&&t.semana===1) b.appendChild(el('span','t t-alg','Algicida'));
+    }
+    if(fotos[d]) b.appendChild(el('span','t t-foto','📷 Diário'));
+    b.setAttribute('aria-label',d.split('-').reverse().join('/')+(t?': '+t.curto:': livre'));
+    b.onclick=function(){sel=this.dataset.d;desenhar();};
+    grid.appendChild(b);
+  }
+  mostrar(sel);
+}
+function mostrar(d){
+  var t=tarefasDoDia(d,inicio()); painel.textContent='';
+  var data=d.split('-').reverse().join('/');
+  if(!t){painel.appendChild(el('h4',null,data+' · dia livre'));painel.appendChild(el('p',null,new Date(Date.UTC(+d.slice(0,4),+d.slice(5,7)-1,+d.slice(8))).getUTCDay()===6?'Piscina liberada.':'Nenhuma tarefa do plano.'));}
+  else{
+    painel.appendChild(el('h4',null,data+' · '+t.nome+(t.opcional?' (opcional)':'')+' · Semana '+t.semana));
+    var ul=el('ul');t.tarefas.forEach(function(x){ul.appendChild(el('li',null,x));});painel.appendChild(ul);
+  }
+  if(fotos[d]) painel.appendChild(el('p',null,'📷 Tem registro no Diário neste dia.'));
+}
+document.getElementById('cal-ant').onclick=function(){mes--;if(mes<0){mes=11;ano--;}desenhar();};
+document.getElementById('cal-prox').onclick=function(){mes++;if(mes>11){mes=0;ano++;}desenhar();};
+document.getElementById('cal-hoje').onclick=function(){ano=+hoje.slice(0,4);mes=+hoje.slice(5,7)-1;sel=hoje;desenhar();};
+window.addEventListener('diario-atualizado',function(e){fotos={};(e.detail||[]).forEach(function(d){fotos[d]=true;});desenhar();});
+/* configuração */
+var inIni=document.getElementById('cal-inicio'), inQua=document.getElementById('cal-quarta'), inAv=document.getElementById('cal-avisos');
+var st=document.getElementById('cal-status'), top=document.getElementById('cal-topico'), bSalvar=document.getElementById('cal-salvar'), bTeste=document.getElementById('cal-testar');
+function aplicarCfg(){
+  inIni.value=cfg.inicioSemana1||INICIO_PADRAO; inQua.checked=!!cfg.quarta; inAv.checked=cfg.avisos!==false;
+  [inIni,inQua,inAv,bSalvar,bTeste].forEach(function(x){x.disabled=!cfg.logado;});
+  top.textContent=cfg.logado?(cfg.topico?'No app ntfy, inscreva-se no tópico: '+cfg.topico+' · O aviso chega na hora da tarefa: domingo 20h, segunda/quarta/sexta 23h.':''):'Para mudar, entre com a senha do painel no Diário, logo abaixo.';
+}
+async function carregarCfg(){
+  try{var r=await fetch('/api/piscina/config',{credentials:'same-origin',cache:'no-store'});if(r.ok){cfg=await r.json();}}catch(e){}
+  aplicarCfg();desenhar();
+}
+bSalvar.onclick=async function(){
+  st.textContent='Salvando…';
+  var r=await fetch('/api/piscina/config',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({inicioSemana1:inIni.value,quarta:inQua.checked,avisos:inAv.checked})}).catch(function(){return null;});
+  var d=r?await r.json().catch(function(){return {};}):{};
+  if(d.ok){cfg.inicioSemana1=d.config.inicioSemana1;cfg.quarta=d.config.quarta;cfg.avisos=d.config.avisos;st.textContent='Salvo.';desenhar();}
+  else st.textContent=d.erro||'Não foi possível salvar.';
+};
+bTeste.onclick=async function(){
+  st.textContent='Enviando…';
+  var r=await fetch('/api/piscina/lembrete?teste=1',{method:'POST',credentials:'same-origin'}).catch(function(){return null;});
+  var d=r?await r.json().catch(function(){return {};}):{};
+  st.textContent=d.enviado&&d.enviado.ok?'Aviso de teste enviado. Confira o celular.':(d.erro||'O aviso não saiu. Tente de novo.');
+};
+window.addEventListener('diario-login',carregarCfg);
+desenhar(); carregarCfg();
 </script>
 </body>
 </html>
