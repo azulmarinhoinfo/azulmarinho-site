@@ -225,7 +225,7 @@ h1,h2,h3{
     .grade-contato{ grid-template-columns:1fr 1fr; }
 }
 
-@media (max-width:1060px) and (min-width:761px){
+@media (max-width:1060px) and (min-width:901px){
     .menu{ gap:14px; }
     .logo-grupo{ font-size:24px; }
     .menu .selo-marca{ padding:6px 10px 5px; }
@@ -233,7 +233,7 @@ h1,h2,h3{
     .ls-sub{ font-size:7.5px; }
 }
 
-@media (max-width:760px){
+@media (max-width:900px){
     .btn-menu{ display:grid; place-items:center; }
     .menu{
         display:none; position:absolute; top:100%; left:0; right:0;
