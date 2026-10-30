@@ -177,7 +177,7 @@ export async function onRequestPost(context) {
         var res = env.GEMINI_API_KEY ? await gemini(env, fotos, texto) : await claude(env, fotos, texto);
         if (res.erro) {
             reg = await salvar(env, id, { status: "erro", erro: res.erro });
-            return json({ erro: res.erro, registro: reg }, 502);
+            return json({ erro: res.erro, registro: reg });
         }
         var txt = res.texto, ini = txt.indexOf("{"), fim = txt.lastIndexOf("}");
         var obj = JSON.parse(txt.slice(ini, fim + 1));
@@ -185,6 +185,6 @@ export async function onRequestPost(context) {
         return json({ ok: true, registro: reg });
     } catch (e) {
         reg = await salvar(env, id, { status: "erro", erro: "A análise veio num formato inesperado. Peça de novo." });
-        return json({ erro: "A análise veio num formato inesperado. Peça de novo.", registro: reg }, 502);
+        return json({ erro: "A análise veio num formato inesperado. Peça de novo.", registro: reg });
     }
 }
