@@ -20,8 +20,17 @@ jobs:
   avisar:
     runs-on: ubuntu-latest
     steps:
+      # Se o ntfy recusar (limite por IP, resposta 429), tenta de novo até 4 vezes.
+      # O site só marca o dia como avisado quando o envio dá certo.
       - name: Chamar o site
-        run: curl -fsS -X POST https://azulmarinhoinfo.com.br/api/piscina/lembrete
+        run: |
+          for i in 1 2 3 4; do
+            r=$(curl -fsS -X POST https://azulmarinhoinfo.com.br/api/piscina/lembrete || true)
+            echo "$r"
+            if echo "$r" | grep -q -e '"ok":true' -e '"motivo"'; then exit 0; fi
+            [ "$i" -lt 4 ] && sleep 120
+          done
+          exit 1
 
       - name: Manter ligado
         if: always()

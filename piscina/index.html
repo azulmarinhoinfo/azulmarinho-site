@@ -955,7 +955,14 @@ bTeste.onclick=async function(){
   st.textContent='Enviando…';
   var r=await fetch('/api/piscina/lembrete?teste=1',{method:'POST',credentials:'same-origin'}).catch(function(){return null;});
   var d=r?await r.json().catch(function(){return {};}):{};
-  st.textContent=d.enviado&&d.enviado.ok?'Aviso de teste enviado. Confira o celular.':(d.erro||'O aviso não saiu. Tente de novo.');
+  if(d.enviado&&d.enviado.ok){st.textContent='Aviso de teste enviado. Confira o celular.';return;}
+  /* o ntfy às vezes recusa o servidor (limite por IP); aí manda direto daqui */
+  if(d.mensagem&&cfg.topico){
+    var r2=await fetch('https://ntfy.sh/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({topic:cfg.topico},d.mensagem))}).catch(function(){return null;});
+    if(r2&&r2.ok){st.textContent='Aviso de teste enviado. Confira o celular.';return;}
+    st.textContent='O aviso não saiu (ntfy respondeu '+(r2?r2.status:'sem conexão')+'). Tente de novo daqui a pouco.';return;
+  }
+  st.textContent=d.erro||('O aviso não saiu'+(d.enviado&&d.enviado.status?' (ntfy respondeu '+d.enviado.status+')':'')+'. Tente de novo.');
 };
 window.addEventListener('diario-login',carregarCfg);
 desenhar(); carregarCfg();

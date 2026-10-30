@@ -24,7 +24,19 @@ function aviso(t, hoje) {
     };
 }
 
+/* O ntfy.sh limita por IP, e o IP de saída do Cloudflare é dividido com muita
+   gente: às vezes volta 429. Cada nova tentativa costuma sair por outro IP. */
 async function enviar(env, msg) {
+    var res;
+    for (var i = 0; i < 3; i++) {
+        if (i) await new Promise(function (ok) { setTimeout(ok, 1500 * i); });
+        res = await enviarUmaVez(env, msg);
+        if (res.ok || (res.status && res.status !== 429 && res.status < 500)) break;
+    }
+    return res;
+}
+
+async function enviarUmaVez(env, msg) {
     var ctl = new AbortController(), tm = setTimeout(function () { ctl.abort(); }, 8000);
     try {
         var r = await fetch("https://ntfy.sh/", {
@@ -52,7 +64,8 @@ export async function onRequest(context) {
         var exemplo = t || tarefasDoDia("2026-11-02", "2026-11-01");
         var m = aviso(exemplo, hoje);
         m.title = "✅ Teste: " + m.title;
-        return json({ enviado: await enviar(env, m) });
+        /* a mensagem volta junto para a página poder mandar direto do navegador se o ntfy recusar */
+        return json({ enviado: await enviar(env, m), mensagem: m });
     }
 
     var deveAvisar = !!t && c.avisos && (!t.opcional || c.quarta);
