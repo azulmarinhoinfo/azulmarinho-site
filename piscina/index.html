@@ -9,7 +9,7 @@
 <title>Plano da Piscina | Azul Marinho</title>
 <meta name="description" content="Plano de tratamento de 15 dias para piscina de fibra de 27 mil litros com produtos Genco e ionizadores.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#F4F7FC; --card:#ffffff; --ink:#0F1F47; --muted:#5b6b82; --line:#dbe4ee;
@@ -37,10 +37,10 @@
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
 .wrap{max-width:980px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 64px}
-header{background:radial-gradient(circle at 85% 20%,rgba(0,173,239,.35),transparent 45%),linear-gradient(135deg,#08122E,#0F1F47 60%,#24376B);color:#fff;padding-block:40px 56px}
-header .wrap{padding-block:0}
-header h1{margin:0 0 8px;font-size:clamp(26px,5vw,38px);letter-spacing:-.02em}
-header p{margin:0;opacity:.92;max-width:640px}
+header.hero{background:radial-gradient(circle at 85% 20%,rgba(0,173,239,.35),transparent 45%),linear-gradient(135deg,#08122E,#0F1F47 60%,#24376B);color:#fff;padding-block:40px 56px}
+header.hero .wrap{padding-block:0}
+header.hero h1{margin:0 0 8px;font-size:clamp(26px,5vw,38px);letter-spacing:-.02em}
+header.hero p{margin:0;opacity:.92;max-width:640px}
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
 .chip{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:4px 12px;font-size:14px}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--card)}
@@ -204,10 +204,42 @@ footer a{color:var(--brand);font-weight:600;text-decoration:none}
 .chk-line{flex-direction:row!important;align-items:center;gap:8px!important;font-size:14px!important;color:var(--ink)!important}
 .chk-line input{width:auto!important}
 @media (max-width:560px){.cal{padding:10px}.cal-d{min-height:58px;padding:4px}.cal-d .t{font-size:0;padding:0;height:6px}.cal-d .n small{display:none}}
+/* Menu do topo, igual ao do portal (gerado por /assets/js/site.js). Só o necessário
+   do site.css, para não mexer no resto desta página. */
+.topo{--marinho:#0F1F47;--ciano:#00ADEF;position:relative;z-index:6;background:#fff;border-bottom:3px solid var(--ciano)}
+.topo .wrap{max-width:1180px;display:flex;align-items:center;justify-content:space-between;gap:20px;padding-block:14px}
+.topo .logo{text-decoration:none}
+.logo-grupo{display:flex;align-items:center;font-family:Montserrat,sans-serif;font-weight:700;font-size:30px;color:var(--marinho);letter-spacing:-.01em;white-space:nowrap;line-height:1}
+.logo-grupo .ls-icone{width:.8em;height:.8em;margin-left:.03em;color:var(--ciano)}
+.topo .menu{display:flex;align-items:center;gap:26px;list-style:none;margin:0;padding:0}
+.topo .menu a{text-decoration:none;font-weight:500;color:var(--marinho);font-size:16px;transition:color .2s}
+.topo .menu a:hover{color:var(--ciano)}
+.menu .selo-marca{display:inline-flex;flex-direction:column;align-items:flex-end;line-height:1;background:var(--marinho);border:2px solid var(--marinho);border-radius:12px;padding:7px 14px 6px;transition:border-color .2s,transform .2s}
+.menu .selo-marca:hover{border-color:var(--ciano);transform:translateY(-1px)}
+.menu .selo-marca[data-ativo]{border-color:var(--ciano);box-shadow:0 0 0 2px rgba(0,173,239,.25)}
+.ls-palavra{display:flex;align-items:center;font-family:Montserrat,sans-serif;font-weight:800;font-size:15px;color:#fff;white-space:nowrap;letter-spacing:-.01em}
+.sports-bola,.selo-marca .ls-icone{width:.84em;height:.84em;margin-left:.04em;color:var(--ciano);flex:none}
+.ls-sub{margin-top:2px;font-size:8.5px;font-weight:500;letter-spacing:.32em;text-transform:uppercase;color:var(--ciano);margin-right:-.32em}
+.btn-menu{display:none;background:none;border:0;cursor:pointer;width:42px;height:42px;color:var(--marinho)}
+.btn-menu svg{width:28px;height:28px}
+@media (max-width:1060px) and (min-width:901px){.topo .menu{gap:14px}.logo-grupo{font-size:24px}.menu .selo-marca{padding:6px 10px 5px}.ls-palavra{font-size:13px}.ls-sub{font-size:7.5px}}
+@media (max-width:900px){
+  .btn-menu{display:grid;place-items:center}
+  .topo .menu{display:none;position:absolute;top:100%;left:0;right:0;flex-direction:column;gap:0;background:#fff;border-bottom:3px solid var(--ciano);box-shadow:0 12px 24px rgba(15,31,71,.12)}
+  .topo .menu.aberto{display:flex}
+  .topo .menu li{width:100%;text-align:center;border-top:1px solid #EEF2F8}
+  .topo .menu a{display:block;padding:14px}
+  .topo .menu .selo-marca{display:flex;align-items:center;border:0;border-radius:0;padding:12px}
+  .menu .selo-marca:hover{transform:none}
+  .menu .selo-marca[data-ativo]{box-shadow:none;border-left:4px solid var(--ciano)}
+  .ls-palavra{font-size:18px}.ls-sub{font-size:10px}
+}
+@media (max-width:560px){.topo .logo-grupo{font-size:24px}}
 </style>
 </head>
-<body>
-<header>
+<body data-pagina="piscina" data-sem-whats>
+<div id="topo"></div>
+<header class="hero">
   <div class="wrap">
     <h1>Plano da Piscina — 15 dias</h1>
     <p>Rotina para deixar a piscina pronta de sexta à noite até domingo, com o mínimo de dias de trabalho.</p>
@@ -967,5 +999,6 @@ bTeste.onclick=async function(){
 window.addEventListener('diario-login',carregarCfg);
 desenhar(); carregarCfg();
 </script>
+<script src="/assets/js/site.js"></script>
 </body>
 </html>

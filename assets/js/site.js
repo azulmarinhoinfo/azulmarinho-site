@@ -37,6 +37,8 @@ window.ICONES = {
 
     function ativo(nome) { return pagina === nome ? ' class="ativo"' : ""; }
     var cliente = pagina === "informatica";
+    /* No piscina.azulmarinhoinfo.com.br o "/" abre a Piscina, então os links vão para o endereço principal */
+    var base = /^piscina\./.test(location.hostname) ? A.site : "";
     /* Selos das marcas no menu: "AZUL MARINH" + ícone no lugar do O, nome da marca embaixo */
     function selo(href, icone, nome, extra) {
         return '<a href="' + href + '" class="menu-destaque selo-marca"' + (extra || "") + ' aria-label="Azul Marinho ' + nome + '">' +
@@ -53,7 +55,7 @@ window.ICONES = {
             '<header class="topo"><div class="wrap">' +
                 (cliente
                     ? '<a href="/informatica/" class="logo"><img src="/logo.png" alt="Azul Marinho"></a>'
-                    : '<a href="/" class="logo" aria-label="Azul Marinho">' + logoGrupo + '</a>') +
+                    : '<a href="' + base + '/" class="logo" aria-label="Azul Marinho">' + logoGrupo + '</a>') +
                 '<button class="btn-menu" aria-label="Abrir menu" aria-expanded="false" aria-controls="menu">' +
                     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>' +
                 '</button>' +
@@ -61,10 +63,10 @@ window.ICONES = {
                     ? '<li><a href="#servicos">Serviços</a></li>' +
                       '<li><a href="#infraestrutura">Infraestrutura</a></li>' +
                       '<li><a href="#contato">Contato</a></li>'
-                    : '<li><a href="/"' + ativo("inicio") + '>Início</a></li>' +
-                      '<li>' + selo("/informatica/", I.power, "Informática", seloAtivo("informatica")) + '</li>' +
-                      '<li>' + selo("/eventos/", I.festa, "Eventos", seloAtivo("eventos")) + '</li>' +
-                      '<li>' + selo("/piscina/", I.onda, "Piscina", seloAtivo("piscina")) + '</li>') +
+                    : '<li><a href="' + base + '/"' + ativo("inicio") + '>Início</a></li>' +
+                      '<li>' + selo(base + "/informatica/", I.power, "Informática", seloAtivo("informatica")) + '</li>' +
+                      '<li>' + selo(base + "/eventos/", I.festa, "Eventos", seloAtivo("eventos")) + '</li>' +
+                      '<li>' + selo(base + "/piscina/", I.onda, "Piscina", seloAtivo("piscina")) + '</li>') +
                     '<li>' + linkSports + '</li>' +
                 '</ul>' +
             '</div></header>';
@@ -89,9 +91,9 @@ window.ICONES = {
             '<footer class="rodape"><div class="wrap">' +
                 '<div class="logo-rodape">' + (cliente ? '<img src="/logo.png" alt="Azul Marinho">' : logoGrupo) + '</div>' +
                 '<nav>' + (cliente ? "" :
-                    '<a href="/informatica/">Informática</a>' +
-                    '<a href="/eventos/">Eventos</a>' +
-                    '<a href="/piscina/">Piscina</a>') +
+                    '<a href="' + base + '/informatica/">Informática</a>' +
+                    '<a href="' + base + '/eventos/">Eventos</a>' +
+                    '<a href="' + base + '/piscina/">Piscina</a>') +
                     '<a href="' + A.sports + '" target="_blank" rel="noopener">Azul Marinho Sports</a>' +
                 '</nav>' +
                 '<p><a href="' + A.linkWhats() + '" target="_blank" rel="noopener">' + A.telefone + '</a> • ' +
