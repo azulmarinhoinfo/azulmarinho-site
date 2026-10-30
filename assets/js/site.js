@@ -36,9 +36,12 @@ window.ICONES = {
     var A = window.AZUL, I = window.ICONES;
 
     function ativo(nome) { return pagina === nome ? ' class="ativo"' : ""; }
-    var cliente = pagina === "informatica";
-    /* No piscina.azulmarinhoinfo.com.br o "/" abre a Piscina, então os links vão para o endereço principal */
-    var base = /^piscina\./.test(location.hostname) ? A.site : "";
+    /* Endereços próprios (informatica., eventos., piscina.azulmarinhoinfo.com.br) são para mandar a
+       quem não é da casa: mostram só aquela página, sem o menu do portal. No portal
+       (azulmarinhoinfo.com.br/informatica/, /eventos/ ...) o menu completo aparece. */
+    var sozinho = /^(informatica|eventos|piscina)\./.test(location.hostname);
+    var cliente = pagina === "informatica" && sozinho;
+    var base = "";
     /* Selos das marcas no menu: "AZUL MARINH" + ícone no lugar do O, nome da marca embaixo */
     function selo(href, icone, nome, extra) {
         return '<a href="' + href + '" class="menu-destaque selo-marca"' + (extra || "") + ' aria-label="Azul Marinho ' + nome + '">' +
@@ -54,9 +57,11 @@ window.ICONES = {
     var topo = document.getElementById("topo");
     if (topo) {
         topo.outerHTML =
-            '<header class="topo"><div class="wrap">' +
+            (sozinho && !cliente
+                ? '<header class="topo"><div class="wrap"><a href="/" class="logo" aria-label="Azul Marinho">' + logoGrupo + '</a></div></header>'
+                : '<header class="topo"><div class="wrap">' +
                 (cliente
-                    ? '<a href="/informatica/" class="logo"><img src="/logo.png" alt="Azul Marinho"></a>'
+                    ? '<a href="/" class="logo"><img src="/logo.png" alt="Azul Marinho"></a>'
                     : '<a href="' + base + '/" class="logo" aria-label="Azul Marinho">' + logoGrupo + '</a>') +
                 '<button class="btn-menu" aria-label="Abrir menu" aria-expanded="false" aria-controls="menu">' +
                     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>' +
@@ -71,15 +76,15 @@ window.ICONES = {
                       '<li>' + selo(base + "/piscina/", I.onda, "Piscina", seloAtivo("piscina")) + '</li>') +
                     '<li>' + linkSports + '</li>' +
                 '</ul>' +
-            '</div></header>';
+            '</div></header>');
 
         var botao = document.querySelector(".btn-menu");
         var menu = document.getElementById("menu");
-        botao.addEventListener("click", function () {
+        if (botao) botao.addEventListener("click", function () {
             var aberto = menu.classList.toggle("aberto");
             botao.setAttribute("aria-expanded", aberto);
         });
-        menu.addEventListener("click", function (e) {
+        if (menu) menu.addEventListener("click", function (e) {
             if (e.target.tagName === "A") {
                 menu.classList.remove("aberto");
                 botao.setAttribute("aria-expanded", "false");
@@ -92,11 +97,11 @@ window.ICONES = {
         rodape.outerHTML =
             '<footer class="rodape"><div class="wrap">' +
                 '<div class="logo-rodape">' + (cliente ? '<img src="/logo.png" alt="Azul Marinho">' : logoGrupo) + '</div>' +
-                '<nav>' + (cliente ? "" :
+                '<nav>' + (sozinho && !cliente ? "" : (cliente ? "" :
                     '<a href="' + base + '/informatica/">Informática</a>' +
                     '<a href="' + base + '/eventos/">Eventos</a>' +
                     '<a href="' + base + '/piscina/">Piscina</a>') +
-                    '<a href="' + sportsHref + '">Azul Marinho Sports</a>' +
+                    '<a href="' + sportsHref + '">Azul Marinho Sports</a>') +
                 '</nav>' +
                 '<p><a href="' + A.linkWhats() + '" target="_blank" rel="noopener">' + A.telefone + '</a> • ' +
                     '<a href="mailto:' + A.email + '">' + A.email + '</a> • ' +
