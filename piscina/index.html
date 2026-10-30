@@ -192,7 +192,7 @@ footer a{color:var(--brand);font-weight:600;text-decoration:none}
 </header>
 
 <nav><div class="wrap">
-  <a href="#plano">Plano</a><a href="#medicao">Medição</a><a href="#automacao">Automação</a><a href="#faixas">Faixas ideais</a><a href="#doses">Doses</a><a href="#como">Como fazer</a><a href="#seguranca">Segurança</a>
+  <a href="#plano">Plano</a><a href="#medicao">Medição</a><a href="#automacao">Automação</a><a href="#diario">Diário</a><a href="#faixas">Faixas ideais</a><a href="#doses">Doses</a><a href="#como">Como fazer</a><a href="#seguranca">Segurança</a>
 </div></nav>
 
 <main class="wrap">
@@ -470,6 +470,32 @@ footer a{color:var(--brand);font-weight:600;text-decoration:none}
     </div>
   </section>
 
+  <section id="diario">
+    <h2>Diário da piscina</h2>
+    <p class="lead">Registre fotos da água e do estojo, com as leituras se tiver. Cada registro recebe uma análise do Claude com base neste plano e no filtro que você configurou.</p>
+    <p id="diario-off" class="offline">Carregando o diário…</p>
+    <form id="diario-login" class="entry-form" hidden>
+      <div class="form-grid">
+        <label for="d-senha" class="wide">Senha do painel (a mesma do /admin/)<input type="password" id="d-senha" autocomplete="current-password" required></label>
+      </div>
+      <div class="form-actions"><button type="submit" class="btn" id="d-entrar">Entrar</button><span id="d-login-status" class="status" role="status"></span></div>
+    </form>
+    <form id="diario-form" class="entry-form" hidden>
+      <div class="form-grid">
+        <label for="d-data">Data<input type="date" id="d-data" required></label>
+        <label for="d-fotos">Fotos (até 3)<input type="file" id="d-fotos" accept="image/*" multiple></label>
+        <label for="d-cloro">Cloro<input id="d-cloro" inputmode="decimal" placeholder="ex.: 2"></label>
+        <label for="d-ph">pH<input id="d-ph" inputmode="decimal" placeholder="ex.: 7,4"></label>
+        <label for="d-alc">Alcalinidade (gotas)<input id="d-alc" inputmode="numeric" placeholder="ex.: 10"></label>
+        <label for="d-cobre">Cobre<input id="d-cobre" inputmode="decimal" placeholder="ex.: 0,4"></label>
+        <label for="d-obs" class="wide">Observações<textarea id="d-obs" rows="2" placeholder="ex.: choveu ontem, muita gente usou no sábado"></textarea></label>
+      </div>
+      <div id="d-previews" class="previews"></div>
+      <div class="form-actions"><button type="submit" id="d-salvar" class="btn">Salvar e analisar</button><span id="d-status" class="status" role="status"></span></div>
+    </form>
+    <div id="diario-lista" class="entries" hidden></div>
+  </section>
+
   <section id="faixas">
     <h2>Faixas ideais</h2>
     <div class="ranges">
@@ -650,6 +676,140 @@ document.querySelectorAll('.tabs button').forEach(function(btn){
       db.doc(DOCPATH).get().then(function(snap){if(snap.exists){var d=snap.data();if(!state.atualizado||d.atualizado>=state.atualizado){state=JSON.parse(JSON.stringify(d));aplicar();}}}).catch(function(){});
     }).catch(function(){});
   }
+})();
+</script>
+<script>
+/* Diário: os registros e as fotos ficam no Cloudflare (functions/api/piscina/), com a senha do painel */
+(function(){
+  var off=document.getElementById('diario-off'), login=document.getElementById('diario-login'), form=document.getElementById('diario-form'), list=document.getElementById('diario-lista');
+  var fotosIn=document.getElementById('d-fotos'), prev=document.getElementById('d-previews'), status=document.getElementById('d-status'), btn=document.getElementById('d-salvar');
+  var DOCS=[], ANALISE=false;
+  function hoje(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+  function fmtData(iso){var p=String(iso||'').split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:String(iso||'');}
+  function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e;}
+  function foto(id){return '/api/piscina/foto?id='+encodeURIComponent(id);}
+  async function api(url,opts){
+    var r=await fetch(url,Object.assign({credentials:'same-origin',cache:'no-store'},opts||{}));
+    var d=await r.json().catch(function(){return {};});
+    d.status=r.status; return d;
+  }
+  function reduzir(file){
+    return new Promise(function(res,rej){
+      var url=URL.createObjectURL(file), img=new Image();
+      img.onload=function(){
+        var max=1600, w=img.naturalWidth, h=img.naturalHeight, k=Math.min(1,max/Math.max(w,h));
+        var c=document.createElement('canvas'); c.width=Math.round(w*k); c.height=Math.round(h*k);
+        c.getContext('2d').drawImage(img,0,0,c.width,c.height); URL.revokeObjectURL(url);
+        c.toBlob(function(b){b?res(b):rej(new Error('blob'));},'image/jpeg',0.85);
+      };
+      img.onerror=function(){URL.revokeObjectURL(url);rej(new Error('img'));};
+      img.src=url;
+    });
+  }
+  function trocar(reg){DOCS=DOCS.map(function(x){return x.id===reg.id?reg:x;});render();}
+  async function analisar(id){
+    var d=DOCS.find(function(x){return x.id===id;}); if(d){d.status='analisando';render();}
+    var r=await api('/api/piscina/analisar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id,filtro:(window.__cfgResumo&&window.__cfgResumo())||''})});
+    if(r.registro) trocar(r.registro);
+    if(r.codigo==='sem-chave'){ANALISE=false;render();}
+    return !!r.ok;
+  }
+  function render(){
+    list.textContent='';
+    if(!DOCS.length){list.appendChild(el('p','empty','Nenhum registro ainda. Tire uma foto da piscina de dia, de cima, e uma do estojo contra um fundo branco, e salve o primeiro registro.'));return;}
+    DOCS.forEach(function(d){
+      var card=el('article','entry'), h=el('div','entry-h');
+      h.appendChild(el('h3',null,fmtData(d.data)));
+      var a=d.analise, tag=null;
+      if(d.status==='analisando') tag=el('span','tag t-warn','Analisando…');
+      else if(a){var m={boa:['t-ok','Água boa'],atencao:['t-warn','Atenção'],problema:['t-bad','Ajustar']}[a.situacao]||['t-warn','Atenção'];tag=el('span','tag '+m[0],m[1]);}
+      if(tag) h.appendChild(tag);
+      card.appendChild(h);
+      if(d.fotos&&d.fotos.length){
+        var t=el('div','thumbs');
+        d.fotos.forEach(function(id){var ln=el('a');ln.href=foto(id);ln.target='_blank';ln.rel='noopener';var im=el('img');im.src=foto(id);im.alt='Foto do registro de '+fmtData(d.data);im.loading='lazy';ln.appendChild(im);t.appendChild(ln);});
+        card.appendChild(t);
+      }
+      var l=d.leituras||{}, ch=el('div','chips2');
+      [['Cloro',l.cloro],['pH',l.ph],['Alcalinidade',l.alcalinidade?l.alcalinidade+' gotas':''],['Cobre',l.cobre]].forEach(function(p){if(p[1])ch.appendChild(el('span',null,p[0]+' '+p[1]));});
+      if(ch.childNodes.length) card.appendChild(ch);
+      if(d.obs) card.appendChild(el('p','obs',d.obs));
+      if(a){
+        var b=el('div','analise');
+        b.appendChild(el('h4',null,'Análise do Claude'));
+        if(a.resumo) b.appendChild(el('p',null,a.resumo));
+        if(a.agua){var pa=el('p');pa.appendChild(el('b',null,'Água: '));pa.appendChild(document.createTextNode(a.agua));b.appendChild(pa);}
+        if(a.leituras){var pl=el('p');pl.appendChild(el('b',null,'Leituras: '));pl.appendChild(document.createTextNode(a.leituras));b.appendChild(pl);}
+        if(a.recomendacoes&&a.recomendacoes.length){var ul=el('ul');a.recomendacoes.forEach(function(r){ul.appendChild(el('li',null,r));});b.appendChild(ul);}
+        if(a.filtro){var fl={manter:'Filtro: manter o tempo atual.',aumentar:'Filtro: aumentar o tempo.',reduzir:'Filtro: dá para reduzir.'}[a.filtro];b.appendChild(el('p','filtro',fl+(a.filtro_motivo?' '+a.filtro_motivo:'')));}
+        card.appendChild(b);
+      } else if(d.status==='erro'&&d.erro){card.appendChild(el('p','obs',d.erro));}
+      else if(d.status==='sem_analise'){card.appendChild(el('p','obs',ANALISE?'Registro salvo sem análise.':'Registro salvo. A análise do Claude ainda não está ligada no site.'));}
+      var acts=el('div','entry-actions');
+      if(ANALISE&&d.status!=='analisando'){
+        var ra=el('button','btn-sm',a?'Analisar de novo':'Pedir análise');ra.type='button';
+        ra.onclick=function(){ra.disabled=true;analisar(d.id);};
+        acts.appendChild(ra);
+      }
+      var del=el('button','btn-sm danger','Excluir');del.type='button';var armado=false,tm;
+      del.onclick=async function(){
+        if(!armado){armado=true;del.textContent='Confirmar exclusão';tm=setTimeout(function(){armado=false;del.textContent='Excluir';},4000);return;}
+        clearTimeout(tm);del.disabled=true;
+        var r=await api('/api/piscina/diario?id='+encodeURIComponent(d.id),{method:'DELETE'});
+        if(r.ok){DOCS=DOCS.filter(function(x){return x.id!==d.id;});render();}
+        else{del.disabled=false;del.textContent='Não foi possível excluir';}
+      };
+      acts.appendChild(del);card.appendChild(acts);
+      list.appendChild(card);
+    });
+  }
+  async function carregar(){
+    var r=await api('/api/piscina/diario');
+    if(r.status===401&&r.codigo==='senha'){off.textContent='O diário é só seu: entre com a senha do painel para ver e registrar.';login.hidden=false;form.hidden=true;list.hidden=true;return;}
+    if(r.status===401||r.status===403){off.textContent='Entre primeiro pelo painel (azulmarinhoinfo.com.br/admin/) e depois volte aqui.';return;}
+    if(!r.registros){off.textContent=r.erro||'Não foi possível carregar o diário agora.';return;}
+    DOCS=r.registros; ANALISE=!!r.analise;
+    off.hidden=true; login.hidden=true; form.hidden=false; list.hidden=false;
+    btn.textContent=ANALISE?'Salvar e analisar':'Salvar';
+    render();
+  }
+  login.addEventListener('submit',async function(e){
+    e.preventDefault();
+    var st=document.getElementById('d-login-status'), b=document.getElementById('d-entrar');
+    b.disabled=true; st.textContent='Entrando…';
+    var r=await api('/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({senha:document.getElementById('d-senha').value})});
+    b.disabled=false;
+    if(r.ok){st.textContent='';document.getElementById('d-senha').value='';carregar();}
+    else st.textContent=r.erro||'Não foi possível entrar.';
+  });
+  fotosIn.addEventListener('change',function(){
+    prev.textContent='';status.textContent='';
+    Array.prototype.slice.call(fotosIn.files,0,3).forEach(function(f){var im=el('img');im.alt='Prévia da foto';im.src=URL.createObjectURL(f);prev.appendChild(im);});
+    if(fotosIn.files.length>3) status.textContent='Só as 3 primeiras fotos serão usadas.';
+  });
+  form.addEventListener('submit',async function(e){
+    e.preventDefault();
+    var val=function(id){return document.getElementById(id).value.trim();};
+    var files=Array.prototype.slice.call(fotosIn.files,0,3);
+    var fd=new FormData();
+    fd.append('data',val('d-data')||hoje());
+    fd.append('cloro',val('d-cloro'));fd.append('ph',val('d-ph'));fd.append('alcalinidade',val('d-alc'));fd.append('cobre',val('d-cobre'));fd.append('obs',val('d-obs'));
+    if(!files.length&&!val('d-cloro')&&!val('d-ph')&&!val('d-alc')&&!val('d-cobre')&&!val('d-obs')){status.textContent='Adicione pelo menos uma foto, uma leitura ou uma observação.';return;}
+    btn.disabled=true;
+    try{
+      for(var i=0;i<files.length;i++){status.textContent='Preparando a foto '+(i+1)+' de '+files.length+'…';fd.append('fotos',await reduzir(files[i]),'foto'+(i+1)+'.jpg');}
+      status.textContent=files.length?'Enviando…':'Salvando…';
+      var r=await api('/api/piscina/diario',{method:'POST',body:fd});
+      if(!r.ok){status.textContent=r.erro||'Não foi possível salvar. Tente de novo.';btn.disabled=false;if(r.status===401)carregar();return;}
+      DOCS.unshift(r.registro);
+      form.reset(); document.getElementById('d-data').value=hoje(); prev.textContent='';
+      btn.disabled=false;
+      if(ANALISE){status.textContent='Salvo. O Claude está analisando…';var ok=await analisar(r.registro.id);status.textContent=ok?'Análise pronta.':'Salvo, mas a análise não saiu. Use "Pedir análise" no registro.';}
+      else{status.textContent='Salvo.';render();}
+    }catch(err){status.textContent='Não foi possível salvar. Tente de novo.';btn.disabled=false;}
+  });
+  document.getElementById('d-data').value=hoje();
+  carregar().catch(function(){off.textContent='O diário funciona no site publicado (azulmarinhoinfo.com.br/piscina/).';});
 })();
 </script>
 </body>
