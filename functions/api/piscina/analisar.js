@@ -70,6 +70,30 @@ function corpoComFotos(obj, fotos) {
     return s;
 }
 
+/* Chamada à IA com limite de tempo: se ela não responder, o registro mostra o erro em vez de ficar parado */
+var LIMITE_MS = 40000;
+async function chamar(url, opcoes) {
+    var ctl = new AbortController();
+    var tm = setTimeout(function () { ctl.abort(); }, LIMITE_MS);
+    try {
+        var r = await fetch(url, Object.assign({ signal: ctl.signal }, opcoes));
+        var corpo = await r.text();
+        var resp = {};
+        try { resp = JSON.parse(corpo); } catch (e) {}
+        return { r: r, resp: resp, corpo: corpo };
+    } catch (e) {
+        return { falha: ctl.signal.aborted ? "A IA demorou mais de 40 segundos e não respondeu. Peça de novo." : "Não foi possível falar com a IA (" + String(e && e.message || e).slice(0, 120) + ")." };
+    } finally {
+        clearTimeout(tm);
+    }
+}
+
+/* Detalhe curto do erro que a IA devolveu, para dar pista do problema */
+function detalhe(resp, corpo) {
+    var m = (resp && resp.error && (resp.error.message || resp.error.status)) || String(corpo || "").slice(0, 160);
+    return m ? " Detalhe: " + String(m).slice(0, 200) : "";
+}
+
 function erroHttp(status, qual) {
     return status === 429 ? "Muitos pedidos agora. Tente de novo em alguns minutos."
         : (status === 401 || status === 403) ? "A chave da IA não foi aceita. Confira a " + qual + " no Cloudflare."
@@ -79,7 +103,7 @@ function erroHttp(status, qual) {
 async function gemini(env, fotos, texto) {
     var partes = fotos.map(function (f, i) { return { inline_data: { mime_type: f.tipo, data: "@@FOTO" + i + "@@" } }; });
     partes.push({ text: texto });
-    var r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + (env.GEMINI_MODEL || MODELO_GEMINI) + ":generateContent", {
+    var c = await chamar("https://generativelanguage.googleapis.com/v1beta/models/" + (env.GEMINI_MODEL || MODELO_GEMINI) + ":generateContent", {
         method: "POST",
         headers: { "content-type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
         body: corpoComFotos({
@@ -88,8 +112,9 @@ async function gemini(env, fotos, texto) {
             generationConfig: { responseMimeType: "application/json", maxOutputTokens: 4096 }
         }, fotos)
     });
-    var resp = await r.json().catch(function () { return {}; });
-    if (!r.ok) return { erro: r.status === 400 && /API key/i.test(JSON.stringify(resp)) ? erroHttp(401, "GEMINI_API_KEY") : erroHttp(r.status, "GEMINI_API_KEY") };
+    if (c.falha) return { erro: c.falha };
+    var r = c.r, resp = c.resp;
+    if (!r.ok) return { erro: (r.status === 400 && /API key/i.test(c.corpo) ? erroHttp(401, "GEMINI_API_KEY") : erroHttp(r.status, "GEMINI_API_KEY")) + detalhe(resp, c.corpo) };
     var c = (resp.candidates || [])[0];
     var txt = ((c && c.content && c.content.parts) || []).map(function (p) { return p.text || ""; }).join("");
     return { texto: txt };
@@ -98,13 +123,14 @@ async function gemini(env, fotos, texto) {
 async function claude(env, fotos, texto) {
     var conteudo = fotos.map(function (f, i) { return { type: "image", source: { type: "base64", media_type: f.tipo, data: "@@FOTO" + i + "@@" } }; });
     conteudo.push({ type: "text", text: texto });
-    var r = await fetch("https://api.anthropic.com/v1/messages", {
+    var c = await chamar("https://api.anthropic.com/v1/messages", {
         method: "POST",
         headers: { "content-type": "application/json", "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
         body: corpoComFotos({ model: env.ANTHROPIC_MODEL || MODELO_CLAUDE, max_tokens: 1500, system: CONTEXTO, messages: [{ role: "user", content: conteudo }] }, fotos)
     });
-    var resp = await r.json().catch(function () { return {}; });
-    if (!r.ok) return { erro: erroHttp(r.status, "ANTHROPIC_API_KEY") };
+    if (c.falha) return { erro: c.falha };
+    var r = c.r, resp = c.resp;
+    if (!r.ok) return { erro: erroHttp(r.status, "ANTHROPIC_API_KEY") + detalhe(resp, c.corpo) };
     return { texto: (resp.content || []).filter(function (c) { return c.type === "text"; }).map(function (c) { return c.text; }).join("") };
 }
 

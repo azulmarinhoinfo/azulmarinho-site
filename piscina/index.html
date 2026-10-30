@@ -689,7 +689,10 @@ document.querySelectorAll('.tabs button').forEach(function(btn){
   function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e;}
   function foto(id){return '/api/piscina/foto?id='+encodeURIComponent(id);}
   async function api(url,opts){
-    var r=await fetch(url,Object.assign({credentials:'same-origin',cache:'no-store'},opts||{}));
+    var ctl=new AbortController(), tm=setTimeout(function(){ctl.abort();},90000), r;
+    try{r=await fetch(url,Object.assign({credentials:'same-origin',cache:'no-store',signal:ctl.signal},opts||{}));}
+    catch(e){return {erro:ctl.signal.aborted?'O site demorou demais para responder. Tente de novo.':'Sem conexão com o site. Tente de novo.',status:0};}
+    finally{clearTimeout(tm);}
     var d=await r.json().catch(function(){return {erro:'O site não respondeu direito (erro '+r.status+'). Tente de novo.'};});
     d.status=r.status; return d;
   }
