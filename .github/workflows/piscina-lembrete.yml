@@ -2,6 +2,10 @@
 # Todo dia às 9h (Brasília) chama o site, que decide se hoje tem tarefa e deixa o
 # aviso agendado no app ntfy para a hora certa: domingo 20h, segunda/quarta/sexta 23h
 # (functions/api/piscina/lembrete.js e piscina/agenda.js). Dias livres não avisam.
+#
+# O GitHub desliga agendamentos de repositório público depois de 60 dias sem
+# alteração. O passo "Manter ligado" reativa este próprio workflow todo dia
+# pela API, o que zera essa contagem sem precisar de commit.
 name: Lembrete da piscina
 
 on:
@@ -9,9 +13,18 @@ on:
     - cron: "0 12 * * *"
   workflow_dispatch:
 
+permissions:
+  actions: write
+
 jobs:
   avisar:
     runs-on: ubuntu-latest
     steps:
       - name: Chamar o site
         run: curl -fsS -X POST https://azulmarinhoinfo.com.br/api/piscina/lembrete
+
+      - name: Manter ligado
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/piscina-lembrete.yml/enable"
