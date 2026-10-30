@@ -6,3 +6,7 @@
 # Scripts do site: o navegador sempre confere se tem versão nova (temas, serviços etc.)
 /assets/js/*
   Cache-Control: no-cache
+
+# Plano da piscina: página pessoal, fora do Google
+/piscina/*
+  X-Robots-Tag: noindex, nofollow
