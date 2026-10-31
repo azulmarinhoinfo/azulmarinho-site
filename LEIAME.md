@@ -79,6 +79,9 @@ No painel você:
   marca `cobrado` com a data); tarefas de compra mostram as quantidades da aba Compras
   (supermercado, refri e carne, carvão, bolo, salgados, cadeiras e mesas) em duas colunas: só confirmados e com quem não respondeu.
 - aba **Compras** tem também **🍖 Churrasco** (carne crua 400/250/150 g e carvão 1 kg por kg de carne).
+  E **🍬 Doces** (6/5/3 por pessoa, encomenda de 25 em 25) e **🎁 Lembrancinhas** (uma por pessoa + 10%, ou só crianças).
+  Também ligadas: topo do bolo (texto com tema), crianças na piscina (lista com idade), TV e som (playlist),
+  congelador (gelo e refri), churrasqueira (carne e carvão), devolver emprestados (fornecedores) e Pago nas tarefas de buscar/pagar.
 - aba **Fornecedores** (em cada evento): tipo, nome, WhatsApp, o que pediu, valor e pago, com total.
   Os fornecedores aparecem sozinhos nas tarefas do mesmo tipo (`TIPOS_FORNECEDOR`). Ficam na
   chave `fornecedores` do KV, nunca no site público.

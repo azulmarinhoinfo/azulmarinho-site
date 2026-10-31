@@ -390,6 +390,7 @@ body.seq-aberto{ overflow:hidden; }
 .qtd-dupla td:nth-child(3), .qtd-dupla th:nth-child(3){ background:#FFFBEB; }
 .qtd-dupla b{ color:var(--marinho); }
 @media (max-width:760px){ .qtd-dupla{ font-size:13px; } .qtd-dupla td, .qtd-dupla th{ padding:6px 4px; } }
+.forn-acoes{ display:flex; gap:6px; align-items:center; flex-wrap:wrap; justify-content:flex-end; }
 .mini-totais{ display:flex; gap:8px; flex-wrap:wrap; margin:6px 0 4px; }
 .mini-totais span{ border-radius:999px; padding:5px 12px; font-size:14px; border:1.5px solid var(--borda); }
 .mini-totais .v{ background:#F0FDF4; border-color:#86EFAC; } .mini-totais .x{ background:#FFF1F2; border-color:#FDA4AF; } .mini-totais .s{ background:#FFFBEB; border-color:#FCD34D; }
@@ -838,6 +839,8 @@ body.seq-aberto{ overflow:hidden; }
         almoco: { adulto: 500, grande: 350, pequena: 200 },      // gramas de comida pronta (arroz, feijão, carne, salada...)
         carne: { adulto: 400, grande: 250, pequena: 150 },       // gramas de carne crua para o churrasco
         carvaoPorKgCarne: 1, sacoCarvao: 5,                      // 1 kg de carvão por kg de carne, sacos de 5 kg
+        doces: { adulto: 6, grande: 5, pequena: 3 },            // docinhos por pessoa (encomenda de 25 em 25)
+        lembrancinhaReserva: 0.1,                                // 10% a mais de lembrancinha
         bolo: 100,                                               // gramas por pessoa (1 fatia); bebê não come
         cadeiraIdade: 3,                                         // menores que isso ficam no colo
         cadeirasPorMesa: 4,
@@ -849,11 +852,11 @@ body.seq-aberto{ overflow:hidden; }
         folgaReutilizavel: 0.1                                   // 10% a mais de louça, para quebra e reposição
     };
     var baseCompras = "vai";
-    var ITENS_COMPRA = [["refri", "🥤 Refri"], ["suco", "🧃 Suco"], ["bolo", "🎂 Bolo"], ["salgados", "🥟 Salgados"], ["almoco", "🍛 Almoço"], ["churrasco", "🍖 Churrasco"]];
+    var ITENS_COMPRA = [["refri", "🥤 Refri"], ["suco", "🧃 Suco"], ["bolo", "🎂 Bolo"], ["salgados", "🥟 Salgados"], ["almoco", "🍛 Almoço"], ["churrasco", "🍖 Churrasco"], ["doces", "🍬 Doces"], ["lembrancinhas", "🎁 Lembrancinhas"]];
 
     /* O que vai ter na festa: tudo marcado (menos almoço), a não ser que tenha sido mudado neste aparelho. */
     function itensCompras(ev) {
-        var tem = { refri: true, suco: true, bolo: true, salgados: true, almoco: false, churrasco: true };
+        var tem = { refri: true, suco: true, bolo: true, salgados: true, almoco: false, churrasco: true, doces: true, lembrancinhas: true };
         try {
             var salvo = JSON.parse(localStorage.getItem("compras:" + ev.id) || "{}");
             Object.keys(tem).forEach(function (k) { if (typeof salvo[k] === "boolean") tem[k] = salvo[k]; });
@@ -901,6 +904,8 @@ body.seq-aberto{ overflow:hidden; }
         var almoco = tem.almoco ? soma(R.almoco) : 0;
         var carne = tem.churrasco ? soma(R.carne) : 0, carneKg = Math.ceil(carne / 500) / 2, carvaoKg = Math.ceil(carneKg * R.carvaoPorKgCarne);
         var boloPessoas = tem.bolo ? comem : 0, bolo = boloPessoas * R.bolo;
+        var doces = tem.doces ? soma(R.doces) : 0;
+        var criancas = g.grande + g.pequena + g.bebe;
         var pratinhosPorPessoa = (tem.bolo ? 1 : 0) + (tem.salgados ? 1 : 0);
         var almocam = tem.almoco ? comem : 0, cortamAlm = tem.almoco ? cortam : 0;
         return {
@@ -911,6 +916,9 @@ body.seq-aberto{ overflow:hidden; }
             almocoG: almoco, almocoKg: Math.ceil(almoco / 500) / 2,
             carneG: carne, carneKg: carneKg, carvaoKg: carvaoKg, carvaoSacos: Math.ceil(carvaoKg / R.sacoCarvao),
             boloG: bolo, boloKg: bolo ? Math.max(1, Math.ceil(bolo / 500) / 2) : 0, fatias: boloPessoas,
+            doces: doces, docesEncomenda: Math.ceil(doces / 25) * 25,
+            lembrancinhas: tem.lembrancinhas ? Math.ceil((comem + g.bebe) * (1 + R.lembrancinhaReserva)) : 0,
+            lembrancinhasCriancas: tem.lembrancinhas ? Math.ceil(criancas * (1 + R.lembrancinhaReserva)) : 0, criancas: criancas,
             cadeiras: cadeiras, mesas: Math.ceil(cadeiras / R.cadeirasPorMesa),
             geloKg: comem * R.gelo, geloSacos: Math.ceil(comem * R.gelo / 5),
             papelToalha: comem ? Math.max(2, Math.ceil(comem / R.pessoasPorPapelToalha)) : 0,
@@ -1001,6 +1009,12 @@ body.seq-aberto{ overflow:hidden; }
                 '<ul>' + linha("Para encomendar (de 50 em 50)", fmt(c.salgadosEncomenda)) + '</ul>' +
                 '<p class="conta">' + (alm ? R.salgadosAlm : R.salgados).adulto + ' por adulto, ' + (alm ? R.salgadosAlm : R.salgados).grande + ' por criança de 6+ e ' + (alm ? R.salgadosAlm : R.salgados).pequena + ' por criança de 1 a 5 anos' +
                     (alm ? ' (com almoço, o salgado é só a entrada)' : '') + '.</p></div>' : '') +
+            (tem.doces ? '<div class="item-compra"><h3>🍬 Doces</h3><div class="qtd">' + fmt(c.doces) + ' <small>docinhos</small></div>' +
+                '<ul>' + linha("Para encomendar (de 25 em 25)", fmt(c.docesEncomenda)) + '</ul>' +
+                '<p class="conta">' + R.doces.adulto + ' por adulto, ' + R.doces.grande + ' por criança de 6+ e ' + R.doces.pequena + ' por criança de 1 a 5 anos. Bebês não entram.</p></div>' : '') +
+            (tem.lembrancinhas ? '<div class="item-compra"><h3>🎁 Lembrancinhas</h3><div class="qtd">' + fmt(c.lembrancinhas) + ' <small>uma por pessoa</small></div>' +
+                '<ul>' + linha("Se for só para as crianças", fmt(c.lembrancinhasCriancas)) + '</ul>' +
+                '<p class="conta">Uma por convidado (bebês também), com ' + Math.round(R.lembrancinhaReserva * 100) + '% a mais de reserva. Se a lembrancinha for só para as crianças, use o número de baixo (' + plural(c.criancas, "criança", "crianças") + ' + reserva).</p></div>' : '') +
             '<div class="item-compra"><h3>🪑 Cadeiras e mesas</h3><div class="qtd">' + c.cadeiras + ' <small>' + (c.cadeiras === 1 ? "cadeira" : "cadeiras") + '</small></div>' +
                 '<ul>' + linha("Mesas (" + R.cadeirasPorMesa + " cadeiras cada)", c.mesas) + '</ul>' +
                 '<p class="conta">Uma cadeira por pessoa. Crianças com menos de ' + R.cadeiraIdade + ' anos ficam no colo' + (g.colo ? ' (' + g.colo + ' nesta conta)' : '') + '. No aluguel, peça ' + plural(c.mesas, "jogo", "jogos") + ' de mesa com 4 cadeiras.</p></div>' +
@@ -1059,6 +1073,8 @@ body.seq-aberto{ overflow:hidden; }
             (tem.churrasco ? "🍖 Carne: " + fmt(c.carneKg) + " kg • Carvão: " + fmt(c.carvaoKg) + " kg\n" : "") +
             (tem.bolo ? "🎂 Bolo: " + fmt(c.boloKg) + " kg (" + c.fatias + " fatias)\n" : "") +
             (tem.salgados ? "🥟 Salgados: " + fmt(c.salgados) + " (encomendar " + fmt(c.salgadosEncomenda) + ")\n" : "") +
+            (tem.doces ? "🍬 Doces: " + fmt(c.doces) + " (encomendar " + fmt(c.docesEncomenda) + ")\n" : "") +
+            (tem.lembrancinhas ? "🎁 Lembrancinhas: " + fmt(c.lembrancinhas) + " (só crianças: " + fmt(c.lembrancinhasCriancas) + ")\n" : "") +
             "🪑 Cadeiras: " + c.cadeiras + " • Mesas: " + c.mesas + "\n" +
             "🧊 Gelo: " + fmt(c.geloKg) + " kg (" + c.geloSacos + " sacos de 5 kg)\n" +
             "🧻 Guardanapos: " + fmt(c.desc.guardanapos) + " • Papel-toalha: " + c.papelToalha + " rolos\n\n" +
@@ -1424,12 +1440,12 @@ body.seq-aberto{ overflow:hidden; }
         ["Açougue (carne)", "🥩", /carne/],
         ["Supermercado", "🛒", /supermercado|refri/],
         ["Carvão e gelo", "🧊", /carvao|gelo/],
-        ["Aluguel de mesas e cadeiras", "🪑", /cadeira|mesa/],
-        ["Decoração e balões", "🎈", /decora|balo/],
-        ["Som, TV e DJ", "🎵", /\bsom\b|\bdj\b|\btv\b/],
+        ["Aluguel de mesas e cadeiras", "🪑", /cadeira|mesa|devolver|emprestad/],
+        ["Decoração e balões", "🎈", /decora|balo|devolver|emprestad/],
+        ["Som, TV e DJ", "🎵", /\bsom\b|\bdj\b|\btv\b|devolver|emprestad/],
         ["Fotógrafo", "📷", /fotograf/],
         ["Comida e buffet", "🍛", /almoco|buffet|comida/],
-        ["Recreação e brinquedos", "🤹", /recrea|brinquedo|pula-pula|piscina de bolinha/],
+        ["Recreação e brinquedos", "🤹", /recrea|brinquedo|pula-pula|piscina de bolinha|devolver|emprestad/],
         ["Outros", "📌", null]
     ];
     function emojiTipo(tipo) { var x = TIPOS_FORNECEDOR.filter(function (y) { return y[0] === tipo; })[0]; return x ? x[1] : "📌"; }
@@ -1556,18 +1572,24 @@ body.seq-aberto{ overflow:hidden; }
         };
         var bolo = function () { add(tem.bolo, "🎂 Bolo", fmt(c.boloKg) + " kg (" + plural(c.fatias, "fatia", "fatias") + ")"); };
         var salg = function () { add(tem.salgados, "🥟 Salgados", fmt(c.salgadosEncomenda) + " para encomendar (" + fmt(c.salgados) + " na conta)"); };
+        var doces = function () { add(tem.doces, "🍬 Doces", fmt(c.docesEncomenda) + " para encomendar (" + fmt(c.doces) + " na conta)"); };
+        var lembr = function () { add(tem.lembrancinhas, "🎁 Lembrancinhas (uma por pessoa)", plural(c.lembrancinhas, "lembrancinha", "lembrancinhas")); add(tem.lembrancinhas, "🎁 Se for só para as crianças", fmt(c.lembrancinhasCriancas) + " só para crianças"); };
         var almoco = function () { add(alm, "🍛 Almoço", fmt(c.almocoKg) + " kg de comida pronta"); };
-        var cadeiras = function () { add(true, "🪑 Cadeiras", fmt(c.cadeiras)); add(true, "🪑 Mesas (4 cadeiras cada)", fmt(c.mesas)); };
+        var cadeiras = function () { add(true, "🪑 Cadeiras", plural(c.cadeiras, "cadeira", "cadeiras")); add(true, "🪑 Mesas (4 cadeiras cada)", plural(c.mesas, "mesa", "mesas")); };
 
         if (/supermercado/.test(k)) { suco(); desc(); }
         else if (/refri|carne/.test(k)) { if (/refri/.test(k)) refri(); if (/carne/.test(k)) carne(); gelo(); }
         else if (/carvao/.test(k)) carvao();
         else if (/\bbolo\b/.test(k) && !/topo/.test(k)) bolo();
         else if (/salgad/.test(k)) salg();
+        else if (/doce/.test(k)) doces();
+        else if (/lembrancinha/.test(k)) lembr();
+        else if (/churrasqueira/.test(k)) { carne(); carvao(); }
+        else if (/congelador/.test(k)) { gelo(); refri(); }
         else if (/cadeira|mesa/.test(k)) cadeiras();
         else if (/almoco|comida/.test(k)) almoco();
         else if (/\bgelo\b/.test(k)) gelo();
-        else if (/compra/.test(k)) { refri(); suco(); carne(); carvao(); bolo(); salg(); almoco(); gelo(); desc(); }
+        else if (/compra/.test(k)) { refri(); suco(); carne(); carvao(); bolo(); salg(); doces(); lembr(); almoco(); gelo(); desc(); }
         else return null;
         return l;
     }
@@ -1639,7 +1661,7 @@ body.seq-aberto{ overflow:hidden; }
                 (!grupo && falta ? '<button class="b verde pequeno" data-acao="sequencia">' + I.whats + 'Enviar em sequência (' + falta + ')</button>' : "") +
                 irAba("convidados", "👥 Abrir Convidados") + '</div>');
         }
-        else if (/lembr/.test(k)) {
+        else if (/lembrete|lembrar/.test(k)) {
             var conf = lista.filter(function (p) { return p.confirmado; });
             botao = "💬 Ver lembrete"; resumo = "Lembrete pronto • " + plural(conf.length, "confirmado", "confirmados");
             partes.push('<p class="nota-info">Mensagem de lembrete com o horário, o local e o link do mapa. Copie para o grupo ou mande para cada confirmado (com o nome dele).</p>' +
@@ -1666,9 +1688,29 @@ body.seq-aberto{ overflow:hidden; }
                 }).join("") + '</ul>' : '<p class="nota-info">Todo mundo já respondeu. 👏</p>') +
                 '<div class="acoes-info">' + copiar("Ainda não responderam (" + ev.titulo + "):\n" + sem.map(function (p) { return "• " + p.nome; }).join("\n"), "📋 Copiar a lista") + irAba("respostas", "📊 Abrir Respostas") + '</div>');
         }
-        else if (/playlist/.test(k)) {
-            botao = "🎵 Colocar a playlist"; resumo = ev.playlist ? "Playlist já está no site ✓" : "Ainda sem playlist no site";
-            partes.push(campos([campo("playlist", "Link da playlist", ev.playlist || "", { ph: "Link do Apple Music, Spotify ou YouTube", dica: "Aparece na página do evento." })]));
+        else if (/playlist|\bsom\b/.test(k)) {
+            botao = "🎵 " + (/playlist/.test(k) ? "Colocar a playlist" : "Ver a playlist"); resumo = ev.playlist ? "Playlist já está no site ✓" : "Ainda sem playlist no site";
+            partes.push(campos([campo("playlist", "Link da playlist", ev.playlist || "", { ph: "Link do Apple Music, Spotify ou YouTube", dica: "Aparece na página do evento." })]) +
+                (ev.playlist ? '<div class="acoes-info"><a class="b pequeno" href="' + esc(ev.playlist) + '" target="_blank" rel="noopener">▶️ Abrir a playlist</a>' + copiar(ev.playlist, "📋 Copiar o link") + '</div>' : ''));
+        }
+        else if (/topo/.test(k) && /encomend/.test(k)) {
+            var tt = window.TEMAS[ev.tema] || window.TEMAS.padrao;
+            var txtTopo = "Topo do bolo — " + ev.titulo + "\nTema: " + tt.nome + "\nData da festa: " + EV.dataLonga(ev) + "\nNome/texto: " + ev.titulo;
+            botao = "🎂 Dados do topo"; resumo = "Tema " + tt.emoji + " " + tt.nome;
+            partes.push('<p class="nota-info">O que mandar para quem faz o topo (pode copiar e colar no WhatsApp do fornecedor):</p>' +
+                '<pre class="texto-pronto">' + esc(txtTopo) + '</pre><div class="acoes-info">' + copiar(txtTopo, "📋 Copiar") + '</div>');
+        }
+        else if (/crianca/.test(k)) {
+            var cri = lista.filter(function (p) { return p.tipo === "crianca" && !p.naoVai; })
+                .sort(function (a, b) { return (+a.idade || 0) - (+b.idade || 0); });
+            var criConf = cri.filter(function (p) { return p.confirmado; });
+            botao = "🧒 Ver as crianças"; resumo = plural(criConf.length, "criança confirmada", "crianças confirmadas") + (cri.length > criConf.length ? " (+" + (cri.length - criConf.length) + " sem resposta)" : "");
+            partes.push('<p class="nota-info">Crianças da lista (menos quem avisou que não vai), da mais nova para a mais velha. As pequenas precisam de um adulto sempre perto da piscina.</p>' +
+                (cri.length ? '<ul class="pessoas-info">' + cri.map(function (p) {
+                    return '<li><span>' + esc(p.nome) + (p.idade !== undefined && p.idade !== "" ? ' <small>' + p.idade + (+p.idade === 1 ? " ano" : " anos") + '</small>' : ' <small>sem idade</small>') + '</span><small>' + (p.confirmado ? "✅ confirmada" : "⏳ sem resposta") + '</small></li>';
+                }).join("") + '</ul>' : '<p class="nota-info">Nenhuma criança marcada na lista. Marque <b>Criança</b> e a idade na aba Convidados.</p>') +
+                '<div class="acoes-info">' + (cri.length ? copiar("Crianças na festa (" + ev.titulo + "):\n" + cri.map(function (p) { return "• " + p.nome + (p.idade !== undefined && p.idade !== "" ? " (" + p.idade + ")" : "") + (p.confirmado ? "" : " — sem resposta"); }).join("\n"), "📋 Copiar a lista") : "") +
+                irAba("convidados", "👥 Abrir Convidados") + '</div>');
         }
         else if (/agradec/.test(k)) {
             botao = "💙 Ver agradecimento"; resumo = "Mensagem pronta com o link das fotos";
@@ -1689,7 +1731,7 @@ body.seq-aberto{ overflow:hidden; }
         }
 
         /* ---- Quantidades da aba Compras: duas contas, só confirmados e com quem não respondeu ---- */
-        var lc = /convite|lembr|presenc|tema/.test(k) ? null : linhasCompra(k, contaCompras(ev, "vai"));
+        var lc = /convite|lembrete|lembrar|presenc|\btema\b/.test(k) ? null : linhasCompra(k, contaCompras(ev, "vai"));
         if (lc) {
             var cv = contaCompras(ev, "vai"), ct = contaCompras(ev, "todos"), lt = linhasCompra(k, ct);
             if (!botao) botao = "🛒 Ver quantidades";
@@ -1710,9 +1752,10 @@ body.seq-aberto{ overflow:hidden; }
 
         /* ---- Fornecedores do tipo certo ---- */
         var tipos = TIPOS_FORNECEDOR.filter(function (x) { return x[2] && x[2].test(k); }).map(function (x) { return x[0]; });
-        if (/convite|lembr|presenc|tema|playlist|agradec/.test(k)) tipos = [];
+        if (/convite|lembrete|lembrar|presenc|\btema\b|playlist|agradec/.test(k)) tipos = [];
         if (tipos.length) {
-            var fs = fornecedores(ev.id).filter(function (f) { return tipos.indexOf(f.tipo) >= 0 && String(f.nome || "").trim(); });
+            var todosF = fornecedores(ev.id);
+            var fs = todosF.filter(function (f) { return tipos.indexOf(f.tipo) >= 0 && String(f.nome || "").trim(); });
             if (!botao) botao = "📞 Ver fornecedores";
             if (fs.length && !lc) resumo = fs.map(function (f) { return emojiTipo(f.tipo) + " " + f.nome; }).join(" • ");
             partes.push('<div class="subtitulo-info">Fornecedores (' + tipos.join(", ") + ')</div>' +
@@ -1720,7 +1763,8 @@ body.seq-aberto{ overflow:hidden; }
                     return '<li><span>' + emojiTipo(f.tipo) + ' <b>' + esc(f.nome) + '</b>' + (f.whats ? ' <small>' + esc(f.whats) + '</small>' : '') +
                         (f.obs ? '<small class="obs">' + esc(f.obs) + '</small>' : '') +
                         (f.valor ? '<small class="obs">' + esc(f.valor) + (f.pago ? " • pago ✓" : " • falta pagar") + '</small>' : '') + '</span>' +
-                        (numero(f.whats) ? '<a class="convite" href="https://wa.me/' + numero(f.whats) + '" target="_blank" rel="noopener">' + I.whats + 'Chamar</a>' : '') + '</li>';
+                        '<span class="forn-acoes">' + (/pagar|buscar|encomend/.test(k) ? '<label class="marca conf"><input type="checkbox" data-fo="pago" data-i="' + todosF.indexOf(f) + '"' + (f.pago ? " checked" : "") + '>Pago</label>' : '') +
+                        (numero(f.whats) ? '<a class="convite" href="https://wa.me/' + numero(f.whats) + '" target="_blank" rel="noopener">' + I.whats + 'Chamar</a>' : '') + '</span></li>';
                 }).join("") + '</ul>' : '<p class="nota-info">Nenhum fornecedor de ' + tipos.join(" ou ") + ' cadastrado neste evento.</p>') +
                 '<div class="acoes-info">' + irAba("fornecedores", fs.length ? "📞 Abrir Fornecedores" : "➕ Cadastrar fornecedor") + '</div>');
         }
@@ -2307,6 +2351,7 @@ body.seq-aberto{ overflow:hidden; }
             if (tf !== "t") tarefaMudou = true;
             return;
         }
+        if (aba === "tarefas" && el.getAttribute("data-fo") === "pago") { redesenharTarefas(); return; }
         if (el.hasAttribute("data-fo") && el.getAttribute("data-fo") === "tipo") { var yf = window.scrollY; desenhar(); window.scrollTo(0, yf); return; }
         if (aba === "tarefas" && el.getAttribute("data-c") === "data") { redesenharTarefas(); return; }
         if (el.hasAttribute("data-item-compra")) {
