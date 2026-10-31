@@ -10,3 +10,10 @@
 # Plano da piscina: página pessoal, fora do Google
 /piscina/*
   X-Robots-Tag: noindex, nofollow
+
+# App instalável: o navegador sempre confere se o sw.js mudou
+/sw.js
+  Cache-Control: no-cache
+/manifest.webmanifest
+  Content-Type: application/manifest+json
+  Cache-Control: no-cache

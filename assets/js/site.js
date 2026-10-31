@@ -121,3 +121,8 @@ window.ICONES = {
         document.body.appendChild(w);
     }
 })();
+
+/* App instalável (o site na tela do celular): liga o sw.js, que guarda cópias para abrir sem internet */
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () { navigator.serviceWorker.register("/sw.js").catch(function () {}); });
+}

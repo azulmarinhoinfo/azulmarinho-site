@@ -20,5 +20,17 @@ export async function onRequest(context) {
     var res = await fetch(ORIGEM + resto + url.search, { method: request.method, headers: { "Accept": request.headers.get("Accept") || "*/*" } });
     res = new Response(res.body, res);
     res.headers.set("X-Robots-Tag", "noindex");
+    /* Páginas da loja vistas pelo portal fazem parte do app da Azul Marinho (manifest + sw.js do portal) */
+    if ((res.headers.get("Content-Type") || "").indexOf("text/html") === 0) {
+        res = new HTMLRewriter().on("head", {
+            element: function (head) {
+                head.append('<link rel="manifest" href="/manifest.webmanifest">' +
+                    '<link rel="apple-touch-icon" href="/assets/app/apple-touch-icon.png">' +
+                    '<meta name="apple-mobile-web-app-title" content="Azul Marinho">' +
+                    '<meta name="apple-mobile-web-app-capable" content="yes">' +
+                    '<script>if("serviceWorker" in navigator)navigator.serviceWorker.register("/sw.js").catch(function(){})</script>', { html: true });
+            }
+        }).transform(res);
+    }
     return res;
 }
