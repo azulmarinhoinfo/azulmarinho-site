@@ -391,6 +391,21 @@ body.seq-aberto{ overflow:hidden; }
 .qtd-dupla b{ color:var(--marinho); }
 @media (max-width:760px){ .qtd-dupla{ font-size:13px; } .qtd-dupla td, .qtd-dupla th{ padding:6px 4px; } }
 .forn-acoes{ display:flex; gap:6px; align-items:center; flex-wrap:wrap; justify-content:flex-end; }
+.faixa-tarefas{ border:1.5px solid #7DD3FC; background:#F0F9FF; border-radius:14px; padding:10px 14px; margin-bottom:18px; }
+.faixa-tarefas summary{ cursor:pointer; display:flex; flex-wrap:wrap; gap:4px 10px; align-items:baseline; color:var(--marinho); }
+.faixa-tarefas summary b{ font:700 15px "Montserrat",sans-serif; }
+.faixa-tarefas summary span{ font-size:14px; color:var(--ciano-escuro); font-weight:500; }
+.faixa-tarefas summary small{ flex-basis:100%; font-size:13px; color:var(--texto-claro); }
+.faixa-tarefas ul{ list-style:none; margin:8px 0 0; padding:0; }
+.ft-item{ padding:8px 0 8px 8px; border-top:1px dashed #BAE6FD; border-left:4px solid transparent; }
+.ft-item.s-feita{ border-left-color:#22C55E; } .ft-item.s-atrasada{ border-left-color:#F43F5E; background:#FFF1F2; } .ft-item.s-agora{ border-left-color:var(--ciano); }
+.ft-check{ display:flex; gap:10px; align-items:center; cursor:pointer; font-size:15px; font-weight:500; color:var(--marinho); }
+.ft-check input{ width:20px; height:20px; margin:0; accent-color:#16A34A; flex-shrink:0; }
+.ft-item.s-feita .ft-check span{ text-decoration:line-through; color:var(--texto-claro); }
+.ft-item > small{ display:block; font-size:12px; color:var(--texto-claro); margin:3px 0 0 30px; }
+.ft-item .ver-info{ margin-left:30px; }
+.ft-item .info-tarefa{ margin:8px 0 2px 0; }
+.seq-inicio.cobrar{ border-color:#FCD34D; background:#FFFBEB; }
 .mini-totais{ display:flex; gap:8px; flex-wrap:wrap; margin:6px 0 4px; }
 .mini-totais span{ border-radius:999px; padding:5px 12px; font-size:14px; border:1.5px solid var(--borda); }
 .mini-totais .v{ background:#F0FDF4; border-color:#86EFAC; } .mini-totais .x{ background:#FFF1F2; border-color:#FDA4AF; } .mini-totais .s{ background:#FFFBEB; border-color:#FCD34D; }
@@ -736,7 +751,7 @@ body.seq-aberto{ overflow:hidden; }
                 '<button data-aba="compras" class="' + (aba === "compras" ? "ativa" : "") + '">Compras</button>' +
                 '<button data-aba="tarefas" class="' + (aba === "tarefas" ? "ativa" : "") + '">Tarefas</button>' +
                 '<button data-aba="fornecedores" class="' + (aba === "fornecedores" ? "ativa" : "") + '">Fornecedores' + (fornecedores(ev.id).length ? " (" + fornecedores(ev.id).length + ")" : "") + '</button></div>' +
-            '<div class="conteudo-aba">' + (aba === "detalhes" ? detalhesHTML(ev) : aba === "respostas" ? respostasHTML(ev) : aba === "compras" ? comprasHTML(ev) : aba === "tarefas" ? tarefasHTML(ev) : aba === "fornecedores" ? fornecedoresHTML(ev) : convidadosHTML(ev)) + '</div>';
+            '<div class="conteudo-aba">' + faixaTarefasHTML(ev) + (aba === "detalhes" ? detalhesHTML(ev) : aba === "respostas" ? respostasHTML(ev) : aba === "compras" ? comprasHTML(ev) : aba === "tarefas" ? tarefasHTML(ev) : aba === "fornecedores" ? fornecedoresHTML(ev) : convidadosHTML(ev)) + '</div>';
     }
 
     /* ---------------- Respostas: quem vai, quem não vai, quem não respondeu ---------------- */
@@ -1607,7 +1622,7 @@ body.seq-aberto{ overflow:hidden; }
             return '<pre class="texto-pronto" data-previa="' + tipo + '" data-tid="' + id + '" data-k="' + key + '">' + esc(txt) + '</pre>' +
                 '<div class="acoes-info"><button class="b cheio pequeno" data-acao="copiar-texto" data-k="' + key + '" data-rot="📋 Copiar o texto">📋 Copiar o texto</button>';
         }
-        function irAba(a, texto) { return '<button class="b pequeno" data-acao="ir-aba" data-v="' + a + '">' + texto + '</button>'; }
+        function irAba(a, texto) { if (a === aba) return ""; return '<button class="b pequeno" data-acao="ir-aba" data-v="' + a + '">' + texto + '</button>'; }
         function campos(lista) { return '<div class="campos campos-tarefa">' + lista.join("") + '</div>'; }
         function zap(p, texto, rotulo) {
             var nz = numero(p.whats);
@@ -1829,6 +1844,36 @@ body.seq-aberto{ overflow:hidden; }
         return total ? "Total: <b>" + reais(total) + "</b> • Pago: <b>" + reais(pago) + "</b> • Falta pagar: <b>" + reais(total - pago) + "</b>" : "Coloque os valores para ver o total.";
     }
 
+    /* Tarefas que pertencem a cada aba: aparecem no topo dela e marcar ali conclui a tarefa na aba Tarefas */
+    var TAREFAS_DA_ABA = {
+        detalhes: ["Tarefas do evento", /^definir|fazer novo convite|criar convite|playlist|album|\bfotos\b/, true],
+        convidados: ["Tarefas dos convites", /convite|grupo de whats|lembrete|lembrar|confirm|agradec/, false],
+        respostas: ["Tarefas das respostas", /confirm|lembrete|lembrar/, false],
+        compras: ["Tarefas de compras e encomendas", /compra|supermercado|refri|carne|carvao|\bbolo\b|salgad|doce|lembrancinha|cadeira|congelador/, true],
+        fornecedores: ["Tarefas com fornecedores", /encomend|buscar|pagar|devolver|emprestad|cadeira|\bsom\b|carne|carvao|supermercado/, false]
+    };
+    var faixaEstado = {};   // aba -> true (aberta) / false (fechada), escolhido pela pessoa
+    function faixaTarefasHTML(ev) {
+        var cfg = TAREFAS_DA_ABA[aba];
+        if (!cfg || !ev.data) return "";
+        var c = cronograma(ev);
+        var a = agora(), l = c.itens.filter(function (t) { return cfg[1].test(chaveNome(t.t)); }).sort(ordemTarefa);
+        if (!l.length) return "";
+        COPIAS = {};
+        var feitas = l.filter(function (t) { return t.feito; }).length;
+        return '<details class="faixa-tarefas"' + ((faixaEstado[aba] === undefined ? l.length <= 6 : faixaEstado[aba]) ? " open" : "") + ' data-faixa="' + aba + '"><summary><b>📋 ' + cfg[0] + '</b> <span>' + feitas + ' de ' + l.length + ' feitas</span>' +
+                '<small>Marcar aqui já conclui a tarefa na aba Tarefas.</small></summary><ul>' +
+            l.map(function (t) {
+                var lg = cfg[2] ? null : ligacoes(ev, t), aberta = lg && infoAberta[t.id], s = situacaoTarefa(t, a);
+                var lg2 = lg || ligacoes(ev, t);
+                return '<li class="ft-item s-' + s + '" data-linha-tarefa="' + t.id + '"><label class="ft-check"><input type="checkbox" data-tf="feito" data-id="' + t.id + '"' + (t.feito ? " checked" : "") + '><span>' + esc(t.t) + '</span></label>' +
+                    '<small>' + (s === "feita" ? "✅ Feita" : s === "atrasada" ? "🔴 Atrasada" : s === "agora" ? "⏰ Agora" : "⏳") + " · " + diaCurto(t.dia) + (t.ini ? ", " + t.ini : "") + " · " + quandoRelativo(t.dia, ev) +
+                        (lg2 && lg2.resumo ? ' · <span class="resumo-t">' + esc(lg2.resumo) + '</span>' : '') + '</small>' +
+                    (lg ? '<button class="ver-info' + (aberta ? ' aberta' : '') + '" data-acao="info-abrir" data-id="' + t.id + '" aria-expanded="' + (aberta ? 'true' : 'false') + '">' + lg.botao + (aberta ? ' ▴' : ' ▾') + '</button>' : '') +
+                    (aberta ? '<div class="info-tarefa">' + lg.html + '</div>' : '') + '</li>';
+            }).join("") + '</ul></details>';
+    }
+
     function aplicarTemaDaTarefa(ev, texto) {
         var st = document.getElementById("tema-status");
         if (!String(texto).trim()) { var ti = document.getElementById("tema-nome"); if (ti) ti.focus(); return; }
@@ -2021,6 +2066,12 @@ body.seq-aberto{ overflow:hidden; }
                         : 'Nenhum convidado tem WhatsApp cadastrado. Coloque o número com DDD ao lado do nome e salve.') +
                     '</small></span></div>'
                 : "") +
+            (function () {
+                var nc = filaCobrar(ev).length;
+                return nc ? '<div class="seq-inicio cobrar"><span><b>' + nc + (nc === 1 ? ' convidado recebeu o convite e ainda não respondeu' : ' convidados receberam o convite e ainda não responderam') + '</b>' +
+                    '<small>Manda um pedido de confirmação (mensagem diferente do convite, explicando por que a resposta é importante), um por um.</small></span>' +
+                    '<button class="b verde" data-acao="sequencia-cobrar">' + I.whats + 'Pedir confirmação</button></div>' : "";
+            })() +
             '<div class="add-conv">' +
                 '<input id="novo-nome" placeholder="Nome do convidado" autocomplete="off" list="sugestoes">' +
                 '<input id="novo-whats" placeholder="WhatsApp com DDD (opcional)" inputmode="tel" autocomplete="off">' +
@@ -2737,6 +2788,11 @@ body.seq-aberto{ overflow:hidden; }
     painel.addEventListener("focusout", function (e) {
         if (tarefaMudou && e.target.hasAttribute && e.target.hasAttribute("data-tf")) { tarefaMudou = false; redesenharDepois(); }
     });
+
+    painel.addEventListener("toggle", function (e) {
+        var f = e.target.getAttribute && e.target.getAttribute("data-faixa");
+        if (f) faixaEstado[f] = e.target.open;
+    }, true);
 
     painel.addEventListener("keydown", function (e) {
         if (e.key === "Enter" && e.target.id === "tema-nome") {
