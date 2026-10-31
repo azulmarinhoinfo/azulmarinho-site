@@ -77,7 +77,7 @@ No painel você:
   sequência; "Lembrete" tem o texto e um botão por confirmado; "Confirmar presenças" tem
   **Pedir confirmação em sequência** (mensagem própria para quem recebeu o convite e não respondeu;
   marca `cobrado` com a data); tarefas de compra mostram as quantidades da aba Compras
-  (supermercado, refri e carne, carvão, bolo, salgados, cadeiras e mesas).
+  (supermercado, refri e carne, carvão, bolo, salgados, cadeiras e mesas) em duas colunas: só confirmados e com quem não respondeu.
 - aba **Compras** tem também **🍖 Churrasco** (carne crua 400/250/150 g e carvão 1 kg por kg de carne).
 - aba **Fornecedores** (em cada evento): tipo, nome, WhatsApp, o que pediu, valor e pago, com total.
   Os fornecedores aparecem sozinhos nas tarefas do mesmo tipo (`TIPOS_FORNECEDOR`). Ficam na

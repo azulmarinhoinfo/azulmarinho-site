@@ -382,6 +382,14 @@ body.seq-aberto{ overflow:hidden; }
 .pessoas-info li span small{ color:var(--texto-claro); font-size:12px; }
 .pessoas-info li span small.obs{ display:block; }
 .pessoas-info{ max-height:340px; overflow:auto; }
+.qtd-dupla{ width:100%; max-width:680px; border-collapse:collapse; margin:0 0 8px; font-size:15px; }
+.qtd-dupla th{ font:600 13px "Montserrat",sans-serif; color:var(--marinho); text-align:right; padding:6px 8px; border-bottom:2px solid var(--borda); vertical-align:bottom; }
+.qtd-dupla th small{ display:block; font:400 12px "Ubuntu",sans-serif; color:var(--texto-claro); }
+.qtd-dupla td{ padding:7px 8px; border-bottom:1px dashed var(--borda); text-align:right; }
+.qtd-dupla td:first-child{ text-align:left; }
+.qtd-dupla td:nth-child(3), .qtd-dupla th:nth-child(3){ background:#FFFBEB; }
+.qtd-dupla b{ color:var(--marinho); }
+@media (max-width:760px){ .qtd-dupla{ font-size:13px; } .qtd-dupla td, .qtd-dupla th{ padding:6px 4px; } }
 .mini-totais{ display:flex; gap:8px; flex-wrap:wrap; margin:6px 0 4px; }
 .mini-totais span{ border-radius:999px; padding:5px 12px; font-size:14px; border:1.5px solid var(--borda); }
 .mini-totais .v{ background:#F0FDF4; border-color:#86EFAC; } .mini-totais .x{ background:#FFF1F2; border-color:#FDA4AF; } .mini-totais .s{ background:#FFFBEB; border-color:#FCD34D; }
@@ -1524,11 +1532,9 @@ body.seq-aberto{ overflow:hidden; }
     }
 
     /* Quantidades da aba Compras (mesma conta). Sem ninguém confirmado, usa quem ainda não respondeu. */
-    function contaCompras(ev) {
-        var base = baseCompras, lista = pessoasCompras(ev, base), aviso = "";
-        if (!lista.length && base === "vai") { lista = pessoasCompras(ev, "todos"); aviso = "Ninguém confirmou ainda, então a conta usa todos os convidados que ainda não responderam."; }
-        var tem = itensCompras(ev);
-        return { n: lista.length, tem: tem, c: calcularCompras(gruposCompras(lista), tem), aviso: aviso, todos: base === "todos" || !!aviso };
+    function contaCompras(ev, base) {
+        var lista = pessoasCompras(ev, base), tem = itensCompras(ev);
+        return { n: lista.length, tem: tem, c: calcularCompras(gruposCompras(lista), tem) };
     }
     function linhasCompra(k, cc) {
         var c = cc.c, tem = cc.tem, alm = tem.almoco, l = [];
@@ -1682,18 +1688,23 @@ body.seq-aberto{ overflow:hidden; }
                 '<div class="acoes-info"><a class="b pequeno" href="/eventos/evento?id=' + encodeURIComponent(ev.id) + '#clima" target="_blank" rel="noopener">⛅ Abrir a previsão</a></div>');
         }
 
-        /* ---- Quantidades da aba Compras ---- */
-        var lc = /convite|lembr|presenc|tema/.test(k) ? null : linhasCompra(k, contaCompras(ev));
+        /* ---- Quantidades da aba Compras: duas contas, só confirmados e com quem não respondeu ---- */
+        var lc = /convite|lembr|presenc|tema/.test(k) ? null : linhasCompra(k, contaCompras(ev, "vai"));
         if (lc) {
-            var cc = contaCompras(ev);
+            var cv = contaCompras(ev, "vai"), ct = contaCompras(ev, "todos"), lt = linhasCompra(k, ct);
             if (!botao) botao = "🛒 Ver quantidades";
-            if (!resumo) resumo = lc.slice(0, 2).map(function (x) { return x[0].split(" ")[0] + " " + x[1].replace(/ \(.*\)$/, ""); }).join(" • ") || "Nada a comprar com o que está marcado em Compras";
-            var txt = "🛒 " + t.t + " — " + ev.titulo + "\n" + lc.map(function (x) { return "☐ " + x[0].replace(/^\S+ /, "") + ": " + x[1]; }).join("\n");
+            var lr = cv.n ? lc : lt;
+            if (!resumo) resumo = lr.slice(0, 2).map(function (x) { return x[0].split(" ")[0] + " " + x[1].replace(/ \(.*\)$/, ""); }).join(" • ") || "Nada a comprar com o que está marcado em Compras";
+            var txt = "🛒 " + t.t + " — " + ev.titulo + "\n" +
+                "(confirmados: " + cv.n + " • com quem não respondeu: " + ct.n + ")\n" +
+                lc.map(function (x, i) { return "☐ " + x[0].replace(/^\S+ /, "") + ": " + x[1] + " | com quem não respondeu: " + lt[i][1]; }).join("\n");
             partes.push('<div class="subtitulo-info">Quantidades (da aba Compras)</div>' +
-                (lc.length ? '<ul class="qtd-info">' + lc.map(function (x) { return '<li><span>' + x[0] + '</span><b>' + x[1] + '</b></li>'; }).join("") + '</ul>'
+                (lc.length ? '<table class="qtd-dupla"><thead><tr><th></th><th>✅ Só confirmados<small>' + plural(cv.n, "pessoa", "pessoas") + '</small></th>' +
+                        '<th>✅ + ⏳ Não responderam<small>' + plural(ct.n, "pessoa", "pessoas") + '</small></th></tr></thead><tbody>' +
+                    lc.map(function (x, i) { return '<tr><td>' + x[0] + '</td><td><b>' + x[1] + '</b></td><td><b>' + lt[i][1] + '</b></td></tr>'; }).join("") + '</tbody></table>'
                     : '<p class="nota-info">Nada para comprar nesta tarefa com o que está marcado em <b>Vai ter na festa</b> (aba Compras).</p>') +
-                '<p class="nota-info">Conta com ' + plural(cc.n, "pessoa", "pessoas") + (cc.todos ? " (confirmados + quem não respondeu)" : " confirmadas") + '. ' + (cc.aviso ? cc.aviso + " " : "") +
-                    'Muda sozinha quando mais gente confirmar.' + (/carne|carvao/.test(k) && !cc.tem.churrasco ? ' O <b>Churrasco</b> está desmarcado na aba Compras.' : '') + '</p>' +
+                '<p class="nota-info">A primeira coluna conta só quem confirmou; a segunda soma também quem ainda não respondeu (o máximo que pode precisar). As duas mudam sozinhas quando mais gente responder.' +
+                    (/carne|carvao/.test(k) && !cv.tem.churrasco ? ' O <b>Churrasco</b> está desmarcado na aba Compras.' : '') + '</p>' +
                 '<div class="acoes-info">' + (lc.length ? copiar(txt, "📋 Copiar a lista") : "") + irAba("compras", "🛒 Abrir Compras") + '</div>');
         }
 
