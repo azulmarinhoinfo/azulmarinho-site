@@ -82,6 +82,10 @@ No painel você:
   E **🍬 Doces** (6/5/3 por pessoa, encomenda de 25 em 25) e **🎁 Lembrancinhas** (uma por pessoa + 10%, ou só crianças).
   Também ligadas: topo do bolo (texto com tema), crianças na piscina (lista com idade), TV e som (playlist),
   congelador (gelo e refri), churrasqueira (carne e carvão), devolver emprestados (fornecedores) e Pago nas tarefas de buscar/pagar.
+- **tarefas em cada aba** (`TAREFAS_DA_ABA` / `faixaTarefasHTML`): no topo de Detalhes, Convidados, Respostas,
+  Compras e Fornecedores aparece a faixa "📋 Tarefas ..." com as tarefas daquela parte; marcar ali conclui a tarefa
+  na aba Tarefas (é a mesma tarefa). Em Convidados e Respostas cada tarefa abre o mesmo quadro da aba Tarefas
+  (convite, lembrete, pedido de confirmação). Convidados tem também a faixa amarela **Pedir confirmação**.
 - aba **Fornecedores** (em cada evento): tipo, nome, WhatsApp, o que pediu, valor e pago, com total.
   Os fornecedores aparecem sozinhos nas tarefas do mesmo tipo (`TIPOS_FORNECEDOR`). Ficam na
   chave `fornecedores` do KV, nunca no site público.
