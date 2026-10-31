@@ -872,16 +872,31 @@ body.seq-aberto{ overflow:hidden; }
     /* O que vai ter na festa: tudo marcado (menos almoço), a não ser que tenha sido mudado neste aparelho. */
     function itensCompras(ev) {
         var tem = { refri: true, suco: true, bolo: true, salgados: true, almoco: false, churrasco: true, doces: true, lembrancinhas: true };
-        try {
-            var salvo = JSON.parse(localStorage.getItem("compras:" + ev.id) || "{}");
-            Object.keys(tem).forEach(function (k) { if (typeof salvo[k] === "boolean") tem[k] = salvo[k]; });
-        } catch (e) {}
+        /* Guardado junto das tarefas do evento (vale em todos os aparelhos); antes ficava só neste aparelho */
+        var tc = estado.tarefas[ev.id], salvo = tc && tc.tem;
+        if (!salvo) try { salvo = JSON.parse(localStorage.getItem("compras:" + ev.id) || "{}"); } catch (e) { salvo = {}; }
+        Object.keys(tem).forEach(function (k) { if (typeof salvo[k] === "boolean") tem[k] = salvo[k]; });
         return tem;
     }
     function marcarItemCompra(ev, item, valor) {
         var tem = itensCompras(ev);
         tem[item] = valor;
+        cronograma(ev).tem = tem;
+        marcarSujo();
         try { localStorage.setItem("compras:" + ev.id, JSON.stringify(tem)); } catch (e) {}
+    }
+
+    /* Tarefas que dependem do que vai ter na festa: desmarcou o item em Compras, a tarefa some (volta ao marcar de novo) */
+    var ITENS_DA_TAREFA = [[/\bbolo\b|topo/, "bolo"], [/salgad/, "salgados"], [/doce/, "doces"], [/lembrancinha/, "lembrancinhas"],
+        [/refri/, "refri"], [/\bsuco\b/, "suco"], [/carne|carvao|churras/, "churrasco"], [/almoco/, "almoco"]];
+    var NOMES_ITEM = { bolo: "Bolo", salgados: "Salgados", doces: "Doces", lembrancinhas: "Lembrancinhas", refri: "Refri", suco: "Suco", churrasco: "Churrasco", almoco: "Almoço" };
+    function itensDesligados(ev, t, tem) {
+        var k = chaveNome(t.t), usa = ITENS_DA_TAREFA.filter(function (x) { return x[0].test(k); }).map(function (x) { return x[1]; });
+        return usa.length && usa.every(function (i) { return !tem[i]; }) ? usa : null;
+    }
+    function tarefasVisiveis(ev, c) {
+        var tem = itensCompras(ev);
+        return c.itens.filter(function (t) { return !itensDesligados(ev, t, tem); });
     }
 
     /* Separa as pessoas em adultos, crianças de 6 anos ou mais, de 1 a 5 anos e bebês (menos de 1 ano). */
@@ -982,7 +997,8 @@ body.seq-aberto{ overflow:hidden; }
                 ITENS_COMPRA.map(function (it) {
                     return '<label' + (tem[it[0]] ? ' class="on"' : '') + '><input type="checkbox" data-item-compra="' + it[0] + '"' + (tem[it[0]] ? ' checked' : '') + '> ' + it[1] + '</label>';
                 }).join("") +
-            '</span></div>';
+            '</span></div>' +
+            '<p class="nota-compras" style="margin-top:-6px;font-size:13px;color:var(--texto-claro)">O que você desmarcar aqui sai sozinho da aba <b>Tarefas</b> (ex.: sem bolo, somem as tarefas de encomendar, buscar e o topo do bolo). Marcando de novo, elas voltam.</p>';
 
         if (!lista.length) {
             html += '<div class="faixa-aviso">' + (baseCompras === "vai"
@@ -1071,7 +1087,7 @@ body.seq-aberto{ overflow:hidden; }
             '<li>Marcando <b>Almoço</b>: entra a comida, os salgados diminuem (viram entrada), a bebida aumenta (a festa fica mais longa) e entram pratos, garfos e facas de almoço. O bolo não muda.</li>' +
             '<li>Marcando <b>Churrasco</b>: entra a carne (crua) e o carvão. Essas quantidades também aparecem nas tarefas de comprar carne e carvão.</li>' +
             '<li>As quantidades seguem as médias usadas em festa de aniversário de umas 4 horas, já com uma pequena sobra.</li>' +
-            '<li>Ao confirmar mais gente, a conta muda sozinha. As caixinhas de <b>Vai ter na festa</b> ficam guardadas neste aparelho.</li>' +
+            '<li>Ao confirmar mais gente, a conta muda sozinha. As caixinhas de <b>Vai ter na festa</b> ficam guardadas no evento (depois de Salvar), valendo em todos os aparelhos.</li>' +
         '</ul>';
         return html;
     }
@@ -1230,7 +1246,8 @@ body.seq-aberto{ overflow:hidden; }
     function horasTexto(min) { var h = Math.floor(min / 60), m = min % 60; return h + "h" + (m ? dois(m) : ""); }
 
     function tarefasHTML(ev) {
-        var c = cronograma(ev), itens = c.itens, a = agora();
+        var c0 = cronograma(ev), itens = tarefasVisiveis(ev, c0), a = agora();
+        var c = { base: c0.base, itens: itens, escondidas: c0.itens.filter(function (t) { return itens.indexOf(t) < 0; }) };
         var n = { feita: 0, pendente: 0, agora: 0, atrasada: 0 };
         itens.forEach(function (t) { n[situacaoTarefa(t, a)]++; });
         var total = itens.length, pct = total ? Math.round(n.feita * 100 / total) : 0;
@@ -1263,13 +1280,16 @@ body.seq-aberto{ overflow:hidden; }
 
     function listaTarefasHTML(ev, c, a) {
         COPIAS = {};
-        var ch = choques(c.itens), dias = [], porDia = {};
+        var ch = choques(c.itens), dias = [], porDia = {}, temC = itensCompras(ev);
+        var avisoEsc = c.escondidas && c.escondidas.length ? '<div class="faixa-aviso esc">🙈 <b>' + plural(c.escondidas.length, "tarefa escondida", "tarefas escondidas") + '</b> porque ' +
+            (function () { var nomes = {}; c.escondidas.forEach(function (t) { (itensDesligados(ev, t, temC) || []).forEach(function (i) { nomes[NOMES_ITEM[i]] = 1; }); }); var l = Object.keys(nomes); return (l.length === 1 ? l[0] + " está desmarcado" : l.join(", ") + " estão desmarcados"); })() +
+            ' em <b>Vai ter na festa</b> (aba Compras): ' + c.escondidas.map(function (t) { return esc(t.t); }).join(", ") + '. Marque de novo lá e elas voltam.</div>' : "";
         c.itens.slice().sort(ordemTarefa).forEach(function (t) {
             if (!porDia[t.dia]) { porDia[t.dia] = []; dias.push(t.dia); }
             porDia[t.dia].push(t);
         });
         var diaNovo = a.dia < ev.data ? a.dia : ev.data;
-        var html = '<div class="add-tarefa">' +
+        var html = avisoEsc + '<div class="add-tarefa">' +
                 '<input id="nt-titulo" placeholder="Nova tarefa (ex.: Encher balões)" autocomplete="off" aria-label="Nova tarefa">' +
                 '<input id="nt-dia" type="date" value="' + diaNovo + '" aria-label="Dia">' +
                 '<input id="nt-ini" type="time" value="19:00" aria-label="Começa">' +
@@ -1857,7 +1877,7 @@ body.seq-aberto{ overflow:hidden; }
         var cfg = TAREFAS_DA_ABA[aba];
         if (!cfg || !ev.data) return "";
         var c = cronograma(ev);
-        var a = agora(), l = c.itens.filter(function (t) { return cfg[1].test(chaveNome(t.t)); }).sort(ordemTarefa);
+        var a = agora(), l = tarefasVisiveis(ev, c).filter(function (t) { return cfg[1].test(chaveNome(t.t)); }).sort(ordemTarefa);
         if (!l.length) return "";
         COPIAS = {};
         var feitas = l.filter(function (t) { return t.feito; }).length;
@@ -1898,7 +1918,7 @@ body.seq-aberto{ overflow:hidden; }
     }
 
     function textoTarefas(ev) {
-        var c = cronograma(ev), abertas = c.itens.filter(function (t) { return !t.feito; }).sort(ordemTarefa), dia = "";
+        var c = cronograma(ev), abertas = tarefasVisiveis(ev, c).filter(function (t) { return !t.feito; }).sort(ordemTarefa), dia = "";
         return "📋 Tarefas que faltam: " + ev.titulo + " (" + EV.dataCurta(ev) + ")\n" + abertas.map(function (t) {
             var cab = t.dia !== dia ? "\n*" + diaCurto(t.dia) + "* (" + quandoRelativo(t.dia, ev).replace("🎉 ", "") + ")\n" : "";
             dia = t.dia;
@@ -2850,6 +2870,7 @@ body.seq-aberto{ overflow:hidden; }
             if (!c) return;
             tarefas[ev.id] = { base: c.base || ev.data, itens: c.itens.filter(function (t) { return String(t.t || "").trim() && /^\d{4}-\d{2}-\d{2}$/.test(t.dia || ""); })
                 .map(function (t) { var o = { id: t.id, t: String(t.t).trim(), g: t.g || "Outras", dia: t.dia, ini: t.ini || "", fim: t.fim || "" }; if (t.feito) o.feito = true; return o; }) };
+            if (c.tem && typeof c.tem === "object") tarefas[ev.id].tem = c.tem;
         });
 
         var forn = {};

@@ -86,6 +86,10 @@ No painel você:
   Compras e Fornecedores aparece a faixa "📋 Tarefas ..." com as tarefas daquela parte; marcar ali conclui a tarefa
   na aba Tarefas (é a mesma tarefa). Em Convidados e Respostas cada tarefa abre o mesmo quadro da aba Tarefas
   (convite, lembrete, pedido de confirmação). Convidados tem também a faixa amarela **Pedir confirmação**.
+- **itens desmarcados somem das tarefas** (`ITENS_DA_TAREFA` / `tarefasVisiveis`): desmarcar Bolo, Salgados, Doces,
+  Lembrancinhas, Refri, Suco, Churrasco ou Almoço em "Vai ter na festa" (aba Compras) esconde as tarefas que dependem
+  só desse item (em Tarefas, nas faixas das abas e no Copiar pendentes); marcando de novo elas voltam. As caixinhas agora
+  ficam no KV junto das tarefas do evento (`tarefas[evento].tem`), valendo em todos os aparelhos.
 - aba **Fornecedores** (em cada evento): tipo, nome, WhatsApp, o que pediu, valor e pago, com total.
   Os fornecedores aparecem sozinhos nas tarefas do mesmo tipo (`TIPOS_FORNECEDOR`). Ficam na
   chave `fornecedores` do KV, nunca no site público.
