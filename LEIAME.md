@@ -220,3 +220,22 @@ continuam sempre com as cores da Azul Marinho.
 `assets/data/camisas.js` tem uma lista de camisas 2026/27 copiada do catálogo da
 Azul Marinho Sports. A página sorteia algumas a cada visita. As fotos vêm direto do
 site da Sports. Se uma camisa sair da loja, apague a linha dela aqui.
+
+---
+
+## App instalável (o site no celular, grátis)
+
+O site inteiro pode ser instalado como app no celular (iPhone pelo Safari: Compartilhar →
+**Adicionar à Tela de Início**; Android pelo Chrome: ⋮ → **Instalar app**). Abre em tela cheia
+no portal, com o menu para Informática, Eventos, Piscina e Sports, e sempre mostra o site atual.
+
+| Arquivo | O que faz |
+|---|---|
+| `manifest.webmanifest` | Nome, cores, ícones e atalhos do app |
+| `assets/app/` | Ícones (feitos do símbolo do logo) |
+| `sw.js` | Guarda cópias das páginas abertas para abrir sem internet. Sempre busca a versão nova primeiro; painel, `/api/`, convidados e pedidos nunca são guardados |
+| `offline.html` | Aviso de "sem internet" para página nunca aberta |
+| `assets/js/site.js` (final) | Liga o `sw.js` em todas as páginas |
+| `functions/sports/[[path]].js` | Põe o app também nas páginas da loja vistas em `/sports/` |
+
+Mudou o `sw.js`? Troque a `VERSAO` no topo dele para limpar as cópias antigas nos celulares.
