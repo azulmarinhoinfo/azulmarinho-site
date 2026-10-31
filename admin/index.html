@@ -889,7 +889,8 @@ body.seq-aberto{ overflow:hidden; }
 
     /* Tarefas que dependem do que vai ter na festa: desmarcou o item em Compras, a tarefa some (volta ao marcar de novo) */
     var ITENS_DA_TAREFA = [[/\bbolo\b|topo/, "bolo"], [/salgad/, "salgados"], [/doce/, "doces"], [/lembrancinha/, "lembrancinhas"],
-        [/refri/, "refri"], [/\bsuco\b/, "suco"], [/carne|carvao|churras/, "churrasco"], [/almoco|supermercado/, "almoco"]];
+        [/refri/, "refri"], [/\bsuco\b/, "suco"], [/carne|carvao|churras/, "churrasco"], [/almoco|supermercado/, "almoco"],
+        [/\bgelo\b/, "refri"], [/\bgelo\b/, "suco"]];   // gelo só some se refri e suco estiverem desmarcados
     var NOMES_ITEM = { bolo: "Bolo", salgados: "Salgados", doces: "Doces", lembrancinhas: "Lembrancinhas", refri: "Refri", suco: "Suco", churrasco: "Churrasco", almoco: "Almoço" };
     function itensDesligados(ev, t, tem) {
         var k = chaveNome(t.t), usa = ITENS_DA_TAREFA.filter(function (x) { return x[0].test(k); }).map(function (x) { return x[1]; });
@@ -951,7 +952,7 @@ body.seq-aberto{ overflow:hidden; }
             lembrancinhas: tem.lembrancinhas ? Math.ceil((comem + g.bebe) * (1 + R.lembrancinhaReserva)) : 0,
             lembrancinhasCriancas: tem.lembrancinhas ? Math.ceil(criancas * (1 + R.lembrancinhaReserva)) : 0, criancas: criancas,
             cadeiras: cadeiras, mesas: Math.ceil(cadeiras / R.cadeirasPorMesa),
-            geloKg: comem * R.gelo, geloSacos: Math.ceil(comem * R.gelo / 5),
+            geloKg: tem.refri || tem.suco ? comem * R.gelo : 0, geloSacos: tem.refri || tem.suco ? Math.ceil(comem * R.gelo / 5) : 0,
             papelToalha: comem ? Math.max(2, Math.ceil(comem / R.pessoasPorPapelToalha)) : 0,
             desc: {
                 copos: bebem * (tem.almoco ? R.coposDescAlm : R.coposDesc),
@@ -1077,7 +1078,7 @@ body.seq-aberto{ overflow:hidden; }
             '<div class="item-compra"><h3>🧊 Gelo, guardanapos e papel-toalha</h3><div class="qtd">' + fmt(c.geloKg) + ' <small>kg de gelo</small></div>' +
                 '<ul>' + linha("Sacos de gelo de 5 kg", fmt(c.geloSacos)) + linha("Guardanapos", fmt(c.desc.guardanapos) + " (" + pacotes(c.desc.guardanapos, 50) + ")") +
                     linha("Rolos de papel-toalha", fmt(c.papelToalha)) + '</ul>' +
-                '<p class="conta">Gelo: ' + R.gelo + ' kg por pessoa (para a bebida e a caixa térmica no calor). Guardanapos: ' + (alm ? R.guardanaposAlm : R.guardanapos) + ' por pessoa, com louça ou descartável. ' +
+                '<p class="conta">Gelo: ' + R.gelo + ' kg por pessoa (para a bebida e a caixa térmica no calor; zera se não tiver refri nem suco). Guardanapos: ' + (alm ? R.guardanaposAlm : R.guardanapos) + ' por pessoa, com louça ou descartável. ' +
                     'Papel-toalha: 1 rolo a cada ' + R.pessoasPorPapelToalha + ' pessoas (mínimo 2), para a cozinha, a churrasqueira e o que derramar. Bebês não entram na conta.</p></div>' +
             '</div>';
 
@@ -1108,7 +1109,7 @@ body.seq-aberto{ overflow:hidden; }
             (tem.doces ? "🍬 Doces: " + fmt(c.doces) + " (encomendar " + fmt(c.docesEncomenda) + ")\n" : "") +
             (tem.lembrancinhas ? "🎁 Lembrancinhas: " + fmt(c.lembrancinhas) + " (só crianças: " + fmt(c.lembrancinhasCriancas) + ")\n" : "") +
             "🪑 Cadeiras: " + c.cadeiras + " • Mesas: " + c.mesas + "\n" +
-            "🧊 Gelo: " + fmt(c.geloKg) + " kg (" + c.geloSacos + " sacos de 5 kg)\n" +
+            (c.geloKg ? "🧊 Gelo: " + fmt(c.geloKg) + " kg (" + c.geloSacos + " sacos de 5 kg)\n" : "") +
             "🧻 Guardanapos: " + fmt(c.desc.guardanapos) + " • Papel-toalha: " + c.papelToalha + " rolos\n\n" +
             "Descartáveis: " + itens([[1, c.desc.copos, "copos"], [c.pratinhosPorPessoa, c.desc.pratinhos, "pratinhos"], [tem.bolo, c.desc.garfinhos, "garfinhos (bolo)"],
                 [alm, c.desc.pratos, "pratos (almoço)"], [alm, c.desc.garfos, "garfos (almoço)"], [alm, c.desc.facas, "facas (almoço)"]]) + "\n" +
