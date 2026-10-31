@@ -12,6 +12,7 @@
                  o cronograma foi montado, itens: [ { id, t, g, dia, ini, fim, feito } ] } }
      tarefasPadrao  cronograma padrão guardado pelo organizador (dias antes do evento e horários);
                  sem ele, o painel usa o padrão que vem no admin/index.html
+     fornecedores  fornecedores de cada evento: { "id-do-evento": [ { tipo, nome, whats, obs, valor, pago } ] }
      versao      marca da última gravação (evita sobrescrever
                  o que foi salvo em outro aparelho)
      backup:...  cópia anterior de cada gravação (guardada por 90 dias)
@@ -56,6 +57,15 @@ function validarTarefas(tarefas, padrao) {
     return "";
 }
 
+function validarFornecedores(f) {
+    if (f === undefined) return "";
+    if (!f || typeof f !== "object" || Array.isArray(f)) return "Lista de fornecedores inválida.";
+    for (var k in f) {
+        if (!Array.isArray(f[k])) return "Lista de fornecedores inválida (" + k + ").";
+    }
+    return "";
+}
+
 /* Respostas dos convidados pelo link: { evento: { código: { r, em } } } */
 async function lerRespostas(kv) {
     var respostas = {}, cursor;
@@ -89,6 +99,7 @@ export async function onRequestGet(context) {
         respostas: await lerRespostas(p.kv),
         tarefas: await lerJSON(p.kv, "tarefas", {}),
         tarefasPadrao: await lerJSON(p.kv, "tarefasPadrao", null),
+        fornecedores: await lerJSON(p.kv, "fornecedores", {}),
         versao: (await p.kv.get("versao")) || ""
     });
 }
@@ -100,7 +111,7 @@ export async function onRequestPut(context) {
     var corpo;
     try { corpo = await context.request.json(); } catch (e) { return json({ erro: "Dados inválidos." }, 400); }
 
-    var erro = validar(corpo.eventos, corpo.convidados || {}) || validarTarefas(corpo.tarefas, corpo.tarefasPadrao);
+    var erro = validar(corpo.eventos, corpo.convidados || {}) || validarTarefas(corpo.tarefas, corpo.tarefasPadrao) || validarFornecedores(corpo.fornecedores);
     if (erro) return json({ erro: erro }, 400);
 
     var atual = (await p.kv.get("versao")) || "";
@@ -109,7 +120,8 @@ export async function onRequestPut(context) {
     }
 
     var antes = { eventos: await lerJSON(p.kv, "eventos", null), convidados: await lerJSON(p.kv, "convidados", {}),
-        tarefas: await lerJSON(p.kv, "tarefas", {}), tarefasPadrao: await lerJSON(p.kv, "tarefasPadrao", null) };
+        tarefas: await lerJSON(p.kv, "tarefas", {}), tarefasPadrao: await lerJSON(p.kv, "tarefasPadrao", null),
+        fornecedores: await lerJSON(p.kv, "fornecedores", {}) };
     if (antes.eventos) {
         await p.kv.put("backup:" + new Date().toISOString(), JSON.stringify(antes), { expirationTtl: 60 * 60 * 24 * 90 });
     }
@@ -123,6 +135,8 @@ export async function onRequestPut(context) {
         if (corpo.tarefasPadrao) await p.kv.put("tarefasPadrao", JSON.stringify(corpo.tarefasPadrao));
         else await p.kv.delete("tarefasPadrao");
     }
+    /* Painel antigo (sem fornecedores) não apaga os fornecedores */
+    if (corpo.fornecedores !== undefined) await p.kv.put("fornecedores", JSON.stringify(corpo.fornecedores));
     await p.kv.put("versao", versao);
     return json({ ok: true, versao: versao });
 }
