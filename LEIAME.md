@@ -69,6 +69,19 @@ No painel você:
   do evento como padrão dos próximos (chave `tarefasPadrao` no KV; o padrão sugerido fica
   em `TAREFAS_PADRAO` no `admin/index.html`). As tarefas ficam na chave `tarefas` do KV,
   nunca no site público.
+- **tarefas ligadas** (`ligacoes()` no `admin/index.html`): a tarefa é reconhecida pelo nome e ganha
+  um botão que abre um quadro com o que já existe no painel. "Definir tema" tem o campo do tema
+  (aplica cores, emoji e fundo do tema pronto; apelidos em `APELIDOS_TEMA`); "Definir data, horário
+  e local" e "Fazer novo convite" têm os campos do evento (preencher ali já muda o evento e o texto
+  do convite); "Enviar o convite"/"grupo de WhatsApp" mostram o convite para copiar e o Enviar em
+  sequência; "Lembrete" tem o texto e um botão por confirmado; "Confirmar presenças" tem
+  **Pedir confirmação em sequência** (mensagem própria para quem recebeu o convite e não respondeu;
+  marca `cobrado` com a data); tarefas de compra mostram as quantidades da aba Compras
+  (supermercado, refri e carne, carvão, bolo, salgados, cadeiras e mesas).
+- aba **Compras** tem também **🍖 Churrasco** (carne crua 400/250/150 g e carvão 1 kg por kg de carne).
+- aba **Fornecedores** (em cada evento): tipo, nome, WhatsApp, o que pediu, valor e pago, com total.
+  Os fornecedores aparecem sozinhos nas tarefas do mesmo tipo (`TIPOS_FORNECEDOR`). Ficam na
+  chave `fornecedores` do KV, nunca no site público.
 
 Depois de mexer, clique em **Salvar alterações** (barra azul embaixo). O site atualiza em até 1 minuto.
 Cada gravação guarda uma cópia da versão anterior por 90 dias (no KV, chaves `backup:...`).

@@ -362,6 +362,60 @@ body.seq-aberto{ overflow:hidden; }
     .cal-dia .mais{ font-size:10px; }
 }
 
+/* Tarefas ligadas: convite, quantidades, fornecedores e campos do evento dentro da tarefa */
+.linha-tarefa .resumo-t{ color:var(--ciano-escuro); font-weight:500; }
+.ver-info{ margin:5px 0 0 2px; border:1.5px solid var(--ciano); background:var(--branco); color:var(--ciano-escuro); border-radius:999px;
+    padding:3px 11px; font:500 13px "Ubuntu",sans-serif; cursor:pointer; }
+.ver-info:hover, .ver-info.aberta{ background:var(--ciano); color:#fff; }
+.info-tarefa{ grid-column:1 / -1; margin:6px 8px 4px 30px; background:var(--branco); border:1.5px solid #7DD3FC; border-radius:14px; padding:14px 16px; }
+.info-tarefa .campos-tarefa{ margin:6px 0 10px; gap:12px 14px; }
+.info-tarefa .campo textarea{ min-height:90px; }
+.nota-info{ font-size:14px; color:var(--texto); margin:0 0 10px; }
+.subtitulo-info{ font:700 12px "Montserrat",sans-serif; letter-spacing:1px; text-transform:uppercase; color:var(--ciano-escuro); margin:14px 0 8px; }
+.subtitulo-info:first-child{ margin-top:0; }
+.texto-pronto{ white-space:pre-wrap; font:15px/1.45 "Ubuntu",sans-serif; color:#0B1F14; background:#DCF8C6; border-radius:12px 12px 12px 4px;
+    padding:12px 14px; margin:0 0 10px; max-width:560px; overflow-wrap:anywhere; box-shadow:0 1px 1px rgba(0,0,0,.08); }
+.acoes-info{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:4px 0 6px; }
+.qtd-info, .pessoas-info{ list-style:none; margin:0 0 8px; padding:0; max-width:620px; }
+.qtd-info li, .pessoas-info li{ display:flex; justify-content:space-between; align-items:center; gap:10px; padding:7px 0; border-bottom:1px dashed var(--borda); font-size:15px; }
+.qtd-info li b{ color:var(--marinho); text-align:right; }
+.pessoas-info li span small{ color:var(--texto-claro); font-size:12px; }
+.pessoas-info li span small.obs{ display:block; }
+.pessoas-info{ max-height:340px; overflow:auto; }
+.mini-totais{ display:flex; gap:8px; flex-wrap:wrap; margin:6px 0 4px; }
+.mini-totais span{ border-radius:999px; padding:5px 12px; font-size:14px; border:1.5px solid var(--borda); }
+.mini-totais .v{ background:#F0FDF4; border-color:#86EFAC; } .mini-totais .x{ background:#FFF1F2; border-color:#FDA4AF; } .mini-totais .s{ background:#FFFBEB; border-color:#FCD34D; }
+.ver-convite{ margin-top:10px; }
+.ver-convite summary{ cursor:pointer; color:var(--ciano-escuro); font-weight:500; margin-bottom:8px; }
+.tema-linha{ display:flex; gap:8px; flex-wrap:wrap; }
+.tema-linha input{ flex:1 1 240px; font:inherit; font-size:16px; border:1.5px solid var(--borda); border-radius:10px; padding:9px 12px; }
+.tema-linha input:focus{ outline:none; border-color:var(--ciano); box-shadow:0 0 0 3px rgba(0,173,239,.18); }
+.tema-status{ font-size:14px; margin:8px 0 6px; }
+
+/* Fornecedores */
+.add-forn{ display:grid; grid-template-columns:230px 1.4fr 1fr auto; gap:10px; }
+.add-forn input, .add-forn select, .linha-forn input, .linha-forn select{ font:inherit; font-size:15px; color:var(--texto); border:1.5px solid var(--borda); border-radius:10px; padding:8px 10px; background:var(--branco); min-width:0; width:100%; }
+.add-forn input:focus, .linha-forn input:focus, .linha-forn select:focus{ outline:none; border-color:var(--ciano); box-shadow:0 0 0 3px rgba(0,173,239,.18); }
+.reusar-forn{ display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-top:12px; }
+.chips-forn{ display:flex; gap:6px; flex-wrap:wrap; margin-top:16px; }
+.chips-forn span{ background:var(--fundo-suave); border-radius:999px; padding:4px 11px; font-size:13px; }
+.linhas-forn{ list-style:none; margin:12px 0 0; padding:0; border-top:1px solid var(--borda); }
+.linha-forn{ display:grid; grid-template-columns:210px 1.4fr 1fr auto 34px; gap:8px; align-items:center; padding:10px 0; border-bottom:1px dashed var(--borda); }
+.linha-forn .obs{ grid-column:1 / 4; }
+.linha-forn .valor{ grid-column:4; width:130px; }
+.linha-forn .marca{ grid-column:5; justify-self:start; }
+@media (max-width:760px){
+    .info-tarefa{ margin-left:0; margin-right:0; padding:12px; }
+    .add-forn{ grid-template-columns:1fr; }
+    .linha-forn{ grid-template-columns:1fr 1fr 34px; }
+    .linha-forn select{ grid-column:1 / 3; }
+    .linha-forn input[data-fo="nome"]{ grid-column:1 / -1; }
+    .linha-forn .remover{ grid-column:3; grid-row:1; }
+    .linha-forn .obs{ grid-column:1 / -1; }
+    .linha-forn .valor{ grid-column:1; width:100%; }
+    .linha-forn .marca{ grid-column:2 / -1; }
+}
+
 /* Mensagens */
 .aviso{ padding:28px; }
 .aviso h2{ font-size:22px; margin-bottom:10px; }
@@ -435,7 +489,7 @@ body.seq-aberto{ overflow:hidden; }
     var esc = EV.esc, I = window.ICONES;
     var DO_ARQUIVO = (window.EVENTOS || []).slice();
 
-    var estado = { eventos: [], convidados: {}, tarefas: {}, tarefasPadrao: null, versao: "" };
+    var estado = { eventos: [], convidados: {}, tarefas: {}, tarefasPadrao: null, fornecedores: {}, versao: "" };
     var atual = null;          // id do evento aberto
     var aba = "detalhes";
     var sujo = false;
@@ -603,6 +657,7 @@ body.seq-aberto{ overflow:hidden; }
         estado.eventos = primeiraVez ? copia(DO_ARQUIVO) : d.eventos;
         estado.convidados = d.convidados || {};
         estado.tarefas = d.tarefas || {};
+        estado.fornecedores = d.fornecedores && typeof d.fornecedores === "object" ? d.fornecedores : {};
         estado.tarefasPadrao = Array.isArray(d.tarefasPadrao) ? d.tarefasPadrao : null;
         estado.versao = d.versao || "";
         var novas = aplicarRespostas(d.respostas || {});
@@ -670,8 +725,9 @@ body.seq-aberto{ overflow:hidden; }
                 '<button data-aba="convidados" class="' + (aba === "convidados" ? "ativa" : "") + '">Convidados (' + qtd + ')</button>' +
                 '<button data-aba="respostas" class="' + (aba === "respostas" ? "ativa" : "") + '">Respostas</button>' +
                 '<button data-aba="compras" class="' + (aba === "compras" ? "ativa" : "") + '">Compras</button>' +
-                '<button data-aba="tarefas" class="' + (aba === "tarefas" ? "ativa" : "") + '">Tarefas</button></div>' +
-            '<div class="conteudo-aba">' + (aba === "detalhes" ? detalhesHTML(ev) : aba === "respostas" ? respostasHTML(ev) : aba === "compras" ? comprasHTML(ev) : aba === "tarefas" ? tarefasHTML(ev) : convidadosHTML(ev)) + '</div>';
+                '<button data-aba="tarefas" class="' + (aba === "tarefas" ? "ativa" : "") + '">Tarefas</button>' +
+                '<button data-aba="fornecedores" class="' + (aba === "fornecedores" ? "ativa" : "") + '">Fornecedores' + (fornecedores(ev.id).length ? " (" + fornecedores(ev.id).length + ")" : "") + '</button></div>' +
+            '<div class="conteudo-aba">' + (aba === "detalhes" ? detalhesHTML(ev) : aba === "respostas" ? respostasHTML(ev) : aba === "compras" ? comprasHTML(ev) : aba === "tarefas" ? tarefasHTML(ev) : aba === "fornecedores" ? fornecedoresHTML(ev) : convidadosHTML(ev)) + '</div>';
     }
 
     /* ---------------- Respostas: quem vai, quem não vai, quem não respondeu ---------------- */
@@ -772,6 +828,8 @@ body.seq-aberto{ overflow:hidden; }
         salgados: { adulto: 15, grande: 10, pequena: 6 },        // unidades
         salgadosAlm: { adulto: 6, grande: 4, pequena: 3 },       // com almoço o salgado vira só entrada
         almoco: { adulto: 500, grande: 350, pequena: 200 },      // gramas de comida pronta (arroz, feijão, carne, salada...)
+        carne: { adulto: 400, grande: 250, pequena: 150 },       // gramas de carne crua para o churrasco
+        carvaoPorKgCarne: 1, sacoCarvao: 5,                      // 1 kg de carvão por kg de carne, sacos de 5 kg
         bolo: 100,                                               // gramas por pessoa (1 fatia); bebê não come
         cadeiraIdade: 3,                                         // menores que isso ficam no colo
         cadeirasPorMesa: 4,
@@ -783,11 +841,11 @@ body.seq-aberto{ overflow:hidden; }
         folgaReutilizavel: 0.1                                   // 10% a mais de louça, para quebra e reposição
     };
     var baseCompras = "vai";
-    var ITENS_COMPRA = [["refri", "🥤 Refri"], ["suco", "🧃 Suco"], ["bolo", "🎂 Bolo"], ["salgados", "🥟 Salgados"], ["almoco", "🍛 Almoço"]];
+    var ITENS_COMPRA = [["refri", "🥤 Refri"], ["suco", "🧃 Suco"], ["bolo", "🎂 Bolo"], ["salgados", "🥟 Salgados"], ["almoco", "🍛 Almoço"], ["churrasco", "🍖 Churrasco"]];
 
     /* O que vai ter na festa: tudo marcado (menos almoço), a não ser que tenha sido mudado neste aparelho. */
     function itensCompras(ev) {
-        var tem = { refri: true, suco: true, bolo: true, salgados: true, almoco: false };
+        var tem = { refri: true, suco: true, bolo: true, salgados: true, almoco: false, churrasco: true };
         try {
             var salvo = JSON.parse(localStorage.getItem("compras:" + ev.id) || "{}");
             Object.keys(tem).forEach(function (k) { if (typeof salvo[k] === "boolean") tem[k] = salvo[k]; });
@@ -833,6 +891,7 @@ body.seq-aberto{ overflow:hidden; }
         var refri = soma(B.refri), suco = soma(B.suco);
         var salgados = tem.salgados ? soma(tem.almoco ? R.salgadosAlm : R.salgados) : 0;
         var almoco = tem.almoco ? soma(R.almoco) : 0;
+        var carne = tem.churrasco ? soma(R.carne) : 0, carneKg = Math.ceil(carne / 500) / 2, carvaoKg = Math.ceil(carneKg * R.carvaoPorKgCarne);
         var boloPessoas = tem.bolo ? comem : 0, bolo = boloPessoas * R.bolo;
         var pratinhosPorPessoa = (tem.bolo ? 1 : 0) + (tem.salgados ? 1 : 0);
         var almocam = tem.almoco ? comem : 0, cortamAlm = tem.almoco ? cortam : 0;
@@ -842,6 +901,7 @@ body.seq-aberto{ overflow:hidden; }
             sucoMl: suco, sucoLitros: Math.ceil(suco / 1000),
             salgados: salgados, salgadosEncomenda: Math.ceil(salgados / 50) * 50,
             almocoG: almoco, almocoKg: Math.ceil(almoco / 500) / 2,
+            carneG: carne, carneKg: carneKg, carvaoKg: carvaoKg, carvaoSacos: Math.ceil(carvaoKg / R.sacoCarvao),
             boloG: bolo, boloKg: bolo ? Math.max(1, Math.ceil(bolo / 500) / 2) : 0, fatias: boloPessoas,
             cadeiras: cadeiras, mesas: Math.ceil(cadeiras / R.cadeirasPorMesa),
             geloKg: comem * R.gelo, geloSacos: Math.ceil(comem * R.gelo / 5),
@@ -865,11 +925,12 @@ body.seq-aberto{ overflow:hidden; }
     function pacotes(qtd, por) { if (!qtd) return "nenhum"; var p = Math.ceil(qtd / por); return p + (p === 1 ? " pacote" : " pacotes") + " de " + por; }
     function plural(x, um, varios) { return fmt(x) + " " + (x === 1 ? um : varios); }
 
-    function pessoasCompras(ev) {
+    function pessoasCompras(ev, base) {
+        base = base || baseCompras;
         return convidados(ev.id).filter(function (p) {
             if (!String(p.nome || "").trim()) return false;
             var s = situacao(p);
-            return s === "vai" || (baseCompras === "todos" && s === "sem");
+            return s === "vai" || (base === "todos" && s === "sem");
         });
     }
 
@@ -923,6 +984,9 @@ body.seq-aberto{ overflow:hidden; }
                     ', e ' + B.suco.pequena + ' ml por criança de 1 a 5 anos (que não bebe refri)' + (dosDois ? '' : '. Só suco na festa') + sAlm + '.</p></div>' : '') +
             (alm ? '<div class="item-compra"><h3>🍛 Almoço</h3><div class="qtd">' + fmt(c.almocoKg) + ' <small>kg de comida pronta</small></div>' +
                 '<p class="conta">' + R.almoco.adulto + ' g por adulto, ' + R.almoco.grande + ' g por criança de 6+ e ' + R.almoco.pequena + ' g por criança de 1 a 5 anos, somando tudo (arroz, feijão, carne, salada...). Arredondado para cima em meio quilo.</p></div>' : '') +
+            (tem.churrasco ? '<div class="item-compra"><h3>🍖 Churrasco</h3><div class="qtd">' + fmt(c.carneKg) + ' <small>kg de carne</small></div>' +
+                '<ul>' + linha("Carvão", fmt(c.carvaoKg) + " kg (" + plural(c.carvaoSacos, "saco", "sacos") + " de " + R.sacoCarvao + " kg)") + '</ul>' +
+                '<p class="conta">' + R.carne.adulto + ' g de carne crua por adulto, ' + R.carne.grande + ' g por criança de 6+ e ' + R.carne.pequena + ' g por criança de 1 a 5 anos, arredondado para cima em meio quilo. Carvão: ' + R.carvaoPorKgCarne + ' kg por kg de carne.</p></div>' : '') +
             (tem.bolo ? '<div class="item-compra"><h3>🎂 Bolo</h3><div class="qtd">' + fmt(c.boloKg) + ' <small>kg (' + plural(c.fatias, "fatia", "fatias") + ')</small></div>' +
                 '<p class="conta">' + R.bolo + ' g (uma fatia) por pessoa: ' + fmt(c.boloG / 1000) + ' kg, arredondado para cima em meio quilo. Bebês com menos de 1 ano não entram.' + (alm ? ' Com almoço o bolo não muda: continua uma fatia por pessoa.' : '') + '</p></div>' : '') +
             (tem.salgados ? '<div class="item-compra"><h3>🥟 Salgados</h3><div class="qtd">' + fmt(c.salgados) + ' <small>salgados</small></div>' +
@@ -968,6 +1032,7 @@ body.seq-aberto{ overflow:hidden; }
             '<li>Só criança <b>acima de 5 anos</b> bebe refri; de 1 a 5 anos, só suco.</li>' +
             '<li>Criança com <b>menos de 1 ano</b> não come bolo (nem salgado, nem bebe refri/suco) e fica no colo.</li>' +
             '<li>Marcando <b>Almoço</b>: entra a comida, os salgados diminuem (viram entrada), a bebida aumenta (a festa fica mais longa) e entram pratos, garfos e facas de almoço. O bolo não muda.</li>' +
+            '<li>Marcando <b>Churrasco</b>: entra a carne (crua) e o carvão. Essas quantidades também aparecem nas tarefas de comprar carne e carvão.</li>' +
             '<li>As quantidades seguem as médias usadas em festa de aniversário de umas 4 horas, já com uma pequena sobra.</li>' +
             '<li>Ao confirmar mais gente, a conta muda sozinha. As caixinhas de <b>Vai ter na festa</b> ficam guardadas neste aparelho.</li>' +
         '</ul>';
@@ -983,6 +1048,7 @@ body.seq-aberto{ overflow:hidden; }
             (tem.refri ? "🥤 Refrigerante: " + c.refriGarrafas + " garrafas de 2 L\n" : "") +
             (tem.suco ? "🧃 Suco: " + c.sucoLitros + " L\n" : "") +
             (alm ? "🍛 Almoço: " + fmt(c.almocoKg) + " kg de comida pronta\n" : "") +
+            (tem.churrasco ? "🍖 Carne: " + fmt(c.carneKg) + " kg • Carvão: " + fmt(c.carvaoKg) + " kg\n" : "") +
             (tem.bolo ? "🎂 Bolo: " + fmt(c.boloKg) + " kg (" + c.fatias + " fatias)\n" : "") +
             (tem.salgados ? "🥟 Salgados: " + fmt(c.salgados) + " (encomendar " + fmt(c.salgadosEncomenda) + ")\n" : "") +
             "🪑 Cadeiras: " + c.cadeiras + " • Mesas: " + c.mesas + "\n" +
@@ -1001,6 +1067,7 @@ body.seq-aberto{ overflow:hidden; }
     /* Cronograma padrão: [grupo, tarefa, dias em relação ao evento (-1 = véspera, 0 = dia da festa), início, fim].
        Com número no lugar do horário: início = minutos antes (-) do horário do evento e fim = duração em minutos. */
     var TAREFAS_PADRAO = [
+        ["Planejamento", "Definir data, horário e local", -30, "19:00", "20:00"],
         ["Planejamento", "Definir tema", -30, "20:00", "21:00"],
         ["Convites", "Fazer novo convite", -28, "20:00", "21:30"],
         ["Convites", "Atualizar grupo de WhatsApp", -25, "20:00", "20:30"],
@@ -1156,6 +1223,7 @@ body.seq-aberto{ overflow:hidden; }
     }
 
     function listaTarefasHTML(ev, c, a) {
+        COPIAS = {};
         var ch = choques(c.itens), dias = [], porDia = {};
         c.itens.slice().sort(ordemTarefa).forEach(function (t) {
             if (!porDia[t.dia]) { porDia[t.dia] = []; dias.push(t.dia); }
@@ -1176,11 +1244,13 @@ body.seq-aberto{ overflow:hidden; }
             return '<div class="dia-tarefas' + (dia === ev.data ? " festa" : "") + '"><h3>' + diaCurto(dia) + '<small>' + quandoRelativo(dia, ev) + '</small>' +
                 (dia === a.dia ? '<span class="hj">hoje</span>' : "") + '</h3><ul>' +
                 porDia[dia].map(function (t) {
+                    var lg = ligacoes(ev, t), aberta = lg && infoAberta[t.id];
                     var s = situacaoTarefa(t, a), invertido = minutos(t.fim) != null && minutos(t.ini) != null && minutos(t.fim) <= minutos(t.ini);
                     return '<li class="linha-tarefa s-' + s + '" data-linha-tarefa="' + t.id + '">' +
                         '<input type="checkbox" class="ok" data-tf="feito" data-id="' + t.id + '"' + (t.feito ? " checked" : "") + ' title="Marcar como feita" aria-label="Feita">' +
                         '<span class="tt-box"><input type="text" data-tf="t" data-id="' + t.id + '" value="' + esc(t.t) + '" aria-label="Tarefa">' +
-                            '<small>' + iconeGrupo(t.g) + " " + esc(t.g || "Outras") + '</small></span>' +
+                            '<small>' + iconeGrupo(t.g) + " " + esc(t.g || "Outras") + (lg && lg.resumo ? ' · <span class="resumo-t">' + esc(lg.resumo) + '</span>' : '') + '</small>' +
+                            (lg ? '<button class="ver-info' + (aberta ? ' aberta' : '') + '" data-acao="info-abrir" data-id="' + t.id + '" aria-expanded="' + (aberta ? 'true' : 'false') + '">' + lg.botao + (aberta ? ' ▴' : ' ▾') + '</button>' : '') + '</span>' +
                         '<span class="quando">' +
                             (s === "feita" ? '<span class="selo-t feita">Feita ✓</span>' : s === "atrasada" ? '<span class="selo-t atrasada">Atrasada</span>' : s === "agora" ? '<span class="selo-t agora">Agora</span>' : "") +
                             (ch[t.id] ? '<span class="selo-t choque" title="Outra tarefa no mesmo horário">⚠️ mesmo horário</span>' : "") +
@@ -1191,6 +1261,7 @@ body.seq-aberto{ overflow:hidden; }
                             '<input type="time" data-tf="fim" data-id="' + t.id + '" value="' + esc(t.fim || "") + '" aria-label="Termina">' +
                         '</span>' +
                         '<button class="remover" data-acao="tarefa-remover" data-id="' + t.id + '" title="Apagar tarefa" aria-label="Apagar ' + esc(t.t) + '">×</button>' +
+                        (aberta ? '<div class="info-tarefa">' + lg.html + '</div>' : '') +
                     '</li>';
                 }).join("") + '</ul></div>';
         }).join("");
@@ -1326,6 +1397,404 @@ body.seq-aberto{ overflow:hidden; }
                 '<span class="n">' + dd.getDate() + '</span>' + chips + (l.length > 3 ? '<span class="mais">+' + (l.length - 3) + ' tarefas</span>' : "") + '</button>';
         }
         return html + '</div></div>';
+    }
+
+    /* ---------------- Tarefas ligadas ao resto do painel ----------------
+       Cada tarefa é reconhecida pelo nome (ex.: "Enviar o convite", "Compras supermercado") e ganha
+       um quadro com o que já existe no painel: o convite pronto para copiar, as quantidades da aba Compras,
+       os fornecedores do tipo certo e campos que preenchem o evento (tema, data, local...) na hora. */
+
+    var infoAberta = {};      // tarefas com o quadro aberto (por id)
+    var COPIAS = {};          // textos dos botões "Copiar" do desenho atual
+
+    /* Tipos de fornecedor: [nome, emoji, tarefas em que aparece (pelo nome da tarefa)] */
+    var TIPOS_FORNECEDOR = [
+        ["Bolo", "🎂", /\bbolo\b/],
+        ["Doces", "🍬", /doce/],
+        ["Salgados", "🥟", /salgad/],
+        ["Personalizados e lembrancinhas", "🎁", /lembrancinha|personalizad|topo/],
+        ["Açougue (carne)", "🥩", /carne/],
+        ["Supermercado", "🛒", /supermercado|refri/],
+        ["Carvão e gelo", "🧊", /carvao|gelo/],
+        ["Aluguel de mesas e cadeiras", "🪑", /cadeira|mesa/],
+        ["Decoração e balões", "🎈", /decora|balo/],
+        ["Som, TV e DJ", "🎵", /\bsom\b|\bdj\b|\btv\b/],
+        ["Fotógrafo", "📷", /fotograf/],
+        ["Comida e buffet", "🍛", /almoco|buffet|comida/],
+        ["Recreação e brinquedos", "🤹", /recrea|brinquedo|pula-pula|piscina de bolinha/],
+        ["Outros", "📌", null]
+    ];
+    function emojiTipo(tipo) { var x = TIPOS_FORNECEDOR.filter(function (y) { return y[0] === tipo; })[0]; return x ? x[1] : "📌"; }
+    function fornecedores(id) { return estado.fornecedores[id] || (estado.fornecedores[id] = []); }
+    function valorReais(s) {
+        var t = String(s || "").replace(/[^\d,.]/g, "");
+        if (!t) return 0;
+        if (t.indexOf(",") >= 0) t = t.replace(/\./g, "").replace(",", ".");
+        else if (/\.\d{3}$/.test(t)) t = t.replace(/\./g, "");
+        return parseFloat(t) || 0;
+    }
+    function reais(n) { return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }); }
+
+    /* Apelidos de tema: o que a pessoa costuma digitar -> tema pronto */
+    var APELIDOS_TEMA = {
+        "homem de ferro": "vingadores", "avengers": "vingadores", "capitao america": "vingadores", "hulk": "vingadores", "thor": "vingadores",
+        "homem aranha": "super-heroi", "aranha": "super-heroi", "heroi": "super-heroi", "herois": "super-heroi", "super heroi": "super-heroi", "batman": "super-heroi", "superman": "super-heroi",
+        "dino": "dinossauro", "dinossauro": "dinossauro", "jurassic": "dinossauro",
+        "junina": "festa-junina", "sao joao": "festa-junina", "arraia": "festa-junina", "quadrilha": "festa-junina",
+        "pool": "piscina", "piscina": "piscina", "praia": "verao", "brasil": "copa", "selecao": "copa", "copa do mundo": "copa",
+        "flores": "jardim", "borboleta": "jardim", "balada": "neon", "goku": "dragon-ball", "woody": "toy-story", "buzz": "toy-story",
+        "fotos": "polaroid", "memorias": "polaroid", "ano novo": "reveillon", "cowboy": "sertanejo", "country": "sertanejo", "fazendinha": "sertanejo",
+        "batismo": "batizado", "princesa": "branca-de-neve", "bola": "futebol", "raposa": "cruzeiro", "azul": "padrao"
+    };
+    function acharTema(texto) {
+        var k = chaveNome(texto).replace(/-/g, " ");
+        if (!k) return null;
+        var chaves = Object.keys(window.TEMAS), i;
+        for (i = 0; i < chaves.length; i++) {
+            if (chaveNome(window.TEMAS[chaves[i]].nome) === k || chaves[i].replace(/-/g, " ") === k) return chaves[i];
+        }
+        if (APELIDOS_TEMA[k]) return APELIDOS_TEMA[k];
+        if (k.length < 4) return null;
+        for (i = 0; i < chaves.length; i++) {
+            var n = chaveNome(window.TEMAS[chaves[i]].nome);
+            if (n.indexOf(k) >= 0 || k.indexOf(n) >= 0) return chaves[i];
+        }
+        var ap = Object.keys(APELIDOS_TEMA).filter(function (a) { return a.length >= 4 && k.indexOf(a) >= 0; })[0];
+        return ap ? APELIDOS_TEMA[ap] : null;
+    }
+    /* Aplica o tema no evento: cores, emoji e fundo do tema (e uma descrição, se ainda estiver vazia) */
+    function aplicarTema(ev, chave) {
+        var t = window.TEMAS[chave];
+        if (!t) return false;
+        ev.tema = chave;
+        delete ev.cores;
+        delete ev.emoji;
+        if (!String(ev.descricao || "").trim()) ev.descricao = "Festa no tema " + t.nome + " " + t.emoji + "! Venha comemorar com a gente.";
+        marcarSujo();
+        atualizarLista();
+        return true;
+    }
+
+    function linkEvento(ev, p) {
+        return window.AZUL.site + "/eventos/evento?id=" + encodeURIComponent(ev.id) + (p && p.c ? "&c=" + p.c : "");
+    }
+    function primeiroNome(p) { return String(p.nome || "").trim().split(" ")[0]; }
+    /* Convite para o grupo de WhatsApp ou para copiar (sem nome e sem link pessoal) */
+    function textoConviteGeral(ev) {
+        return "Olá! 🎉\nVocês estão convidados para *" + (ev.titulo || "") + "*.\n\n" +
+            "📅 " + EV.dataLonga(ev) + (ev.hora ? ", às " + ev.hora : "") + "\n" +
+            (ev.local ? "📍 " + ev.local + (ev.endereco ? " (" + ev.endereco + ")" : "") + "\n" : "") +
+            "\nTodos os detalhes, mapa, previsão do tempo e playlist:\n" + linkEvento(ev) + "\n\nConto com vocês!";
+    }
+    function quandoFesta(ev, dia) {
+        var n = difDias(ev.data, dia || agora().dia);
+        return n === 0 ? "hoje" : n === 1 ? "amanhã" : n > 1 ? "no dia " + EV.dataCurta(ev) : "dia " + EV.dataCurta(ev);
+    }
+    function textoLembrete(ev, p, dia) {
+        return (p ? "Oi, " + primeiroNome(p) + "! 😊" : "Oi, pessoal! 😊") + "\n" +
+            "Passando para lembrar: " + quandoFesta(ev, dia) + " é *" + ev.titulo + "*" + (ev.hora ? ", às " + ev.hora : "") + ".\n\n" +
+            (ev.local ? "📍 " + ev.local + (ev.endereco ? " (" + ev.endereco + ")" : "") + "\n" : "") +
+            ((ev.local || ev.endereco || ev.mapa) ? "🗺️ Como chegar: " + EV.linkMapa(ev) + "\n" : "") +
+            "\nTodos os detalhes e a previsão do tempo:\n" + linkEvento(ev, p) + "\n\nTe espero lá! 🎉";
+    }
+    function textoCobranca(ev, p) {
+        return "Oi, " + primeiroNome(p) + "! Tudo bem? 😊\n" +
+            "Estou fechando os preparativos da *" + ev.titulo + "* (" + EV.dataLonga(ev) + (ev.hora ? ", às " + ev.hora : "") + ") e ainda não recebi a sua confirmação.\n\n" +
+            "Sua resposta é muito importante: é com ela que eu calculo comida, bebida, bolo, cadeiras e lembrancinhas, para não faltar nada para ninguém (e não sobrar também). 🙏\n\n" +
+            "👉 É só tocar em *Vou* ou *Não vou* neste link (leva 5 segundos):\n" + linkEvento(ev, p) + "\n\nObrigado! Conto com você. 💙";
+    }
+    function textoAgradecer(ev) {
+        return "Muito obrigado por virem na *" + ev.titulo + "*! 💙 Foi muito especial ter vocês com a gente.\n\n" +
+            (ev.album || ev.albumGoogle ? "📸 As fotos estão aqui (e dá para colocar as suas também):\n" +
+                (ev.album ? "iPhone: " + ev.album + "\n" : "") + (ev.albumGoogle ? "Android: " + ev.albumGoogle + "\n" : "") : "") +
+            "\n" + linkEvento(ev);
+    }
+    function previa(tipo, ev, t) {
+        return tipo === "convite" ? textoConviteGeral(ev) : tipo === "lembrete" ? textoLembrete(ev, null, t && t.dia) : tipo === "agradecer" ? textoAgradecer(ev) : "";
+    }
+    /* Mudou um dado do evento dentro de uma tarefa: atualiza os textos prontos na tela */
+    function atualizarPrevias(ev) {
+        painel.querySelectorAll("[data-previa]").forEach(function (el) {
+            var t = tarefa(ev, el.getAttribute("data-tid"));
+            var txt = previa(el.getAttribute("data-previa"), ev, t);
+            el.textContent = txt;
+            var k = el.getAttribute("data-k");
+            if (k) COPIAS[k] = txt;
+        });
+    }
+
+    /* Quantidades da aba Compras (mesma conta). Sem ninguém confirmado, usa quem ainda não respondeu. */
+    function contaCompras(ev) {
+        var base = baseCompras, lista = pessoasCompras(ev, base), aviso = "";
+        if (!lista.length && base === "vai") { lista = pessoasCompras(ev, "todos"); aviso = "Ninguém confirmou ainda, então a conta usa todos os convidados que ainda não responderam."; }
+        var tem = itensCompras(ev);
+        return { n: lista.length, tem: tem, c: calcularCompras(gruposCompras(lista), tem), aviso: aviso, todos: base === "todos" || !!aviso };
+    }
+    function linhasCompra(k, cc) {
+        var c = cc.c, tem = cc.tem, alm = tem.almoco, l = [];
+        function add(cond, rot, val) { if (cond) l.push([rot, val]); }
+        var refri = function () { add(tem.refri, "🥤 Refrigerante", plural(c.refriGarrafas, "garrafa", "garrafas") + " de 2 L"); };
+        var suco = function () { add(tem.suco, "🧃 Suco", plural(c.sucoLitros, "litro", "litros")); };
+        var carne = function () { add(tem.churrasco, "🥩 Carne para o churrasco", fmt(c.carneKg) + " kg"); };
+        var carvao = function () { add(tem.churrasco, "🔥 Carvão", fmt(c.carvaoKg) + " kg (" + plural(c.carvaoSacos, "saco", "sacos") + " de " + REGRAS.sacoCarvao + " kg)"); };
+        var gelo = function () { add(true, "🧊 Gelo", fmt(c.geloKg) + " kg (" + plural(c.geloSacos, "saco", "sacos") + " de 5 kg)"); };
+        var desc = function () {
+            add(true, "🥤 Copos descartáveis", fmt(c.desc.copos) + " (" + pacotes(c.desc.copos, 50) + ")");
+            add(c.pratinhosPorPessoa, "🍽️ Pratinhos", fmt(c.desc.pratinhos) + " (" + pacotes(c.desc.pratinhos, 10) + ")");
+            add(tem.bolo, "🍴 Garfinhos (bolo)", fmt(c.desc.garfinhos) + " (" + pacotes(c.desc.garfinhos, 50) + ")");
+            add(alm, "🍽️ Pratos (almoço)", fmt(c.desc.pratos));
+            add(alm, "🍴 Garfos (almoço)", fmt(c.desc.garfos));
+            add(alm, "🔪 Facas (almoço)", fmt(c.desc.facas));
+            add(true, "🧻 Guardanapos", fmt(c.desc.guardanapos) + " (" + pacotes(c.desc.guardanapos, 50) + ")");
+            add(true, "🧻 Papel-toalha", plural(c.papelToalha, "rolo", "rolos"));
+        };
+        var bolo = function () { add(tem.bolo, "🎂 Bolo", fmt(c.boloKg) + " kg (" + plural(c.fatias, "fatia", "fatias") + ")"); };
+        var salg = function () { add(tem.salgados, "🥟 Salgados", fmt(c.salgadosEncomenda) + " para encomendar (" + fmt(c.salgados) + " na conta)"); };
+        var almoco = function () { add(alm, "🍛 Almoço", fmt(c.almocoKg) + " kg de comida pronta"); };
+        var cadeiras = function () { add(true, "🪑 Cadeiras", fmt(c.cadeiras)); add(true, "🪑 Mesas (4 cadeiras cada)", fmt(c.mesas)); };
+
+        if (/supermercado/.test(k)) { suco(); desc(); }
+        else if (/refri|carne/.test(k)) { if (/refri/.test(k)) refri(); if (/carne/.test(k)) carne(); gelo(); }
+        else if (/carvao/.test(k)) carvao();
+        else if (/\bbolo\b/.test(k) && !/topo/.test(k)) bolo();
+        else if (/salgad/.test(k)) salg();
+        else if (/cadeira|mesa/.test(k)) cadeiras();
+        else if (/almoco|comida/.test(k)) almoco();
+        else if (/\bgelo\b/.test(k)) gelo();
+        else if (/compra/.test(k)) { refri(); suco(); carne(); carvao(); bolo(); salg(); almoco(); gelo(); desc(); }
+        else return null;
+        return l;
+    }
+
+    function ligacoes(ev, t) {
+        var k = chaveNome(t.t), id = t.id, n = 0, partes = [], botao = "", resumo = "";
+        function copiar(texto, rotulo) {
+            var key = id + ":" + (n++);
+            COPIAS[key] = texto;
+            return '<button class="b pequeno" data-acao="copiar-texto" data-k="' + key + '" data-rot="' + esc(rotulo || "📋 Copiar") + '">' + (rotulo || "📋 Copiar") + '</button>';
+        }
+        function textoPronto(tipo) {
+            var key = id + ":" + (n++), txt = previa(tipo, ev, t);
+            COPIAS[key] = txt;
+            return '<pre class="texto-pronto" data-previa="' + tipo + '" data-tid="' + id + '" data-k="' + key + '">' + esc(txt) + '</pre>' +
+                '<div class="acoes-info"><button class="b cheio pequeno" data-acao="copiar-texto" data-k="' + key + '" data-rot="📋 Copiar o texto">📋 Copiar o texto</button>';
+        }
+        function irAba(a, texto) { return '<button class="b pequeno" data-acao="ir-aba" data-v="' + a + '">' + texto + '</button>'; }
+        function campos(lista) { return '<div class="campos campos-tarefa">' + lista.join("") + '</div>'; }
+        function zap(p, texto, rotulo) {
+            var nz = numero(p.whats);
+            return nz ? '<a class="convite" href="https://wa.me/' + nz + '?text=' + encodeURIComponent(texto) + '" target="whats-convite" rel="noopener">' + I.whats + rotulo + '</a>'
+                : '<span class="convite inativo">sem WhatsApp</span>';
+        }
+        var lista = convidados(ev.id).filter(function (p) { return String(p.nome || "").trim(); });
+
+        /* ---- O evento: tema, data/local, convite ---- */
+        if (/\btema\b/.test(k)) {
+            var tm = EV.tema(ev), cor = ev.cores || {};
+            var corI = function (c, rot) { return '<label>' + rot + '<input type="color" data-cor="' + c + '" value="' + esc(cor[c] || tm[c]) + '"></label>'; };
+            botao = "🎨 Escolher o tema"; resumo = "Tema: " + (window.TEMAS[ev.tema] || window.TEMAS.padrao).emoji + " " + tm.nome;
+            partes.push('<p class="nota-info">Digite o nome do tema. Se for um tema pronto, a página do evento e o convite já ficam com as cores, o emoji e o fundo dele.</p>' +
+                '<div class="tema-linha"><input id="tema-nome" list="lista-temas" placeholder="Ex.: Vingadores, Dinossauros, Festa Junina..." autocomplete="off" aria-label="Nome do tema">' +
+                '<button class="b cheio pequeno" data-acao="tema-aplicar">Aplicar tema</button></div>' +
+                '<datalist id="lista-temas">' + Object.keys(window.TEMAS).map(function (x) { return '<option value="' + esc(window.TEMAS[x].nome) + '">'; }).join("") + '</datalist>' +
+                '<p class="tema-status" id="tema-status">Tema atual: <b>' + (window.TEMAS[ev.tema] || window.TEMAS.padrao).emoji + " " + esc((window.TEMAS[ev.tema] || window.TEMAS.padrao).nome) + '</b>' + (ev.cores ? " (com cores próprias)" : "") + '</p>' +
+                campos([campo("emoji", "Emoji (opcional)", ev.emoji || "", { cls: "m3", ph: tm.emoji, dica: "Troca o emoji do tema." })]) +
+                '<div class="campo"><label class="check"><input type="checkbox" id="usar-cores"' + (ev.cores ? " checked" : "") + '> Usar cores próprias</label>' +
+                    '<div class="cores' + (ev.cores ? "" : " oculto") + '" id="cores">' + corI("fundo1", "Fundo 1") + corI("fundo2", "Fundo 2") + corI("destaque", "Destaque") + corI("titulo", "Título") + corI("texto", "Texto") + '</div></div>' +
+                '<div class="amostra" id="amostra"></div>' +
+                '<div class="acoes-info"><a class="b pequeno" href="/eventos/evento?id=' + encodeURIComponent(ev.id) + '" target="_blank" rel="noopener">Ver página do evento</a></div>');
+        }
+        else if (/definir/.test(k) && /data|horario|local/.test(k)) {
+            botao = "📅 Preencher data e local"; resumo = (ev.data ? EV.dataCurta(ev) : "sem data") + (ev.hora ? ", " + ev.hora : "") + (ev.local ? " • " + ev.local : " • sem local");
+            partes.push('<p class="nota-info">O que você preencher aqui já vai para a página do evento e para o convite.</p>' +
+                campos([campo("data", "Data *", ev.data || "", { tipo: "date", cls: "m2" }), campo("hora", "Horário", ev.hora || "", { cls: "m2", ph: "15:00 ou 15:00 às 21:00" }),
+                    campo("cidade", "Cidade (previsão do tempo)", ev.cidade || "", { cls: "m2", ph: "Ipatinga" }),
+                    campo("local", "Nome do lugar", ev.local || "", { cls: "m3", ph: "Ex.: Chácara Feliz" }), campo("endereco", "Endereço completo", ev.endereco || "", { cls: "m3", ph: "Rua, número, bairro, cidade - UF" }),
+                    campo("mapa", "Link do mapa (opcional)", ev.mapa || "", { ph: "https://maps.app.goo.gl/...", dica: "Se ficar vazio, o botão do mapa usa o endereço." })]));
+        }
+        else if (/convite/.test(k) && /fazer|criar|novo|montar/.test(k)) {
+            botao = "💌 Montar o convite"; resumo = "O convite sai pronto com os dados do evento";
+            partes.push('<p class="nota-info">O convite é montado sozinho com os dados do evento. Mude aqui e veja o texto mudar embaixo.</p>' +
+                campos([campo("titulo", "Título *", ev.titulo || "", { ph: "Ex.: Heloísa 2 Anos" }), campo("data", "Data *", ev.data || "", { tipo: "date", cls: "m2" }),
+                    campo("hora", "Horário", ev.hora || "", { cls: "m2", ph: "15:00 ou 15:00 às 21:00" }), campo("local", "Nome do lugar", ev.local || "", { cls: "m2", ph: "Ex.: Chácara Feliz" }),
+                    campo("endereco", "Endereço completo", ev.endereco || "", { ph: "Rua, número, bairro, cidade - UF" }),
+                    campo("descricao", "Descrição (aparece na página do convite)", ev.descricao || "", { tipo: "area", ph: "Conte sobre o evento." }),
+                    campo("capa", "Foto de capa (opcional)", ev.capa || "", { ph: "Link direto de uma imagem (.jpg, .png)", dica: "Aparece na prévia do WhatsApp." })]) +
+                '<div class="subtitulo-info">Como o convite chega no WhatsApp</div>' + textoPronto("convite") +
+                '<a class="b pequeno" href="/eventos/evento?id=' + encodeURIComponent(ev.id) + '" target="_blank" rel="noopener">Ver página do convite</a></div>');
+        }
+        else if (/convite/.test(k) || /grupo/.test(k) && /whats/.test(k)) {
+            var comW = lista.filter(function (p) { return numero(p.whats); }), env = comW.filter(function (p) { return p.enviado; }).length, falta = filaEnvio(ev).length;
+            var grupo = /grupo/.test(k);
+            botao = "💌 Ver convite"; resumo = grupo ? "Convite pronto para colar no grupo" : env + " de " + comW.length + " convidados já receberam";
+            partes.push((grupo ? '<p class="nota-info">Texto para colar no grupo do WhatsApp. Ele leva para a página do evento (quem confirmar pela página não fica marcado na lista: para isso use o envio um por um).</p>'
+                    : '<p class="nota-info">Cada convidado recebe o convite com o nome e um link só dele para tocar em <b>Vou</b> ou <b>Não vou</b>. Use <b>Enviar em sequência</b> para mandar um por um, ou copie o texto abaixo.</p>') +
+                textoPronto("convite") +
+                (!grupo && falta ? '<button class="b verde pequeno" data-acao="sequencia">' + I.whats + 'Enviar em sequência (' + falta + ')</button>' : "") +
+                irAba("convidados", "👥 Abrir Convidados") + '</div>');
+        }
+        else if (/lembr/.test(k)) {
+            var conf = lista.filter(function (p) { return p.confirmado; });
+            botao = "💬 Ver lembrete"; resumo = "Lembrete pronto • " + plural(conf.length, "confirmado", "confirmados");
+            partes.push('<p class="nota-info">Mensagem de lembrete com o horário, o local e o link do mapa. Copie para o grupo ou mande para cada confirmado (com o nome dele).</p>' +
+                textoPronto("lembrete") + irAba("convidados", "👥 Abrir Convidados") + '</div>' +
+                '<div class="subtitulo-info">Confirmados (' + conf.length + ')</div>' +
+                (conf.length ? '<ul class="pessoas-info">' + conf.map(function (p) {
+                    return '<li><span>' + esc(p.nome) + '</span>' + zap(p, textoLembrete(ev, p, t.dia), "Mandar lembrete") + '</li>';
+                }).join("") + '</ul>' : '<p class="nota-info">Ninguém confirmou ainda.</p>') +
+                '<details class="ver-convite"><summary>💌 Ver o convite</summary>' + textoPronto("convite") + '</div></details>');
+        }
+        else if (/confirm/.test(k) && /presenc/.test(k)) {
+            var vai = lista.filter(function (p) { return p.confirmado; }).length, nao = lista.filter(function (p) { return p.naoVai; }).length;
+            var sem = lista.filter(function (p) { return situacao(p) === "sem"; });
+            botao = "✅ Ver respostas"; resumo = "✅ " + vai + " vão • ❌ " + nao + " não vão • ⏳ " + sem.length + " sem resposta";
+            var nCob = filaCobrar(ev).length;
+            partes.push('<p class="nota-info">Para quem recebeu o convite e ainda não respondeu, mande um <b>pedido de confirmação</b>: é uma mensagem diferente do convite, explicando por que a resposta é importante, com o link para tocar em Vou ou Não vou.</p>' +
+                (nCob ? '<div class="acoes-info"><button class="b verde" data-acao="sequencia-cobrar">' + I.whats + 'Pedir confirmação em sequência (' + nCob + ')</button></div>' : '') +
+                '<details class="ver-convite"><summary>👀 Ver a mensagem do pedido</summary><pre class="texto-pronto">' + esc(textoCobranca(ev, { nome: "Fulano", c: "codigo" }).replace("&c=codigo", "&c=…")) + '</pre></details>' +
+                '<div class="mini-totais"><span class="v">✅ <b>' + vai + '</b> vão</span><span class="x">❌ <b>' + nao + '</b> não vão</span><span class="s">⏳ <b>' + sem.length + '</b> sem resposta</span></div>' +
+                '<div class="subtitulo-info">Quem ainda não respondeu</div>' +
+                (sem.length ? '<ul class="pessoas-info">' + sem.map(function (p) {
+                    return '<li><span>' + esc(p.nome) + (!p.enviado ? ' <small>(convite ainda não enviado)</small>' : p.cobrado ? ' <small>(confirmação pedida em ' + diaCurto(p.cobrado) + ')</small>' : '') + '</span>' +
+                        (p.enviado ? zap(p, textoCobranca(ev, p), "Pedir confirmação") : zap(p, textoConvite(ev, p), "Enviar convite")) + '</li>';
+                }).join("") + '</ul>' : '<p class="nota-info">Todo mundo já respondeu. 👏</p>') +
+                '<div class="acoes-info">' + copiar("Ainda não responderam (" + ev.titulo + "):\n" + sem.map(function (p) { return "• " + p.nome; }).join("\n"), "📋 Copiar a lista") + irAba("respostas", "📊 Abrir Respostas") + '</div>');
+        }
+        else if (/playlist/.test(k)) {
+            botao = "🎵 Colocar a playlist"; resumo = ev.playlist ? "Playlist já está no site ✓" : "Ainda sem playlist no site";
+            partes.push(campos([campo("playlist", "Link da playlist", ev.playlist || "", { ph: "Link do Apple Music, Spotify ou YouTube", dica: "Aparece na página do evento." })]));
+        }
+        else if (/agradec/.test(k)) {
+            botao = "💙 Ver agradecimento"; resumo = "Mensagem pronta com o link das fotos";
+            partes.push(campos([campo("album", "Álbum do iPhone (iCloud)", ev.album || "", { cls: "m3", ph: "https://www.icloud.com/sharedalbum/..." }),
+                    campo("albumGoogle", "Álbum do Android (Google Fotos)", ev.albumGoogle || "", { cls: "m3", ph: "https://photos.app.goo.gl/..." })]) +
+                '<div class="subtitulo-info">Mensagem</div>' + textoPronto("agradecer") + '</div>');
+        }
+        else if (/foto|album/.test(k)) {
+            botao = "📸 Colocar os álbuns"; resumo = (ev.album || ev.albumGoogle) ? "Álbum já está no site ✓" : "Ainda sem álbum no site";
+            partes.push(campos([campo("album", "Álbum do iPhone (iCloud)", ev.album || "", { cls: "m3", ph: "https://www.icloud.com/sharedalbum/...", dica: "Álbum compartilhado com \"Site Público\" ligado." }),
+                campo("albumGoogle", "Álbum do Android (Google Fotos)", ev.albumGoogle || "", { cls: "m3", ph: "https://photos.app.goo.gl/...", dica: "Álbum compartilhado com \"Colaborar\" ligado." })]));
+        }
+        else if (/previs|chuva/.test(k)) {
+            botao = "⛅ Ver previsão"; resumo = "A previsão aparece na página do evento";
+            partes.push('<p class="nota-info">A previsão do tempo fica na página do evento (aparece quando faltam até 16 dias).</p>' +
+                campos([campo("cidade", "Cidade para a previsão do tempo", ev.cidade || "", { cls: "m3", ph: "Ipatinga" })]) +
+                '<div class="acoes-info"><a class="b pequeno" href="/eventos/evento?id=' + encodeURIComponent(ev.id) + '#clima" target="_blank" rel="noopener">⛅ Abrir a previsão</a></div>');
+        }
+
+        /* ---- Quantidades da aba Compras ---- */
+        var lc = /convite|lembr|presenc|tema/.test(k) ? null : linhasCompra(k, contaCompras(ev));
+        if (lc) {
+            var cc = contaCompras(ev);
+            if (!botao) botao = "🛒 Ver quantidades";
+            if (!resumo) resumo = lc.slice(0, 2).map(function (x) { return x[0].split(" ")[0] + " " + x[1].replace(/ \(.*\)$/, ""); }).join(" • ") || "Nada a comprar com o que está marcado em Compras";
+            var txt = "🛒 " + t.t + " — " + ev.titulo + "\n" + lc.map(function (x) { return "☐ " + x[0].replace(/^\S+ /, "") + ": " + x[1]; }).join("\n");
+            partes.push('<div class="subtitulo-info">Quantidades (da aba Compras)</div>' +
+                (lc.length ? '<ul class="qtd-info">' + lc.map(function (x) { return '<li><span>' + x[0] + '</span><b>' + x[1] + '</b></li>'; }).join("") + '</ul>'
+                    : '<p class="nota-info">Nada para comprar nesta tarefa com o que está marcado em <b>Vai ter na festa</b> (aba Compras).</p>') +
+                '<p class="nota-info">Conta com ' + plural(cc.n, "pessoa", "pessoas") + (cc.todos ? " (confirmados + quem não respondeu)" : " confirmadas") + '. ' + (cc.aviso ? cc.aviso + " " : "") +
+                    'Muda sozinha quando mais gente confirmar.' + (/carne|carvao/.test(k) && !cc.tem.churrasco ? ' O <b>Churrasco</b> está desmarcado na aba Compras.' : '') + '</p>' +
+                '<div class="acoes-info">' + (lc.length ? copiar(txt, "📋 Copiar a lista") : "") + irAba("compras", "🛒 Abrir Compras") + '</div>');
+        }
+
+        /* ---- Fornecedores do tipo certo ---- */
+        var tipos = TIPOS_FORNECEDOR.filter(function (x) { return x[2] && x[2].test(k); }).map(function (x) { return x[0]; });
+        if (/convite|lembr|presenc|tema|playlist|agradec/.test(k)) tipos = [];
+        if (tipos.length) {
+            var fs = fornecedores(ev.id).filter(function (f) { return tipos.indexOf(f.tipo) >= 0 && String(f.nome || "").trim(); });
+            if (!botao) botao = "📞 Ver fornecedores";
+            if (fs.length && !lc) resumo = fs.map(function (f) { return emojiTipo(f.tipo) + " " + f.nome; }).join(" • ");
+            partes.push('<div class="subtitulo-info">Fornecedores (' + tipos.join(", ") + ')</div>' +
+                (fs.length ? '<ul class="pessoas-info">' + fs.map(function (f) {
+                    return '<li><span>' + emojiTipo(f.tipo) + ' <b>' + esc(f.nome) + '</b>' + (f.whats ? ' <small>' + esc(f.whats) + '</small>' : '') +
+                        (f.obs ? '<small class="obs">' + esc(f.obs) + '</small>' : '') +
+                        (f.valor ? '<small class="obs">' + esc(f.valor) + (f.pago ? " • pago ✓" : " • falta pagar") + '</small>' : '') + '</span>' +
+                        (numero(f.whats) ? '<a class="convite" href="https://wa.me/' + numero(f.whats) + '" target="_blank" rel="noopener">' + I.whats + 'Chamar</a>' : '') + '</li>';
+                }).join("") + '</ul>' : '<p class="nota-info">Nenhum fornecedor de ' + tipos.join(" ou ") + ' cadastrado neste evento.</p>') +
+                '<div class="acoes-info">' + irAba("fornecedores", fs.length ? "📞 Abrir Fornecedores" : "➕ Cadastrar fornecedor") + '</div>');
+        }
+
+        if (!partes.length) return null;
+        return { botao: botao, resumo: resumo, html: partes.join("") };
+    }
+
+    /* ---------------- Fornecedores do evento ---------------- */
+
+    function fornecedoresHTML(ev) {
+        var lista = fornecedores(ev.id);
+        var total = 0, pago = 0;
+        lista.forEach(function (f) { var v = valorReais(f.valor); total += v; if (f.pago) pago += v; });
+        function opcoesTipo(sel) {
+            return TIPOS_FORNECEDOR.map(function (x) { return '<option value="' + esc(x[0]) + '"' + (x[0] === sel ? " selected" : "") + '>' + x[1] + " " + esc(x[0]) + '</option>'; }).join("");
+        }
+        /* Fornecedores de outros eventos, para trazer com um toque */
+        var jaTem = {}, outros = [], vistos = {};
+        lista.forEach(function (f) { jaTem[chaveNome(f.nome) + "|" + f.tipo] = true; });
+        estado.eventos.slice().sort(function (a, b) { return (b.data || "").localeCompare(a.data || ""); }).forEach(function (o) {
+            if (o.id === ev.id) return;
+            (estado.fornecedores[o.id] || []).forEach(function (f) {
+                var kf = chaveNome(f.nome) + "|" + f.tipo;
+                if (!String(f.nome || "").trim() || jaTem[kf] || vistos[kf]) return;
+                vistos[kf] = true; outros.push(f);
+            });
+        });
+        FORN_OUTROS = outros;
+        var porTipo = {};
+        lista.forEach(function (f) { porTipo[f.tipo] = (porTipo[f.tipo] || 0) + 1; });
+
+        return '<p class="nota-info" style="margin-top:0">Cadastre quem vai fornecer cada coisa da festa. Eles aparecem sozinhos nas tarefas do mesmo tipo (ex.: o fornecedor de <b>Bolo</b> aparece em "Encomendar bolo" e "Buscar e pagar bolo").</p>' +
+            '<div class="add-forn">' +
+                '<select id="nf-tipo" aria-label="Tipo">' + opcoesTipo("Bolo") + '</select>' +
+                '<input id="nf-nome" placeholder="Nome do fornecedor" autocomplete="off" aria-label="Nome">' +
+                '<input id="nf-whats" placeholder="WhatsApp / telefone" inputmode="tel" autocomplete="off" aria-label="WhatsApp">' +
+                '<button class="b cheio" data-acao="fornecedor-add">Adicionar</button></div>' +
+            (outros.length ? '<div class="reusar-forn"><span class="rotulo">Já usados em outros eventos:</span>' + outros.map(function (f, i) {
+                return '<button class="b pequeno" data-acao="fornecedor-reusar" data-k="' + i + '">＋ ' + emojiTipo(f.tipo) + " " + esc(f.nome) + '</button>';
+            }).join("") + '</div>' : "") +
+            (lista.length
+                ? '<div class="chips-forn">' + Object.keys(porTipo).map(function (tp) { return '<span>' + emojiTipo(tp) + " " + esc(tp) + ": <b>" + porTipo[tp] + '</b></span>'; }).join("") + '</div>' +
+                  '<ol class="linhas-forn">' + lista.map(function (f, i) {
+                    var nz = numero(f.whats);
+                    return '<li class="linha-forn">' +
+                        '<select data-fo="tipo" data-i="' + i + '" aria-label="Tipo">' + opcoesTipo(f.tipo) + '</select>' +
+                        '<input data-fo="nome" data-i="' + i + '" value="' + esc(f.nome) + '" placeholder="Nome" aria-label="Nome">' +
+                        '<input data-fo="whats" data-i="' + i + '" value="' + esc(f.whats || "") + '" placeholder="WhatsApp" inputmode="tel" aria-label="WhatsApp">' +
+                        (nz ? '<a class="convite" href="https://wa.me/' + nz + '" target="_blank" rel="noopener">' + I.whats + 'Chamar</a>' : '<span class="convite inativo">sem WhatsApp</span>') +
+                        '<button class="remover" data-acao="fornecedor-remover" data-i="' + i + '" title="Remover" aria-label="Remover ' + esc(f.nome) + '">×</button>' +
+                        '<input class="obs" data-fo="obs" data-i="' + i + '" value="' + esc(f.obs || "") + '" placeholder="O que pediu, sabor, quantidade, endereço, dia de buscar..." aria-label="Observação">' +
+                        '<input class="valor" data-fo="valor" data-i="' + i + '" value="' + esc(f.valor || "") + '" placeholder="Valor (R$)" inputmode="decimal" aria-label="Valor">' +
+                        '<label class="marca conf"><input type="checkbox" data-fo="pago" data-i="' + i + '"' + (f.pago ? " checked" : "") + '>Pago</label>' +
+                    '</li>';
+                  }).join("") + '</ol>' +
+                  '<div class="resumo-conv"><span id="resumo-forn">' + resumoForn(total, pago) + '</span></div>'
+                : '<p style="margin-top:18px;color:var(--texto-claro)">Nenhum fornecedor ainda.</p>');
+    }
+    var FORN_OUTROS = [];
+    function resumoForn(total, pago) {
+        return total ? "Total: <b>" + reais(total) + "</b> • Pago: <b>" + reais(pago) + "</b> • Falta pagar: <b>" + reais(total - pago) + "</b>" : "Coloque os valores para ver o total.";
+    }
+
+    function aplicarTemaDaTarefa(ev, texto) {
+        var st = document.getElementById("tema-status");
+        if (!String(texto).trim()) { var ti = document.getElementById("tema-nome"); if (ti) ti.focus(); return; }
+        var chave = acharTema(texto);
+        if (!chave) {
+            if (st) st.innerHTML = '⚠️ Ainda não tenho um tema pronto para "<b>' + esc(texto) + '</b>". Escolha um parecido na lista ou marque <b>Usar cores próprias</b> abaixo.';
+            return;
+        }
+        aplicarTema(ev, chave);
+        redesenharTarefas();
+        var st2 = document.getElementById("tema-status");
+        if (st2) st2.innerHTML = '✅ Tema <b>' + window.TEMAS[chave].emoji + " " + esc(window.TEMAS[chave].nome) + '</b> aplicado na página do evento e no convite. Clique em <b>Salvar</b> para publicar.';
+    }
+    function copiarTexto(t) {
+        if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(t);
+        var a = document.createElement("textarea");
+        a.value = t; a.style.position = "fixed"; a.style.opacity = "0";
+        document.body.appendChild(a); a.select();
+        try { document.execCommand("copy"); } catch (e) {}
+        a.remove();
+        return Promise.resolve();
     }
 
     function textoTarefas(ev) {
@@ -1547,13 +2016,22 @@ body.seq-aberto{ overflow:hidden; }
         });
         return fila;
     }
+    /* Quem já recebeu o convite, tem WhatsApp e ainda não respondeu (nem Vou, nem Não vou) */
+    function filaCobrar(ev) {
+        var fila = [];
+        convidados(ev.id).forEach(function (p, i) {
+            if (String(p.nome || "").trim() && p.enviado && !p.confirmado && !p.naoVai && numero(p.whats)) fila.push(i);
+        });
+        return fila;
+    }
     function linkConvite(ev, p) {
-        return "https://wa.me/" + numero(p.whats) + "?text=" + encodeURIComponent(textoConvite(ev, p));
+        var cobrar = seq && seq.modo === "cobrar";
+        return "https://wa.me/" + numero(p.whats) + "?text=" + encodeURIComponent(cobrar ? textoCobranca(ev, p) : textoConvite(ev, p));
     }
 
-    function abrirSequencia(ev) {
+    function abrirSequencia(ev, modo) {
         convidados(ev.id).forEach(function (p) { if (!p.c) { p.c = novoCodigo(); p._codigoNovo = true; } });
-        seq = { ev: ev, fila: filaEnvio(ev), pos: 0, pulados: 0, ultimo: null };
+        seq = { ev: ev, modo: modo || "convite", fila: modo === "cobrar" ? filaCobrar(ev) : filaEnvio(ev), pos: 0, pulados: 0, ultimo: null };
         var d = document.getElementById("seq");
         if (!d) {
             d = document.createElement("div");
@@ -1579,26 +2057,28 @@ body.seq-aberto{ overflow:hidden; }
         if (!d || !seq) return;
         var ev = seq.ev, lista = convidados(ev.id);
         var comWhats = lista.filter(function (p) { return String(p.nome || "").trim() && numero(p.whats); });
+        var cob = seq.modo === "cobrar";
         var feitos = comWhats.filter(function (p) { return p.enviado; }).length, total = comWhats.length;
+        if (cob) { feitos = seq.pos - seq.pulados; total = seq.fila.length; }
         var p = seq.pos < seq.fila.length ? lista[seq.fila[seq.pos]] : null;
         var u = seq.ultimo != null ? lista[seq.ultimo] : null;
         var primeiro = function (x) { return esc(String(x.nome).trim().split(" ")[0]); };
 
         d.innerHTML = '<div class="seq-caixa">' +
-            '<div class="seq-topo"><div><b>Enviar em sequência</b><small>' + esc(ev.titulo) + '</small></div>' +
+            '<div class="seq-topo"><div><b>' + (cob ? "Pedir confirmação" : "Enviar em sequência") + '</b><small>' + esc(ev.titulo) + '</small></div>' +
                 '<button class="b pequeno" data-seq="fechar">Fechar</button></div>' +
             '<div class="seq-prog"><i style="width:' + (total ? Math.round(feitos * 100 / total) : 0) + '%"></i></div>' +
-            '<div class="seq-conta"><span><b>' + feitos + ' de ' + total + '</b> já convidados</span><span>' +
+            '<div class="seq-conta"><span><b>' + feitos + ' de ' + total + '</b> ' + (cob ? "pedidos abertos" : "já convidados") + '</span><span>' +
                 (p ? (seq.fila.length - seq.pos) + (seq.fila.length - seq.pos === 1 ? " falta" : " faltam") : "") + '</span></div>' +
             (p
-                ? '<div class="seq-pessoa"><small>Próximo convite</small><strong>' + esc(p.nome) + '</strong><span>' + esc(p.whats) + '</span></div>' +
-                  '<a class="seq-enviar" data-seq="enviar" href="' + linkConvite(ev, p) + '" target="whats-convite">' + I.whats + 'Abrir convite de ' + primeiro(p) + '</a>' +
+                ? '<div class="seq-pessoa"><small>' + (cob ? "Ainda não respondeu" : "Próximo convite") + '</small><strong>' + esc(p.nome) + '</strong><span>' + esc(p.whats) + '</span></div>' +
+                  '<a class="seq-enviar" data-seq="enviar" href="' + linkConvite(ev, p) + '" target="whats-convite">' + I.whats + (cob ? 'Pedir confirmação de ' : 'Abrir convite de ') + primeiro(p) + '</a>' +
                   '<div class="seq-acoes"><button class="b pequeno" data-seq="pular">Pular ' + primeiro(p) + '</button></div>'
                 : '<div class="seq-fim"><span class="e">🎉</span><strong>Fila concluída!</strong>' +
-                  (seq.pulados ? '<p>' + seq.pulados + (seq.pulados === 1 ? ' pessoa foi pulada e continua' : ' pessoas foram puladas e continuam') + ' sem convite.</p>' : '<p>Todos os convites desta lista foram abertos.</p>') +
+                  (seq.pulados ? '<p>' + seq.pulados + (seq.pulados === 1 ? ' pessoa foi pulada e continua' : ' pessoas foram puladas e continuam') + (cob ? ' sem o pedido.' : ' sem convite.') + '</p>' : '<p>' + (cob ? 'Todos os pedidos de confirmação foram abertos. As respostas entram sozinhas pelo link.' : 'Todos os convites desta lista foram abertos.') + '</p>') +
                   '</div><div class="seq-acoes"><button class="b cheio" data-seq="fechar">Voltar para a lista</button></div>') +
             (u
-                ? '<div class="seq-ultimo">✓ <b>' + esc(u.nome) + '</b> marcado(a) como convidado(a). ' +
+                ? '<div class="seq-ultimo">✓ <b>' + esc(u.nome) + '</b> ' + (cob ? "recebeu o pedido de confirmação. " : "marcado(a) como convidado(a). ") +
                   '<a href="' + linkConvite(ev, u) + '" target="whats-convite">Abrir de novo</a> · ' +
                   '<button data-seq="desfazer">Não consegui enviar</button></div>'
                 : "") +
@@ -1617,6 +2097,13 @@ body.seq-aberto{ overflow:hidden; }
         if (acao === "enviar") {
             /* O link abre o WhatsApp normalmente; aqui só marca e avança */
             var i = seq.fila[seq.pos], p = lista[i];
+            if (seq.modo === "cobrar") {
+                p.cobrado = agora().dia;
+                seq.ultimo = i; seq.pos++;
+                salvar("Pedido de confirmação de " + String(p.nome).trim().split(" ")[0] + " aberto ✓");
+                setTimeout(desenharSequencia, 0);
+                return;
+            }
             p.enviado = true;
             delete p._codigoNovo;
             seq.ultimo = i;
@@ -1632,6 +2119,12 @@ body.seq-aberto{ overflow:hidden; }
         }
         if (acao === "desfazer" && seq.ultimo != null) {
             var pu = lista[seq.ultimo];
+            if (seq.modo === "cobrar") {
+                delete pu.cobrado;
+                seq.pos--; seq.fila[seq.pos] = seq.ultimo; seq.ultimo = null;
+                salvar("Pedido de confirmação desmarcado");
+                return desenharSequencia();
+            }
             delete pu.enviado; delete pu.confirmado; delete pu.naoVai;
             seq.pos--;
             seq.fila[seq.pos] = seq.ultimo;
@@ -1712,6 +2205,27 @@ body.seq-aberto{ overflow:hidden; }
             return;
         }
 
+        /* Fornecedores */
+        if (el.hasAttribute("data-fo")) {
+            var fo = fornecedores(ev.id)[+el.getAttribute("data-i")], cf = el.getAttribute("data-fo");
+            if (!fo) return;
+            if (el.type === "checkbox") { if (el.checked) fo[cf] = true; else delete fo[cf]; } else fo[cf] = el.value;
+            marcarSujo();
+            if (cf === "valor" || cf === "pago") {
+                var tot = 0, pg = 0;
+                fornecedores(ev.id).forEach(function (f) { var v = valorReais(f.valor); tot += v; if (f.pago) pg += v; });
+                var rf = document.getElementById("resumo-forn");
+                if (rf) rf.innerHTML = resumoForn(tot, pg);
+            }
+            return;
+        }
+        /* Tarefa "Definir tema": escolheu um tema da lista -> já aplica */
+        if (el.id === "tema-nome") {
+            var tk = window.TEMAS[acharTema(el.value)];
+            if (tk && chaveNome(tk.nome) === chaveNome(el.value)) aplicarTemaDaTarefa(ev, el.value);
+            return;
+        }
+
         /* Escolher dos convidados já salvos: busca, filtro e marcação */
         if (el.id === "busca-contatos" || el.id === "filtro-evento") return filtrarContatos();
         if (el.hasAttribute("data-contato")) return contarMarcados();
@@ -1768,6 +2282,7 @@ body.seq-aberto{ overflow:hidden; }
         }
         if (c === "titulo") painel.querySelector(".editor-topo h2").textContent = v || "Novo evento";
         marcarSujo();
+        atualizarPrevias(ev);
         if (c === "titulo" || c === "data" || c === "rascunho" || c === "tema" || c === "emoji") { atualizarLista(); amostra(); }
     });
 
@@ -1781,6 +2296,8 @@ body.seq-aberto{ overflow:hidden; }
             if (tf !== "t") tarefaMudou = true;
             return;
         }
+        if (el.hasAttribute("data-fo") && el.getAttribute("data-fo") === "tipo") { var yf = window.scrollY; desenhar(); window.scrollTo(0, yf); return; }
+        if (aba === "tarefas" && el.getAttribute("data-c") === "data") { redesenharTarefas(); return; }
         if (el.hasAttribute("data-item-compra")) {
             marcarItemCompra(ev, el.getAttribute("data-item-compra"), el.checked);
             var yc = window.scrollY;
@@ -1818,6 +2335,10 @@ body.seq-aberto{ overflow:hidden; }
         if (estado.convidados[ev.id]) {
             estado.convidados[id] = estado.convidados[ev.id];
             delete estado.convidados[ev.id];
+        }
+        if (estado.fornecedores[ev.id]) {
+            estado.fornecedores[id] = estado.fornecedores[ev.id];
+            delete estado.fornecedores[ev.id];
         }
         ev.id = id;
         atual = id;
@@ -1935,12 +2456,63 @@ body.seq-aberto{ overflow:hidden; }
                 estado.eventos = estado.eventos.filter(function (x) { return x !== ev; });
                 delete estado.convidados[ev.id];
                 delete estado.tarefas[ev.id];
+                delete estado.fornecedores[ev.id];
                 marcarSujo();
                 abrir(null);
                 break;
 
             case "sequencia":
                 abrirSequencia(ev);
+                break;
+
+            case "sequencia-cobrar":
+                abrirSequencia(ev, "cobrar");
+                break;
+
+            case "info-abrir":
+                var idInfo = alvo.getAttribute("data-id");
+                if (infoAberta[idInfo]) delete infoAberta[idInfo]; else infoAberta[idInfo] = true;
+                redesenharTarefas();
+                break;
+
+            case "copiar-texto":
+                var txtC = COPIAS[alvo.getAttribute("data-k")], rot = alvo.getAttribute("data-rot") || "📋 Copiar";
+                if (txtC == null) break;
+                copiarTexto(txtC).then(function () {
+                    alvo.textContent = "Copiado! ✓";
+                    setTimeout(function () { alvo.textContent = rot; }, 1800);
+                });
+                break;
+
+            case "ir-aba":
+                aba = alvo.getAttribute("data-v");
+                desenhar();
+                window.scrollTo(0, 0);
+                if (window.innerWidth < 900) document.getElementById("editor").scrollIntoView();
+                break;
+
+            case "tema-aplicar":
+                aplicarTemaDaTarefa(ev, (document.getElementById("tema-nome") || {}).value || "");
+                break;
+
+            case "fornecedor-add":
+                var nfNome = document.getElementById("nf-nome");
+                if (!nfNome.value.trim()) { nfNome.focus(); break; }
+                fornecedores(ev.id).push({ tipo: document.getElementById("nf-tipo").value, nome: nfNome.value.trim(), whats: document.getElementById("nf-whats").value.trim() });
+                marcarSujo(); desenhar();
+                var nn = document.getElementById("nf-nome"); if (nn) nn.focus();
+                break;
+
+            case "fornecedor-reusar":
+                var fr = FORN_OUTROS[+alvo.getAttribute("data-k")];
+                if (!fr) break;
+                fornecedores(ev.id).push({ tipo: fr.tipo, nome: fr.nome, whats: fr.whats || "" });
+                marcarSujo(); var yr = window.scrollY; desenhar(); window.scrollTo(0, yr);
+                break;
+
+            case "fornecedor-remover":
+                var lf = fornecedores(ev.id), ir = +alvo.getAttribute("data-i");
+                if (lf[ir] && confirm("Remover " + (lf[ir].nome || "este fornecedor") + "?")) { lf.splice(ir, 1); marcarSujo(); desenhar(); }
                 break;
 
             case "add-conv":
@@ -2111,6 +2683,14 @@ body.seq-aberto{ overflow:hidden; }
     });
 
     painel.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" && e.target.id === "tema-nome") {
+            e.preventDefault();
+            painel.querySelector('[data-acao="tema-aplicar"]').click();
+        }
+        if (e.key === "Enter" && (e.target.id === "nf-nome" || e.target.id === "nf-whats")) {
+            e.preventDefault();
+            painel.querySelector('[data-acao="fornecedor-add"]').click();
+        }
         if (e.key === "Enter" && e.target.id === "nt-titulo") {
             e.preventDefault();
             painel.querySelector('[data-acao="tarefa-add"]').click();
@@ -2143,6 +2723,7 @@ body.seq-aberto{ overflow:hidden; }
                     if (p.naoVai) o.naoVai = true;
                     if (/^[a-z0-9]{8,20}$/.test(p.c || "")) o.c = p.c;
                     if (p.respEm) o.respEm = p.respEm;
+                    if (/^\d{4}-\d{2}-\d{2}$/.test(p.cobrado || "")) o.cobrado = p.cobrado;
                     if (p.tipo === "adulto" || p.tipo === "crianca") o.tipo = p.tipo;
                     if (p.sexo === "m" || p.sexo === "f") o.sexo = p.sexo;
                     var id = parseInt(p.idade, 10);
@@ -2159,6 +2740,17 @@ body.seq-aberto{ overflow:hidden; }
                 .map(function (t) { var o = { id: t.id, t: String(t.t).trim(), g: t.g || "Outras", dia: t.dia, ini: t.ini || "", fim: t.fim || "" }; if (t.feito) o.feito = true; return o; }) };
         });
 
+        var forn = {};
+        estado.eventos.forEach(function (ev) {
+            var l = (estado.fornecedores[ev.id] || []).filter(function (f) { return String(f.nome || "").trim(); }).map(function (f) {
+                var o = { tipo: String(f.tipo || "Outros"), nome: String(f.nome).trim() };
+                ["whats", "obs", "valor"].forEach(function (x) { if (String(f[x] || "").trim()) o[x] = String(f[x]).trim(); });
+                if (f.pago) o.pago = true;
+                return o;
+            });
+            if (l.length) forn[ev.id] = l;
+        });
+
         salvando = true;
         var botao = document.getElementById("salvar");
         botao.disabled = true;
@@ -2167,7 +2759,7 @@ body.seq-aberto{ overflow:hidden; }
         fetch("/api/admin/dados", {
             method: "PUT", credentials: "same-origin",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ eventos: eventos, convidados: conv, tarefas: tarefas, tarefasPadrao: estado.tarefasPadrao, versao: estado.versao })
+            body: JSON.stringify({ eventos: eventos, convidados: conv, tarefas: tarefas, tarefasPadrao: estado.tarefasPadrao, fornecedores: forn, versao: estado.versao })
         })
         .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { d._status = r.status; return d; }); })
         .then(function (d) {
