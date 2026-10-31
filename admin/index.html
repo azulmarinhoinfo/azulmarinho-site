@@ -868,11 +868,11 @@ body.seq-aberto{ overflow:hidden; }
         folgaReutilizavel: 0.1                                   // 10% a mais de louça, para quebra e reposição
     };
     var baseCompras = "vai";
-    var ITENS_COMPRA = [["refri", "🥤 Refri"], ["suco", "🧃 Suco"], ["bolo", "🎂 Bolo"], ["salgados", "🥟 Salgados"], ["almoco", "🍛 Almoço"], ["churrasco", "🍖 Churrasco"], ["doces", "🍬 Doces"], ["lembrancinhas", "🎁 Lembrancinhas"]];
+    var ITENS_COMPRA = [["refri", "🥤 Refri"], ["suco", "🧃 Suco"], ["bolo", "🎂 Bolo"], ["salgados", "🥟 Salgados"], ["almoco", "🍛 Almoço"], ["churrasco", "🍖 Churrasco"], ["doces", "🍬 Doces"], ["lembrancinhas", "🎁 Lembrancinhas"], ["personalizados", "🎨 Personalizados"]];
 
     /* O que vai ter na festa: tudo marcado (menos almoço), a não ser que tenha sido mudado neste aparelho. */
     function itensCompras(ev) {
-        var tem = { refri: true, suco: true, bolo: true, salgados: true, almoco: false, churrasco: true, doces: true, lembrancinhas: true };
+        var tem = { refri: true, suco: true, bolo: true, salgados: true, almoco: false, churrasco: true, doces: true, lembrancinhas: true, personalizados: true };
         /* Guardado junto das tarefas do evento (vale em todos os aparelhos); antes ficava só neste aparelho */
         var tc = estado.tarefas[ev.id], salvo = tc && tc.tem;
         if (!salvo) try { salvo = JSON.parse(localStorage.getItem("compras:" + ev.id) || "{}"); } catch (e) { salvo = {}; }
@@ -888,10 +888,10 @@ body.seq-aberto{ overflow:hidden; }
     }
 
     /* Tarefas que dependem do que vai ter na festa: desmarcou o item em Compras, a tarefa some (volta ao marcar de novo) */
-    var ITENS_DA_TAREFA = [[/\bbolo\b|topo/, "bolo"], [/salgad/, "salgados"], [/doce/, "doces"], [/lembrancinha/, "lembrancinhas"],
+    var ITENS_DA_TAREFA = [[/\bbolo\b|topo/, "bolo"], [/salgad/, "salgados"], [/doce/, "doces"], [/lembrancinha/, "lembrancinhas"], [/personalizad/, "personalizados"],
         [/refri/, "refri"], [/\bsuco\b/, "suco"], [/carne|carvao|churras/, "churrasco"], [/almoco|supermercado/, "almoco"],
         [/\bgelo\b/, "refri"], [/\bgelo\b/, "suco"]];   // gelo só some se refri e suco estiverem desmarcados
-    var NOMES_ITEM = { bolo: "Bolo", salgados: "Salgados", doces: "Doces", lembrancinhas: "Lembrancinhas", refri: "Refri", suco: "Suco", churrasco: "Churrasco", almoco: "Almoço" };
+    var NOMES_ITEM = { bolo: "Bolo", salgados: "Salgados", doces: "Doces", lembrancinhas: "Lembrancinhas", personalizados: "Personalizados", refri: "Refri", suco: "Suco", churrasco: "Churrasco", almoco: "Almoço" };
     function itensDesligados(ev, t, tem) {
         var k = chaveNome(t.t), usa = ITENS_DA_TAREFA.filter(function (x) { return x[0].test(k); }).map(function (x) { return x[1]; });
         return usa.length && usa.every(function (i) { return !tem[i]; }) ? usa : null;
