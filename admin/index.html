@@ -681,6 +681,7 @@ body.seq-aberto{ overflow:hidden; }
         estado.eventos = primeiraVez ? copia(DO_ARQUIVO) : d.eventos;
         estado.convidados = d.convidados || {};
         estado.tarefas = d.tarefas || {};
+        separarRefriCarne();
         estado.fornecedores = d.fornecedores && typeof d.fornecedores === "object" ? d.fornecedores : {};
         estado.tarefasPadrao = Array.isArray(d.tarefasPadrao) ? d.tarefasPadrao : null;
         estado.versao = d.versao || "";
@@ -888,7 +889,7 @@ body.seq-aberto{ overflow:hidden; }
 
     /* Tarefas que dependem do que vai ter na festa: desmarcou o item em Compras, a tarefa some (volta ao marcar de novo) */
     var ITENS_DA_TAREFA = [[/\bbolo\b|topo/, "bolo"], [/salgad/, "salgados"], [/doce/, "doces"], [/lembrancinha/, "lembrancinhas"],
-        [/refri/, "refri"], [/\bsuco\b/, "suco"], [/carne|carvao|churras/, "churrasco"], [/almoco/, "almoco"]];
+        [/refri/, "refri"], [/\bsuco\b/, "suco"], [/carne|carvao|churras/, "churrasco"], [/almoco|supermercado/, "almoco"]];
     var NOMES_ITEM = { bolo: "Bolo", salgados: "Salgados", doces: "Doces", lembrancinhas: "Lembrancinhas", refri: "Refri", suco: "Suco", churrasco: "Churrasco", almoco: "Almoço" };
     function itensDesligados(ev, t, tem) {
         var k = chaveNome(t.t), usa = ITENS_DA_TAREFA.filter(function (x) { return x[0].test(k); }).map(function (x) { return x[1]; });
@@ -1134,7 +1135,8 @@ body.seq-aberto{ overflow:hidden; }
         ["Encomendas", "Encomendar salgadinhos", -10, "19:30", "20:00"],
         ["Planejamento", "Criar playlist", -7, "20:00", "21:00"],
         ["Convites", "Confirmar presenças na lista", -5, "19:00", "20:30"],
-        ["Compras", "Compras supermercado", -4, "19:00", "21:00"],
+        ["Compras", "Comprar descartáveis, guardanapos e papel-toalha", -4, "18:00", "19:00"],
+        ["Compras", "Compras supermercado (almoço)", -4, "19:00", "21:00"],
         ["Planejamento", "Ver previsão e plano B de chuva", -3, "18:00", "18:30"],
         ["Encomendas", "Buscar e pagar lembrancinhas, personalizados e topo", -3, "18:30", "19:30"],
         ["Planejamento", "Quem olha as crianças na piscina", -3, "19:30", "20:00"],
@@ -1143,7 +1145,9 @@ body.seq-aberto{ overflow:hidden; }
         ["Limpeza", "Limpar laboratório", -2, "18:30", "20:00"],
         ["Compras", "Comprar carvão", -2, "20:00", "20:30"],
         ["Casa", "Separar caixa de primeiros socorros", -2, "20:30", "21:00"],
-        ["Compras", "Comprar refri e carne", -1, "08:00", "09:30"],
+        ["Compras", "Comprar refri", -1, "08:00", "08:30"],
+        ["Compras", "Comprar suco", -1, "08:30", "09:00"],
+        ["Compras", "Comprar carne", -1, "09:00", "09:30"],
         ["Limpeza", "Cortar grama", -1, "09:30", "11:30"],
         ["Limpeza", "Limpar piscina", -1, "13:30", "15:00"],
         ["Convites", "Lembrete aos confirmados (link do local)", -1, "12:00", "12:30"],
@@ -1153,6 +1157,7 @@ body.seq-aberto{ overflow:hidden; }
         ["Montagem", "Ajustar rede Wi-Fi", -1, "18:30", "19:15"],
         ["Montagem", "Instalar redes para dormir", -1, "19:15", "20:00"],
         ["Limpeza", "Banheiro: papel higiênico e sabonete", -1, "20:00", "20:45"],
+        ["Compras", "Comprar gelo", 0, "07:30", "08:00"],
         ["Limpeza", "Limpar lixeira", 0, "08:00", "08:30"],
         ["Montagem", "Instalar cadeiras e mesas", 0, "08:30", "10:30"],
         ["Encomendas", "Buscar e pagar bolo", 0, -240, 45],
@@ -1194,6 +1199,27 @@ body.seq-aberto{ overflow:hidden; }
         if (i == null) i = 0;
         if (f == null || f <= i) f = Math.min(i + 30, 24 * 60);
         return { i: i, f: f };
+    }
+
+    /* Eventos antigos: "Comprar refri e carne" vira duas tarefas ("Comprar refri" e "Comprar carne"),
+       para cada uma sumir sozinha quando o item for desmarcado em Compras */
+    function separarRefriCarne() {
+        Object.keys(estado.tarefas).forEach(function (id) {
+            var c = estado.tarefas[id];
+            if (!c || !Array.isArray(c.itens)) return;
+            c.itens.slice().forEach(function (t) {
+                if (chaveNome(t.t) !== "comprar refri e carne") return;
+                var i = minutos(t.ini), f = minutos(t.fim), meio = i != null && f != null && f > i ? hhmm(i + Math.round((f - i) / 2)) : t.ini;
+                var carne = { id: "t" + novoCodigo().slice(0, 8), t: "Comprar carne", g: t.g, dia: t.dia, ini: meio, fim: t.fim };
+                if (t.feito) carne.feito = true;
+                t.t = "Comprar refri"; t.fim = meio || t.fim;
+                c.itens.splice(c.itens.indexOf(t) + 1, 0, carne);
+            });
+        });
+        if (Array.isArray(estado.tarefasPadrao)) {
+            var ip = estado.tarefasPadrao.map(function (x) { return chaveNome(x[1]); }).indexOf("comprar refri e carne");
+            if (ip >= 0) { var x = estado.tarefasPadrao[ip]; estado.tarefasPadrao.splice(ip, 1, [x[0], "Comprar refri", x[2], x[3], x[4]], [x[0], "Comprar carne", x[2], x[3], x[4]]); }
+        }
     }
 
     function padraoAtual() { return estado.tarefasPadrao || TAREFAS_PADRAO; }
@@ -1473,7 +1499,7 @@ body.seq-aberto{ overflow:hidden; }
         ["Salgados", "🥟", /salgad/],
         ["Personalizados e lembrancinhas", "🎁", /lembrancinha|personalizad|topo/],
         ["Açougue (carne)", "🥩", /carne/],
-        ["Supermercado", "🛒", /supermercado|refri/],
+        ["Supermercado", "🛒", /supermercado|refri|\bsuco\b|descartave/],
         ["Carvão e gelo", "🧊", /carvao|gelo/],
         ["Aluguel de mesas e cadeiras", "🪑", /cadeira|mesa|devolver|emprestad/],
         ["Decoração e balões", "🎈", /decora|balo|devolver|emprestad/],
@@ -1612,8 +1638,9 @@ body.seq-aberto{ overflow:hidden; }
         var almoco = function () { add(alm, "🍛 Almoço", fmt(c.almocoKg) + " kg de comida pronta"); };
         var cadeiras = function () { add(true, "🪑 Cadeiras", plural(c.cadeiras, "cadeira", "cadeiras")); add(true, "🪑 Mesas (4 cadeiras cada)", plural(c.mesas, "mesa", "mesas")); };
 
-        if (/supermercado/.test(k)) { suco(); desc(); }
-        else if (/refri|carne/.test(k)) { if (/refri/.test(k)) refri(); if (/carne/.test(k)) carne(); gelo(); }
+        if (/supermercado/.test(k)) { almoco(); add(alm, "🍽️ Pratos (almoço)", fmt(c.desc.pratos)); add(alm, "🍴 Garfos (almoço)", fmt(c.desc.garfos)); add(alm, "🔪 Facas (almoço)", fmt(c.desc.facas)); }
+        else if (/descartave/.test(k)) desc();
+        else if (/refri|carne|\bsuco\b/.test(k)) { if (/refri/.test(k)) refri(); if (/\bsuco\b/.test(k)) suco(); if (/carne/.test(k)) carne(); }
         else if (/carvao/.test(k)) carvao();
         else if (/\bbolo\b/.test(k) && !/topo/.test(k)) bolo();
         else if (/salgad/.test(k)) salg();
@@ -1869,7 +1896,7 @@ body.seq-aberto{ overflow:hidden; }
         detalhes: ["Tarefas do evento", /^definir|fazer novo convite|criar convite|playlist|album|\bfotos\b/, true],
         convidados: ["Tarefas dos convites", /convite|grupo de whats|lembrete|lembrar|confirm|agradec/, false],
         respostas: ["Tarefas das respostas", /confirm|lembrete|lembrar/, false],
-        compras: ["Tarefas de compras e encomendas", /compra|supermercado|refri|carne|carvao|\bbolo\b|salgad|doce|lembrancinha|cadeira|congelador/, true],
+        compras: ["Tarefas de compras e encomendas", /compra|supermercado|refri|\bsuco\b|gelo|descartave|carne|carvao|\bbolo\b|salgad|doce|lembrancinha|cadeira|congelador/, true],
         fornecedores: ["Tarefas com fornecedores", /encomend|buscar|pagar|devolver|emprestad|cadeira|\bsom\b|carne|carvao|supermercado/, false]
     };
     var faixaEstado = {};   // aba -> true (aberta) / false (fechada), escolhido pela pessoa

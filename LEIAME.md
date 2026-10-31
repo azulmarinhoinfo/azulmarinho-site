@@ -77,7 +77,7 @@ No painel você:
   sequência; "Lembrete" tem o texto e um botão por confirmado; "Confirmar presenças" tem
   **Pedir confirmação em sequência** (mensagem própria para quem recebeu o convite e não respondeu;
   marca `cobrado` com a data); tarefas de compra mostram as quantidades da aba Compras
-  (supermercado, refri e carne, carvão, bolo, salgados, cadeiras e mesas) em duas colunas: só confirmados e com quem não respondeu.
+  (supermercado do almoço, descartáveis, refri, suco, carne, gelo, carvão, bolo, salgados, cadeiras e mesas) em duas colunas: só confirmados e com quem não respondeu.
 - aba **Compras** tem também **🍖 Churrasco** (carne crua 400/250/150 g e carvão 1 kg por kg de carne).
   E **🍬 Doces** (6/5/3 por pessoa, encomenda de 25 em 25) e **🎁 Lembrancinhas** (uma por pessoa + 10%, ou só crianças).
   Também ligadas: topo do bolo (texto com tema), crianças na piscina (lista com idade), TV e som (playlist),
@@ -90,6 +90,9 @@ No painel você:
   Lembrancinhas, Refri, Suco, Churrasco ou Almoço em "Vai ter na festa" (aba Compras) esconde as tarefas que dependem
   só desse item (em Tarefas, nas faixas das abas e no Copiar pendentes); marcando de novo elas voltam. As caixinhas agora
   ficam no KV junto das tarefas do evento (`tarefas[evento].tem`), valendo em todos os aparelhos.
+  As compras são tarefas separadas (Comprar refri, Comprar suco, Comprar carne, Comprar gelo, Comprar descartáveis e
+  "Compras supermercado (almoço)") para cada uma sumir com o seu item; a antiga "Comprar refri e carne" é dividida
+  sozinha ao abrir o painel (`separarRefriCarne`).
 - aba **Fornecedores** (em cada evento): tipo, nome, WhatsApp, o que pediu, valor e pago, com total.
   Os fornecedores aparecem sozinhos nas tarefas do mesmo tipo (`TIPOS_FORNECEDOR`). Ficam na
   chave `fornecedores` do KV, nunca no site público.
