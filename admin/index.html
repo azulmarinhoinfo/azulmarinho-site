@@ -1129,7 +1129,8 @@ body.seq-aberto{ overflow:hidden; }
         ["Convites", "Fazer novo convite", -28, "20:00", "21:30"],
         ["Convites", "Atualizar grupo de WhatsApp", -25, "20:00", "20:30"],
         ["Convites", "Enviar o convite", -21, "19:00", "20:30"],
-        ["Encomendas", "Encomendar lembrancinhas e personalizados", -20, "19:00", "20:00"],
+        ["Encomendas", "Encomendar lembrancinhas", -20, "19:00", "19:30"],
+        ["Encomendas", "Encomendar personalizados", -20, "19:30", "20:00"],
         ["Encomendas", "Encomendar topo do bolo", -20, "20:00", "20:30"],
         ["Encomendas", "Encomendar doces", -14, "19:00", "19:45"],
         ["Encomendas", "Encomendar bolo", -10, "19:00", "19:30"],
@@ -1139,7 +1140,9 @@ body.seq-aberto{ overflow:hidden; }
         ["Compras", "Comprar descartáveis, guardanapos e papel-toalha", -4, "18:00", "19:00"],
         ["Compras", "Compras supermercado (almoço)", -4, "19:00", "21:00"],
         ["Planejamento", "Ver previsão e plano B de chuva", -3, "18:00", "18:30"],
-        ["Encomendas", "Buscar e pagar lembrancinhas, personalizados e topo", -3, "18:30", "19:30"],
+        ["Encomendas", "Buscar e pagar lembrancinhas", -3, "18:30", "18:50"],
+        ["Encomendas", "Buscar e pagar personalizados", -3, "18:50", "19:10"],
+        ["Encomendas", "Buscar e pagar topo do bolo", -3, "19:10", "19:30"],
         ["Planejamento", "Quem olha as crianças na piscina", -3, "19:30", "20:00"],
         ["Planejamento", "Combinar fotos e envio para o álbum", -3, "20:00", "20:30"],
         ["Casa", "Ligar congelador", -2, "07:00", "07:15"],
@@ -1204,22 +1207,35 @@ body.seq-aberto{ overflow:hidden; }
 
     /* Eventos antigos: "Comprar refri e carne" vira duas tarefas ("Comprar refri" e "Comprar carne"),
        para cada uma sumir sozinha quando o item for desmarcado em Compras */
+    /* Tarefas antigas que juntavam itens diferentes viram uma tarefa por item, para cada uma sumir com a sua caixinha. */
+    var SEPARAR_TAREFAS = {
+        "comprar refri e carne": ["Comprar refri", "Comprar carne"],
+        "encomendar lembrancinhas e personalizados": ["Encomendar lembrancinhas", "Encomendar personalizados"],
+        "buscar e pagar lembrancinhas, personalizados e topo": ["Buscar e pagar lembrancinhas", "Buscar e pagar personalizados", "Buscar e pagar topo do bolo"]
+    };
     function separarRefriCarne() {
         Object.keys(estado.tarefas).forEach(function (id) {
             var c = estado.tarefas[id];
             if (!c || !Array.isArray(c.itens)) return;
             c.itens.slice().forEach(function (t) {
-                if (chaveNome(t.t) !== "comprar refri e carne") return;
-                var i = minutos(t.ini), f = minutos(t.fim), meio = i != null && f != null && f > i ? hhmm(i + Math.round((f - i) / 2)) : t.ini;
-                var carne = { id: "t" + novoCodigo().slice(0, 8), t: "Comprar carne", g: t.g, dia: t.dia, ini: meio, fim: t.fim };
-                if (t.feito) carne.feito = true;
-                t.t = "Comprar refri"; t.fim = meio || t.fim;
-                c.itens.splice(c.itens.indexOf(t) + 1, 0, carne);
+                var nomes = SEPARAR_TAREFAS[chaveNome(t.t)];
+                if (!nomes) return;
+                var i = minutos(t.ini), f = minutos(t.fim), ok = i != null && f != null && f > i, n = nomes.length;
+                var corte = function (k) { return ok ? hhmm(i + Math.round((f - i) * k / n)) : (k ? t.fim : t.ini); };
+                var novas = nomes.slice(1).map(function (nome, k) {
+                    var x = { id: "t" + novoCodigo().slice(0, 8), t: nome, g: t.g, dia: t.dia, ini: corte(k + 1), fim: corte(k + 2) };
+                    if (t.feito) x.feito = true;
+                    return x;
+                });
+                t.t = nomes[0]; t.fim = corte(1);
+                Array.prototype.splice.apply(c.itens, [c.itens.indexOf(t) + 1, 0].concat(novas));
             });
         });
         if (Array.isArray(estado.tarefasPadrao)) {
-            var ip = estado.tarefasPadrao.map(function (x) { return chaveNome(x[1]); }).indexOf("comprar refri e carne");
-            if (ip >= 0) { var x = estado.tarefasPadrao[ip]; estado.tarefasPadrao.splice(ip, 1, [x[0], "Comprar refri", x[2], x[3], x[4]], [x[0], "Comprar carne", x[2], x[3], x[4]]); }
+            estado.tarefasPadrao = [].concat.apply([], estado.tarefasPadrao.map(function (x) {
+                var nomes = SEPARAR_TAREFAS[chaveNome(x[1])];
+                return nomes ? nomes.map(function (nome) { return [x[0], nome, x[2], x[3], x[4]]; }) : [x];
+            }));
         }
     }
 
