@@ -190,6 +190,16 @@ textarea.varios{ min-height:120px; margin:10px 0; }
 body.seq-aberto{ overflow:hidden; }
 
 /* Respostas (dashboard) */
+.filtros-tarefas{ display:flex; flex-wrap:wrap; gap:8px; margin:18px 0 4px; }
+.filtro-t{ border:1.5px solid var(--borda); background:var(--branco); border-radius:999px; padding:7px 14px; font:inherit; font-size:14px; color:var(--texto); cursor:pointer; }
+.filtro-t b{ display:inline-block; min-width:22px; padding:0 6px; margin-left:4px; border-radius:999px; background:var(--fundo-suave); font-size:12px; }
+.filtro-t:hover{ border-color:var(--ciano); }
+.filtro-t.ativa{ background:var(--marinho); border-color:var(--marinho); color:var(--branco); font-weight:600; }
+.filtro-t.ativa b{ background:rgba(255,255,255,.2); }
+.filtro-t.f-atrasadas:not(.ativa) b{ background:#FFE4E6; color:#BE123C; }
+.faixa-concluida{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:10px 0 0; padding:10px 14px; border-radius:12px; background:#ECFDF5; border:1px solid #A7F3D0; font-size:14px; }
+.faixa-concluida span{ flex:1 1 200px; }
+.linha-tarefa.saindo{ opacity:0; transform:translateX(30px); transition:opacity .3s, transform .3s; }
 .totais{ display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; }
 .total{ border-radius:14px; padding:14px 16px; border:1.5px solid var(--borda); background:var(--branco); }
 .total b{ display:block; font:800 34px/1.1 "Montserrat",sans-serif; color:var(--marinho); }
@@ -1140,9 +1150,12 @@ body.seq-aberto{ overflow:hidden; }
         ["Compras", "Comprar descartáveis, guardanapos e papel-toalha", -4, "18:00", "19:00"],
         ["Compras", "Compras supermercado (almoço)", -4, "19:00", "21:00"],
         ["Planejamento", "Ver previsão e plano B de chuva", -3, "18:00", "18:30"],
-        ["Encomendas", "Buscar e pagar lembrancinhas", -3, "18:30", "18:50"],
-        ["Encomendas", "Buscar e pagar personalizados", -3, "18:50", "19:10"],
-        ["Encomendas", "Buscar e pagar topo do bolo", -3, "19:10", "19:30"],
+        ["Encomendas", "Pagar lembrancinhas", -3, "18:30", "18:40"],
+        ["Encomendas", "Buscar lembrancinhas", -3, "18:40", "18:50"],
+        ["Encomendas", "Pagar personalizados", -3, "18:50", "19:00"],
+        ["Encomendas", "Buscar personalizados", -3, "19:00", "19:10"],
+        ["Encomendas", "Pagar topo do bolo", -3, "19:10", "19:20"],
+        ["Encomendas", "Buscar topo do bolo", -3, "19:20", "19:30"],
         ["Planejamento", "Quem olha as crianças na piscina", -3, "19:30", "20:00"],
         ["Planejamento", "Combinar fotos e envio para o álbum", -3, "20:00", "20:30"],
         ["Casa", "Ligar congelador", -2, "07:00", "07:15"],
@@ -1156,7 +1169,8 @@ body.seq-aberto{ overflow:hidden; }
         ["Limpeza", "Limpar piscina", -1, "13:30", "15:00"],
         ["Convites", "Lembrete aos confirmados (link do local)", -1, "12:00", "12:30"],
         ["Limpeza", "Limpar varanda", -1, "15:00", "16:00"],
-        ["Encomendas", "Buscar e pagar doces", -1, "16:00", "17:00"],
+        ["Encomendas", "Pagar doces", -1, "16:00", "16:15"],
+        ["Encomendas", "Buscar doces", -1, "16:15", "17:00"],
         ["Montagem", "Instalar TV e som", -1, "17:00", "18:30"],
         ["Montagem", "Ajustar rede Wi-Fi", -1, "18:30", "19:15"],
         ["Montagem", "Instalar redes para dormir", -1, "19:15", "20:00"],
@@ -1164,8 +1178,10 @@ body.seq-aberto{ overflow:hidden; }
         ["Compras", "Comprar gelo", 0, "07:30", "08:00"],
         ["Limpeza", "Limpar lixeira", 0, "08:00", "08:30"],
         ["Montagem", "Instalar cadeiras e mesas", 0, "08:30", "10:30"],
-        ["Encomendas", "Buscar e pagar bolo", 0, -240, 45],
-        ["Encomendas", "Buscar e pagar salgadinhos", 0, -180, 45],
+        ["Encomendas", "Pagar bolo", 0, -240, 15],
+        ["Encomendas", "Buscar bolo", 0, -225, 30],
+        ["Encomendas", "Pagar salgadinhos", 0, -180, 15],
+        ["Encomendas", "Buscar salgadinhos", 0, -165, 30],
         ["Dia da festa", "Preparar churrasqueira", 0, -120, 30],
         ["Dia da festa", "Ligar churrasqueira", 0, -60, 30],
         ["Depois", "Recolher e levar o lixo", 1, "08:00", "09:00"],
@@ -1178,6 +1194,15 @@ body.seq-aberto{ overflow:hidden; }
     var SEMANA = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
     var MESES_T = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
     var vistaTarefas = "lista", calModo = "semana", calRef = null, focarTarefa = null;
+    /* Filtro da lista: a tela principal mostra só o que ainda não foi feito; as outras ficam nos botões. */
+    var FILTROS_TAREFA = [["pendentes", "⏳ Pendentes"], ["atrasadas", "🔴 Atrasadas"], ["concluidas", "✅ Concluídas"], ["todas", "📋 Todas"]];
+    var filtroTarefas = "pendentes", ultimaConcluida = null, timerConcluida = null;
+    function passaFiltro(t, a, f) {
+        if (f === "pendentes") return !t.feito;
+        if (f === "atrasadas") return situacaoTarefa(t, a) === "atrasada";
+        if (f === "concluidas") return !!t.feito;
+        return true;
+    }
     var PX_HORA = 44;
 
     function dois(n) { return ("0" + n).slice(-2); }
@@ -1213,12 +1238,24 @@ body.seq-aberto{ overflow:hidden; }
         "encomendar lembrancinhas e personalizados": ["Encomendar lembrancinhas", "Encomendar personalizados"],
         "buscar e pagar lembrancinhas, personalizados e topo": ["Buscar e pagar lembrancinhas", "Buscar e pagar personalizados", "Buscar e pagar topo do bolo"]
     };
+    /* Nomes em que uma tarefa antiga se divide (ou null). "Buscar e pagar X" vira "Pagar X" e "Buscar X",
+       porque dá para pagar adiantado e buscar depois. */
+    function nomesSeparados(nome) {
+        var lista = SEPARAR_TAREFAS[chaveNome(nome)] || [nome], mudou = lista.length > 1;
+        lista = [].concat.apply([], lista.map(function (n) {
+            var m = /^\s*buscar e pagar\s+(.+)$/i.exec(n);
+            if (!m) return [n];
+            mudou = true;
+            return ["Pagar " + m[1], "Buscar " + m[1]];
+        }));
+        return mudou ? lista : null;
+    }
     function separarRefriCarne() {
         Object.keys(estado.tarefas).forEach(function (id) {
             var c = estado.tarefas[id];
             if (!c || !Array.isArray(c.itens)) return;
             c.itens.slice().forEach(function (t) {
-                var nomes = SEPARAR_TAREFAS[chaveNome(t.t)];
+                var nomes = nomesSeparados(t.t);
                 if (!nomes) return;
                 var i = minutos(t.ini), f = minutos(t.fim), ok = i != null && f != null && f > i, n = nomes.length;
                 var corte = function (k) { return ok ? hhmm(i + Math.round((f - i) * k / n)) : (k ? t.fim : t.ini); };
@@ -1233,7 +1270,7 @@ body.seq-aberto{ overflow:hidden; }
         });
         if (Array.isArray(estado.tarefasPadrao)) {
             estado.tarefasPadrao = [].concat.apply([], estado.tarefasPadrao.map(function (x) {
-                var nomes = SEPARAR_TAREFAS[chaveNome(x[1])];
+                var nomes = nomesSeparados(x[1]);
                 return nomes ? nomes.map(function (nome) { return [x[0], nome, x[2], x[3], x[4]]; }) : [x];
             }));
         }
@@ -1327,12 +1364,26 @@ body.seq-aberto{ overflow:hidden; }
         var avisoEsc = c.escondidas && c.escondidas.length ? '<div class="faixa-aviso esc">🙈 <b>' + plural(c.escondidas.length, "tarefa escondida", "tarefas escondidas") + '</b> porque ' +
             (function () { var nomes = {}; c.escondidas.forEach(function (t) { (itensDesligados(ev, t, temC) || []).forEach(function (i) { nomes[NOMES_ITEM[i]] = 1; }); }); var l = Object.keys(nomes); return (l.length === 1 ? l[0] + " está desmarcado" : l.join(", ") + " estão desmarcados"); })() +
             ' em <b>Vai ter na festa</b> (aba Compras): ' + c.escondidas.map(function (t) { return esc(t.t); }).join(", ") + '. Marque de novo lá e elas voltam.</div>' : "";
+        var conta = {};
+        FILTROS_TAREFA.forEach(function (f) { conta[f[0]] = c.itens.filter(function (t) { return passaFiltro(t, a, f[0]); }).length; });
+        var filtros = '<div class="filtros-tarefas" role="group" aria-label="Quais tarefas mostrar">' + FILTROS_TAREFA.map(function (f) {
+            var on = filtroTarefas === f[0];
+            return '<button type="button" class="filtro-t f-' + f[0] + (on ? ' ativa' : '') + '" data-acao="tarefas-filtro" data-f="' + f[0] + '" aria-pressed="' + on + '">' + f[1] + ' <b>' + conta[f[0]] + '</b></button>';
+        }).join("") + '</div>';
+        var desfazer = "";
+        if (ultimaConcluida && filtroTarefas !== "concluidas" && filtroTarefas !== "todas") {
+            var tu = tarefa(ev, ultimaConcluida);
+            if (tu && tu.feito) desfazer = '<div class="faixa-concluida">✅ <span><b>' + esc(tu.t) + '</b> foi para Concluídas.</span>' +
+                '<button class="b pequeno" data-acao="tarefa-desfazer" data-id="' + tu.id + '">↶ Desfazer</button>' +
+                '<button class="b pequeno" data-acao="tarefas-filtro" data-f="concluidas">Ver concluídas</button></div>';
+        }
         c.itens.slice().sort(ordemTarefa).forEach(function (t) {
+            if (!passaFiltro(t, a, filtroTarefas)) return;
             if (!porDia[t.dia]) { porDia[t.dia] = []; dias.push(t.dia); }
             porDia[t.dia].push(t);
         });
         var diaNovo = a.dia < ev.data ? a.dia : ev.data;
-        var html = avisoEsc + '<div class="add-tarefa">' +
+        var html = avisoEsc + filtros + desfazer + '<div class="add-tarefa">' +
                 '<input id="nt-titulo" placeholder="Nova tarefa (ex.: Encher balões)" autocomplete="off" aria-label="Nova tarefa">' +
                 '<input id="nt-dia" type="date" value="' + diaNovo + '" aria-label="Dia">' +
                 '<input id="nt-ini" type="time" value="19:00" aria-label="Começa">' +
@@ -1341,7 +1392,8 @@ body.seq-aberto{ overflow:hidden; }
                     return '<option value="' + g[0] + '"' + (g[0] === "Outras" ? " selected" : "") + '>' + g[1] + " " + g[0] + '</option>';
                 }).join("") + '</select>' +
                 '<button class="b cheio" data-acao="tarefa-add">Adicionar</button></div>';
-        if (!dias.length) html += '<p style="margin-top:18px;color:var(--texto-claro)">Nenhuma tarefa. Adicione acima ou use <b>Recomeçar do padrão</b>.</p>';
+        if (!dias.length) html += '<p style="margin-top:18px;color:var(--texto-claro)">' + (!c.itens.length ? 'Nenhuma tarefa. Adicione acima ou use <b>Recomeçar do padrão</b>.' :
+            filtroTarefas === "pendentes" ? '🎉 Nenhuma tarefa pendente. Tudo feito!' : filtroTarefas === "atrasadas" ? '👍 Nenhuma tarefa atrasada.' : 'Nenhuma tarefa concluída ainda.') + '</p>';
         html += dias.map(function (dia) {
             return '<div class="dia-tarefas' + (dia === ev.data ? " festa" : "") + '"><h3>' + diaCurto(dia) + '<small>' + quandoRelativo(dia, ev) + '</small>' +
                 (dia === a.dia ? '<span class="hj">hoje</span>' : "") + '</h3><ul>' +
@@ -1876,7 +1928,7 @@ body.seq-aberto{ overflow:hidden; }
         var porTipo = {};
         lista.forEach(function (f) { porTipo[f.tipo] = (porTipo[f.tipo] || 0) + 1; });
 
-        return '<p class="nota-info" style="margin-top:0">Cadastre quem vai fornecer cada coisa da festa. Eles aparecem sozinhos nas tarefas do mesmo tipo (ex.: o fornecedor de <b>Bolo</b> aparece em "Encomendar bolo" e "Buscar e pagar bolo").</p>' +
+        return '<p class="nota-info" style="margin-top:0">Cadastre quem vai fornecer cada coisa da festa. Eles aparecem sozinhos nas tarefas do mesmo tipo (ex.: o fornecedor de <b>Bolo</b> aparece em "Encomendar bolo", "Pagar bolo" e "Buscar bolo").</p>' +
             '<div class="add-forn">' +
                 '<select id="nf-tipo" aria-label="Tipo">' + opcoesTipo("Bolo") + '</select>' +
                 '<input id="nf-nome" placeholder="Nome do fornecedor" autocomplete="off" aria-label="Nome">' +
@@ -2462,7 +2514,16 @@ body.seq-aberto{ overflow:hidden; }
         if (el.hasAttribute("data-tf")) {
             var tf = el.getAttribute("data-tf"), tt = tarefa(ev, el.getAttribute("data-id"));
             if (!tt) return;
-            if (tf === "feito") { if (el.checked) tt.feito = true; else delete tt.feito; marcarSujo(); return redesenharTarefas(); }
+            if (tf === "feito") {
+                if (el.checked) tt.feito = true; else delete tt.feito;
+                ultimaConcluida = el.checked ? tt.id : null;
+                clearTimeout(timerConcluida);
+                if (el.checked) timerConcluida = setTimeout(function () { ultimaConcluida = null; var fc = painel.querySelector(".faixa-concluida"); if (fc) fc.remove(); }, 8000);
+                marcarSujo();
+                var li = el.closest && el.closest(".linha-tarefa");
+                if (li && el.checked && filtroTarefas !== "todas" && filtroTarefas !== "concluidas") { li.classList.add("saindo"); return setTimeout(redesenharTarefas, 350); }
+                return redesenharTarefas();
+            }
             if (tf !== "t") tarefaMudou = true;
             return;
         }
@@ -2727,6 +2788,20 @@ body.seq-aberto{ overflow:hidden; }
                     alvo.textContent = "Copiado!";
                     setTimeout(function () { alvo.textContent = "Copiar lista"; }, 1800);
                 });
+                break;
+
+            case "tarefas-filtro":
+                filtroTarefas = alvo.getAttribute("data-f");
+                vistaTarefas = "lista";
+                ultimaConcluida = null;
+                redesenharTarefas();
+                break;
+
+            case "tarefa-desfazer":
+                var td = tarefa(ev, alvo.getAttribute("data-id"));
+                if (td) { delete td.feito; marcarSujo(); }
+                ultimaConcluida = null;
+                redesenharTarefas();
                 break;
 
             case "tarefas-vista":

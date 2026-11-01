@@ -92,7 +92,9 @@ No painel você:
   ficam no KV junto das tarefas do evento (`tarefas[evento].tem`), valendo em todos os aparelhos.
   As compras são tarefas separadas (Comprar refri, Comprar suco, Comprar carne, Comprar gelo, Comprar descartáveis e
   "Compras supermercado (almoço)") para cada uma sumir com o seu item; a antiga "Comprar refri e carne" é dividida
-  sozinha ao abrir o painel (`separarRefriCarne` / `SEPARAR_TAREFAS`); o mesmo vale para lembrancinhas, personalizados e topo do bolo, que viraram tarefas separadas. "Comprar gelo" só some com Refri e Suco desmarcados (e o gelo da aba Compras zera).
+  sozinha ao abrir o painel (`separarRefriCarne` / `SEPARAR_TAREFAS`); o mesmo vale para lembrancinhas, personalizados e topo do bolo, que viraram tarefas separadas. Toda "Buscar e pagar X" vira "Pagar X" e "Buscar X" (`nomesSeparados`), para pagar adiantado e buscar depois. "Comprar gelo" só some com Refri e Suco desmarcados (e o gelo da aba Compras zera).
+- **filtros da lista de tarefas** (`FILTROS_TAREFA` / `filtroTarefas`): a lista abre em **Pendentes** (só o que falta);
+  marcar uma tarefa tira ela da tela, com a faixa "foi para Concluídas" e **Desfazer**. Botões Atrasadas, Concluídas e Todas para conferir.
 - aba **Fornecedores** (em cada evento): tipo, nome, WhatsApp, o que pediu, valor e pago, com total.
   Os fornecedores aparecem sozinhos nas tarefas do mesmo tipo (`TIPOS_FORNECEDOR`). Ficam na
   chave `fornecedores` do KV, nunca no site público.
