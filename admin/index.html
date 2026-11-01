@@ -1140,9 +1140,12 @@ body.seq-aberto{ overflow:hidden; }
         ["Compras", "Comprar descartáveis, guardanapos e papel-toalha", -4, "18:00", "19:00"],
         ["Compras", "Compras supermercado (almoço)", -4, "19:00", "21:00"],
         ["Planejamento", "Ver previsão e plano B de chuva", -3, "18:00", "18:30"],
-        ["Encomendas", "Buscar e pagar lembrancinhas", -3, "18:30", "18:50"],
-        ["Encomendas", "Buscar e pagar personalizados", -3, "18:50", "19:10"],
-        ["Encomendas", "Buscar e pagar topo do bolo", -3, "19:10", "19:30"],
+        ["Encomendas", "Pagar lembrancinhas", -3, "18:30", "18:40"],
+        ["Encomendas", "Buscar lembrancinhas", -3, "18:40", "18:50"],
+        ["Encomendas", "Pagar personalizados", -3, "18:50", "19:00"],
+        ["Encomendas", "Buscar personalizados", -3, "19:00", "19:10"],
+        ["Encomendas", "Pagar topo do bolo", -3, "19:10", "19:20"],
+        ["Encomendas", "Buscar topo do bolo", -3, "19:20", "19:30"],
         ["Planejamento", "Quem olha as crianças na piscina", -3, "19:30", "20:00"],
         ["Planejamento", "Combinar fotos e envio para o álbum", -3, "20:00", "20:30"],
         ["Casa", "Ligar congelador", -2, "07:00", "07:15"],
@@ -1156,7 +1159,8 @@ body.seq-aberto{ overflow:hidden; }
         ["Limpeza", "Limpar piscina", -1, "13:30", "15:00"],
         ["Convites", "Lembrete aos confirmados (link do local)", -1, "12:00", "12:30"],
         ["Limpeza", "Limpar varanda", -1, "15:00", "16:00"],
-        ["Encomendas", "Buscar e pagar doces", -1, "16:00", "17:00"],
+        ["Encomendas", "Pagar doces", -1, "16:00", "16:15"],
+        ["Encomendas", "Buscar doces", -1, "16:15", "17:00"],
         ["Montagem", "Instalar TV e som", -1, "17:00", "18:30"],
         ["Montagem", "Ajustar rede Wi-Fi", -1, "18:30", "19:15"],
         ["Montagem", "Instalar redes para dormir", -1, "19:15", "20:00"],
@@ -1164,8 +1168,10 @@ body.seq-aberto{ overflow:hidden; }
         ["Compras", "Comprar gelo", 0, "07:30", "08:00"],
         ["Limpeza", "Limpar lixeira", 0, "08:00", "08:30"],
         ["Montagem", "Instalar cadeiras e mesas", 0, "08:30", "10:30"],
-        ["Encomendas", "Buscar e pagar bolo", 0, -240, 45],
-        ["Encomendas", "Buscar e pagar salgadinhos", 0, -180, 45],
+        ["Encomendas", "Pagar bolo", 0, -240, 15],
+        ["Encomendas", "Buscar bolo", 0, -225, 30],
+        ["Encomendas", "Pagar salgadinhos", 0, -180, 15],
+        ["Encomendas", "Buscar salgadinhos", 0, -165, 30],
         ["Dia da festa", "Preparar churrasqueira", 0, -120, 30],
         ["Dia da festa", "Ligar churrasqueira", 0, -60, 30],
         ["Depois", "Recolher e levar o lixo", 1, "08:00", "09:00"],
@@ -1213,12 +1219,24 @@ body.seq-aberto{ overflow:hidden; }
         "encomendar lembrancinhas e personalizados": ["Encomendar lembrancinhas", "Encomendar personalizados"],
         "buscar e pagar lembrancinhas, personalizados e topo": ["Buscar e pagar lembrancinhas", "Buscar e pagar personalizados", "Buscar e pagar topo do bolo"]
     };
+    /* Nomes em que uma tarefa antiga se divide (ou null). "Buscar e pagar X" vira "Pagar X" e "Buscar X",
+       porque dá para pagar adiantado e buscar depois. */
+    function nomesSeparados(nome) {
+        var lista = SEPARAR_TAREFAS[chaveNome(nome)] || [nome], mudou = lista.length > 1;
+        lista = [].concat.apply([], lista.map(function (n) {
+            var m = /^\s*buscar e pagar\s+(.+)$/i.exec(n);
+            if (!m) return [n];
+            mudou = true;
+            return ["Pagar " + m[1], "Buscar " + m[1]];
+        }));
+        return mudou ? lista : null;
+    }
     function separarRefriCarne() {
         Object.keys(estado.tarefas).forEach(function (id) {
             var c = estado.tarefas[id];
             if (!c || !Array.isArray(c.itens)) return;
             c.itens.slice().forEach(function (t) {
-                var nomes = SEPARAR_TAREFAS[chaveNome(t.t)];
+                var nomes = nomesSeparados(t.t);
                 if (!nomes) return;
                 var i = minutos(t.ini), f = minutos(t.fim), ok = i != null && f != null && f > i, n = nomes.length;
                 var corte = function (k) { return ok ? hhmm(i + Math.round((f - i) * k / n)) : (k ? t.fim : t.ini); };
@@ -1233,7 +1251,7 @@ body.seq-aberto{ overflow:hidden; }
         });
         if (Array.isArray(estado.tarefasPadrao)) {
             estado.tarefasPadrao = [].concat.apply([], estado.tarefasPadrao.map(function (x) {
-                var nomes = SEPARAR_TAREFAS[chaveNome(x[1])];
+                var nomes = nomesSeparados(x[1]);
                 return nomes ? nomes.map(function (nome) { return [x[0], nome, x[2], x[3], x[4]]; }) : [x];
             }));
         }
@@ -1876,7 +1894,7 @@ body.seq-aberto{ overflow:hidden; }
         var porTipo = {};
         lista.forEach(function (f) { porTipo[f.tipo] = (porTipo[f.tipo] || 0) + 1; });
 
-        return '<p class="nota-info" style="margin-top:0">Cadastre quem vai fornecer cada coisa da festa. Eles aparecem sozinhos nas tarefas do mesmo tipo (ex.: o fornecedor de <b>Bolo</b> aparece em "Encomendar bolo" e "Buscar e pagar bolo").</p>' +
+        return '<p class="nota-info" style="margin-top:0">Cadastre quem vai fornecer cada coisa da festa. Eles aparecem sozinhos nas tarefas do mesmo tipo (ex.: o fornecedor de <b>Bolo</b> aparece em "Encomendar bolo", "Pagar bolo" e "Buscar bolo").</p>' +
             '<div class="add-forn">' +
                 '<select id="nf-tipo" aria-label="Tipo">' + opcoesTipo("Bolo") + '</select>' +
                 '<input id="nf-nome" placeholder="Nome do fornecedor" autocomplete="off" aria-label="Nome">' +
