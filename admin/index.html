@@ -900,7 +900,7 @@ body.seq-aberto{ overflow:hidden; }
     /* Tarefas que dependem do que vai ter na festa: desmarcou o item em Compras, a tarefa some (volta ao marcar de novo) */
     var ITENS_DA_TAREFA = [[/\bbolo\b|topo/, "bolo"], [/salgad/, "salgados"], [/doce/, "doces"], [/lembrancinha/, "lembrancinhas"], [/personalizad/, "personalizados"],
         [/refri/, "refri"], [/\bsuco\b/, "suco"], [/carne|carvao|churras/, "churrasco"], [/almoco|supermercado/, "almoco"],
-        [/\bgelo\b/, "refri"], [/\bgelo\b/, "suco"]];   // gelo só some se refri e suco estiverem desmarcados
+        [/\bgelo\b|bebida/, "refri"], [/\bgelo\b|bebida/, "suco"]];   // gelo e gelar bebidas só somem se refri e suco estiverem desmarcados
     var NOMES_ITEM = { bolo: "Bolo", salgados: "Salgados", doces: "Doces", lembrancinhas: "Lembrancinhas", personalizados: "Personalizados", refri: "Refri", suco: "Suco", churrasco: "Churrasco", almoco: "Almoço" };
     function itensDesligados(ev, t, tem) {
         var k = chaveNome(t.t), usa = ITENS_DA_TAREFA.filter(function (x) { return x[0].test(k); }).map(function (x) { return x[1]; });
@@ -1162,10 +1162,15 @@ body.seq-aberto{ overflow:hidden; }
         ["Limpeza", "Limpar laboratório", -2, "18:30", "20:00"],
         ["Compras", "Comprar carvão", -2, "20:00", "20:30"],
         ["Casa", "Separar caixa de primeiros socorros", -2, "20:30", "21:00"],
+        ["Montagem", "Conferir extensões e iluminação", -2, "17:30", "18:30"],
+        ["Montagem", "Configurar a automação do evento", -2, "21:00", "22:00"],
         ["Compras", "Comprar refri", -1, "08:00", "08:30"],
         ["Compras", "Comprar suco", -1, "08:30", "09:00"],
         ["Compras", "Comprar carne", -1, "09:00", "09:30"],
         ["Limpeza", "Cortar grama", -1, "09:30", "11:30"],
+        ["Casa", "Guardar a carne no congelador", -1, "11:30", "12:00"],
+        ["Montagem", "Conferir os itens da churrasqueira", -1, "12:30", "13:00"],
+        ["Compras", "Conferir carvão e gás", -1, "13:00", "13:30"],
         ["Limpeza", "Limpar piscina", -1, "13:30", "15:00"],
         ["Convites", "Lembrete aos confirmados (link do local)", -1, "12:00", "12:30"],
         ["Limpeza", "Limpar varanda", -1, "15:00", "16:00"],
@@ -1175,15 +1180,23 @@ body.seq-aberto{ overflow:hidden; }
         ["Montagem", "Ajustar rede Wi-Fi", -1, "18:30", "19:15"],
         ["Montagem", "Instalar redes para dormir", -1, "19:15", "20:00"],
         ["Limpeza", "Banheiro: papel higiênico e sabonete", -1, "20:00", "20:45"],
+        ["Montagem", "Testar o som e a playlist", -1, "20:45", "21:15"],
+        ["Montagem", "Carregar a caixa de som", -1, "21:15", "21:30"],
+        ["Limpeza", "Separar lixeiras e sacos de lixo", -1, "21:30", "22:00"],
+        ["Casa", "Pôr as bebidas para gelar no congelador", 0, "07:00", "07:30"],
         ["Compras", "Comprar gelo", 0, "07:30", "08:00"],
         ["Limpeza", "Limpar lixeira", 0, "08:00", "08:30"],
         ["Montagem", "Instalar cadeiras e mesas", 0, "08:30", "10:30"],
+        ["Limpeza", "Limpar a área da festa e em volta da piscina", 0, "10:30", "11:00"],
         ["Encomendas", "Pagar bolo", 0, -240, 15],
         ["Encomendas", "Buscar bolo", 0, -225, 30],
         ["Encomendas", "Pagar salgadinhos", 0, -180, 15],
         ["Encomendas", "Buscar salgadinhos", 0, -165, 30],
+        ["Dia da festa", "Separar copos, pratos e talheres", 0, -135, 15],
         ["Dia da festa", "Preparar churrasqueira", 0, -120, 30],
+        ["Dia da festa", "Posicionar tudo no lugar", 0, -90, 30],
         ["Dia da festa", "Ligar churrasqueira", 0, -60, 30],
+        ["Dia da festa", "Conferir tudo antes dos convidados chegarem", 0, -30, 30],
         ["Depois", "Recolher e levar o lixo", 1, "08:00", "09:00"],
         ["Depois", "Arrumar a casa", 1, "09:00", "12:00"],
         ["Depois", "Devolver o que foi emprestado", 1, "14:00", "15:30"],
@@ -1715,6 +1728,8 @@ body.seq-aberto{ overflow:hidden; }
         else if (/salgad/.test(k)) salg();
         else if (/doce/.test(k)) doces();
         else if (/lembrancinha/.test(k)) lembr();
+        else if (/bebida/.test(k)) { refri(); suco(); gelo(); }
+        else if (/copos|talher/.test(k)) desc();
         else if (/churrasqueira/.test(k)) { carne(); carvao(); }
         else if (/congelador/.test(k)) { gelo(); refri(); }
         else if (/cadeira|mesa/.test(k)) cadeiras();
@@ -1724,6 +1739,25 @@ body.seq-aberto{ overflow:hidden; }
         else return null;
         return l;
     }
+
+    /* Tarefas de conferir: lista pronta do que olhar (dá para copiar e mandar para quem vai ajudar) */
+    var LISTAS_CONFERIR = [
+        [/itens da churrasqueira/, "O que precisa estar separado para o churrasco:",
+            ["Grelha e espetos limpos", "Faca afiada e tábua de carne", "Pegador e garfão", "Sal grosso e temperos", "Acendedor, álcool em gel e fósforo", "Abanador ou secador", "Luva térmica", "Bandejas para servir a carne", "Pano e papel-toalha perto da churrasqueira"]],
+        [/carvao e gas/, "Veja se dá para o dia todo (se faltar, ainda dá tempo de comprar):",
+            ["Carvão: sacos suficientes (a quantidade certa está abaixo)", "Gás do fogão/cooktop: botijão cheio ou um reserva", "Acendedor da churrasqueira"]],
+        [/extens|iluminac/, "Teste tudo ligado na tomada, de dia, para dar tempo de comprar o que faltar:",
+            ["Extensões e filtros de linha (quantos e onde)", "Tomadas da área da festa funcionando", "Lâmpadas queimadas trocadas", "Luzes da área da piscina e do jardim", "Cordão de luz / decoração ligada", "Lanterna ou luz de emergência"]],
+        [/automac/, "Deixe os aparelhos programados para a festa rodar sozinha:",
+            ["Tomadas inteligentes com os horários da festa", "Luzes: cenas e horários (acender ao escurecer)", "Som / Alexa: playlist e volume", "Bomba e luz da piscina", "Câmeras e portão", "Testar tudo pelo celular (e pela voz)"]],
+        [/lixeiras/, "Espalhe as lixeiras pela festa e deixe sacos de reserva:",
+            ["Lixeira perto da mesa de comida", "Lixeira perto da churrasqueira", "Lixeira na área da piscina", "Lixeira no banheiro", "Sacos de lixo grandes de reserva", "Lugar para juntar o lixo no fim"]],
+        [/copos, pratos e talheres/, "Deixe tudo à mão, perto da comida e das bebidas (quantidades abaixo):", ["Copos", "Pratinhos e pratos", "Garfinhos, garfos e facas", "Guardanapos", "Papel-toalha"]],
+        [/posicionar tudo/, "Antes de começar, cada coisa no seu lugar:",
+            ["Mesa do bolo e dos doces montada", "Salgados e comida na mesa (ou no forno para esquentar)", "Bebidas geladas no congelador/caixa térmica", "Copos, pratos e talheres na mesa", "Cadeiras e mesas arrumadas", "Lixeiras no lugar", "Decoração e personalizados na mesa"]],
+        [/conferir tudo/, "Última volta antes de chegar gente:",
+            ["Som tocando e playlist no ponto", "Churrasqueira acesa", "Bebidas geladas", "Banheiro com papel e sabonete", "Luzes e automação ligadas", "Portão aberto / alguém para receber", "Celular carregado para as fotos"]]
+    ];
 
     function ligacoes(ev, t) {
         var k = chaveNome(t.t), id = t.id, n = 0, partes = [], botao = "", resumo = "";
@@ -1853,6 +1887,13 @@ body.seq-aberto{ overflow:hidden; }
             botao = "📸 Colocar os álbuns"; resumo = (ev.album || ev.albumGoogle) ? "Álbum já está no site ✓" : "Ainda sem álbum no site";
             partes.push(campos([campo("album", "Álbum do iPhone (iCloud)", ev.album || "", { cls: "m3", ph: "https://www.icloud.com/sharedalbum/...", dica: "Álbum compartilhado com \"Site Público\" ligado." }),
                 campo("albumGoogle", "Álbum do Android (Google Fotos)", ev.albumGoogle || "", { cls: "m3", ph: "https://photos.app.goo.gl/...", dica: "Álbum compartilhado com \"Colaborar\" ligado." })]));
+        }
+        else if (LISTAS_CONFERIR.some(function (x) { return x[0].test(k); })) {
+            var lcf = LISTAS_CONFERIR.filter(function (x) { return x[0].test(k); })[0];
+            var txtC = "☑️ " + t.t + " — " + ev.titulo + "\n" + lcf[2].map(function (x) { return "☐ " + x; }).join("\n");
+            botao = "☑️ Ver o que conferir"; resumo = plural(lcf[2].length, "item", "itens") + " para conferir";
+            partes.push('<p class="nota-info">' + lcf[1] + '</p><ul class="pessoas-info">' + lcf[2].map(function (x) { return '<li><span>☐ ' + esc(x) + '</span></li>'; }).join("") + '</ul>' +
+                '<div class="acoes-info">' + copiar(txtC, "📋 Copiar a lista") + '</div>');
         }
         else if (/previs|chuva/.test(k)) {
             botao = "⛅ Ver previsão"; resumo = "A previsão aparece na página do evento";
