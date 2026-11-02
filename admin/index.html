@@ -377,6 +377,10 @@ body.seq-aberto{ overflow:hidden; }
 .ver-info{ margin:5px 0 0 2px; border:1.5px solid var(--ciano); background:var(--branco); color:var(--ciano-escuro); border-radius:999px;
     padding:3px 11px; font:500 13px "Ubuntu",sans-serif; cursor:pointer; }
 .ver-info:hover, .ver-info.aberta{ background:var(--ciano); color:#fff; }
+.b-padrao{ margin:5px 0 0 6px; border:1.5px solid #F59E0B; background:#FFFBEB; color:#92400E; border-radius:999px; padding:3px 10px; font:600 12.5px "Ubuntu",sans-serif; cursor:pointer; }
+.b-padrao:hover{ background:#F59E0B; color:#fff; }
+.b-padrao.igual{ border-color:var(--borda); background:transparent; color:var(--texto-claro); font-weight:500; }
+.b-padrao.igual:hover{ background:var(--borda); color:var(--texto); }
 .info-tarefa{ grid-column:1 / -1; margin:6px 8px 4px 30px; background:var(--branco); border:1.5px solid #7DD3FC; border-radius:14px; padding:14px 16px; }
 .info-tarefa .campos-tarefa{ margin:6px 0 10px; gap:12px 14px; }
 .info-tarefa .campo textarea{ min-height:90px; }
@@ -1290,12 +1294,44 @@ body.seq-aberto{ overflow:hidden; }
     }
 
     function padraoAtual() { return estado.tarefasPadrao || TAREFAS_PADRAO; }
+
+    /* Uma tarefa do evento no padrão: cada tarefa lembra de qual tarefa do padrão nasceu (t.p, o nome dela no padrão),
+       mesmo que o nome, o dia ou o horário tenham mudado neste evento. */
+    function indicePadrao(t) {
+        var pd = padraoAtual(), chaves = [t.p, t.t].filter(Boolean).map(chaveNome);
+        for (var j = 0; j < chaves.length; j++) {
+            for (var i = 0; i < pd.length; i++) if (chaveNome(pd[i][1]) === chaves[j]) return i;
+        }
+        return -1;
+    }
+    /* Como a tarefa ficaria no padrão: dias em relação à festa; no dia da festa, se o padrão contava a partir do horário
+       do evento (ex.: 2 horas antes), continua contando assim, para servir em festas de outros horários. */
+    function linhaPadrao(ev, t, antiga) {
+        var d = difDias(t.dia, ev.data), ini = t.ini || "", fim = t.fim || "";
+        if (antiga && typeof antiga[3] === "number" && d === 0 && minutos(ini) != null) {
+            var h = horasEvento(ev).ini, i = minutos(ini), f = minutos(fim);
+            return [t.g || "Outras", String(t.t).trim(), d, i - h, f != null && f > i ? f - i : 30];
+        }
+        return [t.g || "Outras", String(t.t).trim(), d, ini, fim];
+    }
+    function situacaoPadrao(ev, t) {      // "fora" (não está no padrão), "diferente" ou "igual"
+        var i = indicePadrao(t);
+        if (i < 0) return "fora";
+        var antiga = padraoAtual()[i];
+        return JSON.stringify(linhaPadrao(ev, t, antiga)) === JSON.stringify(antiga) ? "igual" : "diferente";
+    }
+    function botaoPadrao(ev, t) {
+        var s = situacaoPadrao(ev, t);
+        return '<button class="b-padrao' + (s === "igual" ? " igual" : "") + '" data-acao="tarefa-padrao" data-id="' + t.id + '" title="' +
+            (s === "igual" ? "Esta tarefa está igual no padrão" : s === "fora" ? "Colocar esta tarefa no padrão dos próximos eventos" : "Levar o que você mudou aqui para o padrão dos próximos eventos") + '">' +
+            (s === "igual" ? "✓ Igual ao padrão" : s === "fora" ? "⭐ Pôr no padrão" : "⭐ Atualizar no padrão") + '</button>';
+    }
     function montarTarefas(ev) {
         var h = horasEvento(ev).ini;
         return padraoAtual().map(function (x) {
             var ini = typeof x[3] === "number" ? hhmm(h + x[3]) : x[3];
             var fim = typeof x[4] === "number" ? hhmm(minutos(ini) + x[4]) : x[4];
-            return { id: "t" + novoCodigo().slice(0, 8), g: x[0], t: x[1], dia: somarDias(ev.data, x[2]), ini: ini, fim: fim };
+            return { id: "t" + novoCodigo().slice(0, 8), g: x[0], t: x[1], p: x[1], dia: somarDias(ev.data, x[2]), ini: ini, fim: fim };
         }).sort(ordemTarefa);
     }
     function cronograma(ev) {
@@ -1417,7 +1453,8 @@ body.seq-aberto{ overflow:hidden; }
                         '<input type="checkbox" class="ok" data-tf="feito" data-id="' + t.id + '"' + (t.feito ? " checked" : "") + ' title="Marcar como feita" aria-label="Feita">' +
                         '<span class="tt-box"><input type="text" data-tf="t" data-id="' + t.id + '" value="' + esc(t.t) + '" aria-label="Tarefa">' +
                             '<small>' + iconeGrupo(t.g) + " " + esc(t.g || "Outras") + (lg && lg.resumo ? ' · <span class="resumo-t">' + esc(lg.resumo) + '</span>' : '') + '</small>' +
-                            (lg ? '<button class="ver-info' + (aberta ? ' aberta' : '') + '" data-acao="info-abrir" data-id="' + t.id + '" aria-expanded="' + (aberta ? 'true' : 'false') + '">' + lg.botao + (aberta ? ' ▴' : ' ▾') + '</button>' : '') + '</span>' +
+                            (lg ? '<button class="ver-info' + (aberta ? ' aberta' : '') + '" data-acao="info-abrir" data-id="' + t.id + '" aria-expanded="' + (aberta ? 'true' : 'false') + '">' + lg.botao + (aberta ? ' ▴' : ' ▾') + '</button>' : '') +
+                            botaoPadrao(ev, t) + '</span>' +
                         '<span class="quando">' +
                             (s === "feita" ? '<span class="selo-t feita">Feita ✓</span>' : s === "atrasada" ? '<span class="selo-t atrasada">Atrasada</span>' : s === "agora" ? '<span class="selo-t agora">Agora</span>' : "") +
                             (ch[t.id] ? '<span class="selo-t choque" title="Outra tarefa no mesmo horário">⚠️ mesmo horário</span>' : "") +
@@ -2465,6 +2502,8 @@ body.seq-aberto{ overflow:hidden; }
             if (tf === "dia" && !/^\d{4}-\d{2}-\d{2}$/.test(el.value)) return;
             tt[tf] = el.value;
             marcarSujo();
+            var bp = painel.querySelector('[data-acao="tarefa-padrao"][data-id="' + tt.id + '"]');
+            if (bp) bp.outerHTML = botaoPadrao(ev, tt);     // mostra na hora que a tarefa ficou diferente do padrão
             return;
         }
 
@@ -2863,6 +2902,24 @@ body.seq-aberto{ overflow:hidden; }
                 redesenharTarefas();
                 break;
 
+            case "tarefa-padrao": {
+                /* Leva só esta tarefa para o padrão (nome, grupo, dia e horário), sem mexer nas outras */
+                var tp = tarefa(ev, alvo.getAttribute("data-id"));
+                if (!tp || !String(tp.t || "").trim()) break;
+                var ip = indicePadrao(tp), sp = situacaoPadrao(ev, tp);
+                if (sp === "igual") { mostrarBarra("\"" + tp.t + "\" já está assim no padrão.", false); break; }
+                var pdN = padraoAtual().map(function (x) { return x.slice(); });
+                var nova = linhaPadrao(ev, tp, ip >= 0 ? pdN[ip] : null);
+                if (ip >= 0) pdN[ip] = nova; else pdN.push(nova);
+                estado.tarefasPadrao = pdN;
+                tp.p = nova[1];
+                var dN = nova[2];
+                marcarSujo(); redesenharTarefas();
+                mostrarBarra((ip >= 0 ? "Atualizei no padrão: " : "Coloquei no padrão: ") + "\"" + nova[1] + "\" (" +
+                    (dN === 0 ? "no dia da festa" : dN < 0 ? (dN === -1 ? "na véspera" : -dN + " dias antes") : (dN === 1 ? "1 dia depois" : dN + " dias depois")) +
+                    (tp.ini ? ", " + tp.ini + (tp.fim ? " às " + tp.fim : "") : "") + "). Os próximos eventos já vêm assim. Clique em Salvar.", false);
+                break;
+            }
             case "tarefa-remover":
                 var tr = tarefa(ev, alvo.getAttribute("data-id"));
                 if (tr && confirm("Apagar a tarefa \"" + tr.t + "\"?")) {
@@ -2908,8 +2965,8 @@ body.seq-aberto{ overflow:hidden; }
             case "tarefas-completar": {
                 /* Acrescenta só as tarefas do padrão que este evento ainda não tem (pelo nome), sem mexer nas outras */
                 var cr = cronograma(ev), tem = {};
-                cr.itens.forEach(function (t) { tem[String(t.t).trim().toLowerCase()] = true; });
-                var novas = montarTarefas(ev).filter(function (t) { return !tem[String(t.t).trim().toLowerCase()]; });
+                cr.itens.forEach(function (t) { tem[chaveNome(t.t)] = true; if (t.p) tem[chaveNome(t.p)] = true; });
+                var novas = montarTarefas(ev).filter(function (t) { return !tem[chaveNome(t.t)]; });
                 if (!novas.length) { mostrarBarra("Este evento já tem todas as tarefas do padrão.", false); break; }
                 cr.itens = cr.itens.concat(novas).sort(ordemTarefa);
                 marcarSujo(); redesenharTarefas();
@@ -3029,7 +3086,7 @@ body.seq-aberto{ overflow:hidden; }
             var c = estado.tarefas[ev.id];
             if (!c) return;
             tarefas[ev.id] = { base: c.base || ev.data, itens: c.itens.filter(function (t) { return String(t.t || "").trim() && /^\d{4}-\d{2}-\d{2}$/.test(t.dia || ""); })
-                .map(function (t) { var o = { id: t.id, t: String(t.t).trim(), g: t.g || "Outras", dia: t.dia, ini: t.ini || "", fim: t.fim || "" }; if (t.feito) o.feito = true; return o; }) };
+                .map(function (t) { var o = { id: t.id, t: String(t.t).trim(), g: t.g || "Outras", dia: t.dia, ini: t.ini || "", fim: t.fim || "" }; if (t.feito) o.feito = true; if (t.p) o.p = String(t.p); return o; }) };
             if (c.tem && typeof c.tem === "object") tarefas[ev.id].tem = c.tem;
         });
 
