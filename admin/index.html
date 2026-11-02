@@ -115,7 +115,7 @@ body{ background:var(--fundo-suave); }
     color:var(--branco); background:#25D366; border-radius:999px; padding:6px 12px;
 }
 .convite svg{ width:15px; height:15px; }
-.convite.enviado{ background:var(--fundo-suave); color:var(--texto-claro); }
+.convite.enviado{ background:var(--fundo-suave); color:var(--texto-claro); box-shadow:inset 0 0 0 1px var(--borda); font-weight:400; }
 .convite.inativo{ background:var(--fundo-suave); color:var(--texto-claro); pointer-events:none; }
 .marcas{ grid-column:2 / -1; display:flex; flex-wrap:wrap; gap:6px 8px; align-items:center; margin-top:-2px; }
 .marca{ display:inline-flex; align-items:center; gap:5px; font-size:13px; color:var(--texto-claro); cursor:pointer;
@@ -1863,10 +1863,13 @@ body.seq-aberto{ overflow:hidden; }
         }
         function irAba(a, texto) { if (a === aba) return ""; return '<button class="b pequeno" data-acao="ir-aba" data-v="' + a + '">' + texto + '</button>'; }
         function campos(lista) { return '<div class="campos campos-tarefa">' + lista.join("") + '</div>'; }
-        function zap(p, texto, rotulo) {
+        /* Botão de WhatsApp de uma pessoa. Com campo: ao tocar, marca que já mandou (fica apagado, "Enviar de novo") */
+        function zap(p, texto, rotulo, campo, feito) {
             var nz = numero(p.whats);
-            return nz ? '<a class="convite" href="https://wa.me/' + nz + '?text=' + encodeURIComponent(texto) + '" target="whats-convite" rel="noopener">' + I.whats + rotulo + '</a>'
-                : '<span class="convite inativo">sem WhatsApp</span>';
+            if (!nz) return '<span class="convite inativo">sem WhatsApp</span>';
+            var marca = campo ? ' data-zap="' + campo + '" data-i="' + convidados(ev.id).indexOf(p) + '" data-rot="' + esc(rotulo) + '"' : '';
+            return '<a class="convite' + (feito ? " enviado" : "") + '"' + marca + ' href="https://wa.me/' + nz + '?text=' + encodeURIComponent(texto) + '" target="whats-convite" rel="noopener">' +
+                I.whats + (feito ? "✓ Enviado · Enviar de novo" : rotulo) + '</a>';
         }
         var lista = convidados(ev.id).filter(function (p) { return String(p.nome || "").trim(); });
 
@@ -1909,12 +1912,16 @@ body.seq-aberto{ overflow:hidden; }
         else if (/convite/.test(k) || /grupo/.test(k) && /whats/.test(k)) {
             var comW = lista.filter(function (p) { return numero(p.whats); }), env = comW.filter(function (p) { return p.enviado; }).length, falta = filaEnvio(ev).length;
             var grupo = /grupo/.test(k);
+            if (!grupo) lista.forEach(function (p) { if (!p.c) { p.c = novoCodigo(); p._codigoNovo = true; } });
             botao = "💌 Ver convite"; resumo = grupo ? "Convite pronto para colar no grupo" : env + " de " + comW.length + " convidados já receberam";
             partes.push((grupo ? '<p class="nota-info">Texto para colar no grupo do WhatsApp. Ele leva para a página do evento (quem confirmar pela página não fica marcado na lista: para isso use o envio um por um).</p>'
                     : '<p class="nota-info">Cada convidado recebe o convite com o nome e um link só dele para tocar em <b>Vou</b> ou <b>Não vou</b>. Use <b>Enviar em sequência</b> para mandar um por um, ou copie o texto abaixo.</p>') +
                 textoPronto("convite") +
                 (!grupo && falta ? '<button class="b verde pequeno" data-acao="sequencia">' + I.whats + 'Enviar em sequência (' + falta + ')</button>' : "") +
-                irAba("convidados", "👥 Abrir Convidados") + '</div>');
+                irAba("convidados", "👥 Abrir Convidados") + '</div>' +
+                (!grupo && lista.length ? '<div class="subtitulo-info">Convidados (' + env + ' de ' + comW.length + ' já receberam)</div><ul class="pessoas-info">' + lista.map(function (p) {
+                    return '<li><span>' + esc(p.nome) + '</span>' + zap(p, textoConvite(ev, p), "Enviar convite", "enviado", !!p.enviado) + '</li>';
+                }).join("") + '</ul>' : ''));
         }
         else if (/lembrete|lembrar/.test(k)) {
             var conf = lista.filter(function (p) { return p.confirmado; });
@@ -1923,7 +1930,7 @@ body.seq-aberto{ overflow:hidden; }
                 textoPronto("lembrete") + irAba("convidados", "👥 Abrir Convidados") + '</div>' +
                 '<div class="subtitulo-info">Confirmados (' + conf.length + ')</div>' +
                 (conf.length ? '<ul class="pessoas-info">' + conf.map(function (p) {
-                    return '<li><span>' + esc(p.nome) + '</span>' + zap(p, textoLembrete(ev, p, t.dia), "Mandar lembrete") + '</li>';
+                    return '<li><span>' + esc(p.nome) + '</span>' + zap(p, textoLembrete(ev, p, t.dia), "Mandar lembrete", "lembrado", !!p.lembrado && p.lembrado >= (t.dia || "")) + '</li>';
                 }).join("") + '</ul>' : '<p class="nota-info">Ninguém confirmou ainda.</p>') +
                 '<details class="ver-convite"><summary>💌 Ver o convite</summary>' + textoPronto("convite") + '</div></details>');
         }
@@ -1939,7 +1946,7 @@ body.seq-aberto{ overflow:hidden; }
                 '<div class="subtitulo-info">Quem ainda não respondeu</div>' +
                 (sem.length ? '<ul class="pessoas-info">' + sem.map(function (p) {
                     return '<li><span>' + esc(p.nome) + (!p.enviado ? ' <small>(convite ainda não enviado)</small>' : p.cobrado ? ' <small>(confirmação pedida em ' + diaCurto(p.cobrado) + ')</small>' : '') + '</span>' +
-                        (p.enviado ? zap(p, textoCobranca(ev, p), "Pedir confirmação") : zap(p, textoConvite(ev, p), "Enviar convite")) + '</li>';
+                        (p.enviado ? zap(p, textoCobranca(ev, p), "Pedir confirmação", "cobrado", !!p.cobrado) : zap(p, textoConvite(ev, p), "Enviar convite", "enviado", false)) + '</li>';
                 }).join("") + '</ul>' : '<p class="nota-info">Todo mundo já respondeu. 👏</p>') +
                 '<div class="acoes-info">' + copiar("Ainda não responderam (" + ev.titulo + "):\n" + sem.map(function (p) { return "• " + p.nome; }).join("\n"), "📋 Copiar a lista") + irAba("respostas", "📊 Abrir Respostas") + '</div>');
         }
@@ -1980,7 +1987,7 @@ body.seq-aberto{ overflow:hidden; }
                 '<div class="subtitulo-info">👥 Mensagem para o grupo</div>' + textoPronto("agradecer") + '</div>' +
                 '<div class="subtitulo-info">Confirmados (' + foram.length + ')</div>' +
                 (foram.length ? '<ul class="pessoas-info">' + foram.map(function (p) {
-                    return '<li><span>' + esc(p.nome) + (p.agradecido ? ' <small>(obrigado enviado em ' + diaCurto(p.agradecido) + ')</small>' : '') + '</span>' + zap(p, textoAgradecer(ev, p), "Agradecer") + '</li>';
+                    return '<li><span>' + esc(p.nome) + (p.agradecido ? ' <small>(obrigado enviado em ' + diaCurto(p.agradecido) + ')</small>' : '') + '</span>' + zap(p, textoAgradecer(ev, p), "Agradecer", "agradecido", !!p.agradecido) + '</li>';
                 }).join("") + '</ul>' : '<p class="nota-info">Ninguém confirmou presença ainda.</p>'));
         }
         else if (/foto|album/.test(k)) {
@@ -2348,7 +2355,7 @@ body.seq-aberto{ overflow:hidden; }
                     var n = numero(p.whats);
                     var botao = n
                         ? '<a class="convite' + (p.enviado ? " enviado" : "") + '" data-i="' + i + '" href="https://wa.me/' + n + '?text=' + encodeURIComponent(textoConvite(ev, p)) + '" target="_blank" rel="noopener">' +
-                            I.whats + (p.enviado ? "Enviado ✓" : "Enviar convite") + '</a>'
+                            I.whats + (p.enviado ? "✓ Enviado · Enviar de novo" : "Enviar convite") + '</a>'
                         : '<span class="convite inativo">sem WhatsApp</span>';
                     return '<li class="linha-conv"><span class="n">' + (i + 1) + '.</span>' +
                         '<input data-i="' + i + '" data-c="nome" value="' + esc(p.nome) + '" aria-label="Nome">' +
@@ -2575,7 +2582,7 @@ body.seq-aberto{ overflow:hidden; }
         });
         li.querySelector(".idade").classList.toggle("visivel", p.tipo === "crianca");
         var conv = li.querySelector("a.convite");
-        if (conv) { conv.classList.toggle("enviado", !!p.enviado); conv.innerHTML = I.whats + (p.enviado ? "Enviado ✓" : "Enviar convite"); }
+        if (conv) { conv.classList.toggle("enviado", !!p.enviado); conv.innerHTML = I.whats + (p.enviado ? "✓ Enviado · Enviar de novo" : "Enviar convite"); }
         atualizarResumo(ev);
     }
 
@@ -2793,6 +2800,17 @@ body.seq-aberto{ overflow:hidden; }
 
         var ev = atual && evento(atual);
 
+        /* Botões de WhatsApp das tarefas: marca que já mandou e apaga o botão */
+        if (alvo.hasAttribute("data-zap")) {
+            var pz = convidados(ev.id)[+alvo.getAttribute("data-i")], cz = alvo.getAttribute("data-zap");
+            if (pz) {
+                if (cz === "enviado") { pz.enviado = true; delete pz._codigoNovo; } else pz[cz] = agora().dia;
+                alvo.classList.add("enviado");
+                alvo.innerHTML = I.whats + "✓ Enviado · Enviar de novo";
+                salvar(String(pz.nome).trim().split(" ")[0] + " marcado(a) como enviado ✓");
+            }
+            return;
+        }
         if (alvo.classList.contains("convite")) {
             var p = convidados(ev.id)[+alvo.getAttribute("data-i")];
             if (p && (!p.enviado || p._codigoNovo)) {
@@ -3176,6 +3194,7 @@ body.seq-aberto{ overflow:hidden; }
                     if (p.respEm) o.respEm = p.respEm;
                     if (/^\d{4}-\d{2}-\d{2}$/.test(p.cobrado || "")) o.cobrado = p.cobrado;
                     if (/^\d{4}-\d{2}-\d{2}$/.test(p.agradecido || "")) o.agradecido = p.agradecido;
+                    if (/^\d{4}-\d{2}-\d{2}$/.test(p.lembrado || "")) o.lembrado = p.lembrado;
                     if (p.tipo === "adulto" || p.tipo === "crianca") o.tipo = p.tipo;
                     if (p.sexo === "m" || p.sexo === "f") o.sexo = p.sexo;
                     var id = parseInt(p.idade, 10);
