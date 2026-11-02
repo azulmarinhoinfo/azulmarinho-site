@@ -1752,14 +1752,21 @@ body.seq-aberto{ overflow:hidden; }
             "Sua resposta é muito importante: é com ela que eu calculo comida, bebida, bolo, cadeiras e lembrancinhas, para não faltar nada para ninguém (e não sobrar também). 🙏\n\n" +
             "👉 É só tocar em *Vou* ou *Não vou* neste link (leva 5 segundos):\n" + linkEvento(ev, p) + "\n\nObrigado! Conto com você. 💙";
     }
-    function textoAgradecer(ev) {
-        return "Muito obrigado por virem na *" + ev.titulo + "*! 💙 Foi muito especial ter vocês com a gente.\n\n" +
-            (ev.album || ev.albumGoogle ? "📸 As fotos estão aqui (e dá para colocar as suas também):\n" +
-                (ev.album ? "iPhone: " + ev.album + "\n" : "") + (ev.albumGoogle ? "Android: " + ev.albumGoogle + "\n" : "") : "") +
-            "\n" + linkEvento(ev);
+    /* Agradecimento: com p = individual (nome e link do convidado); sem p = para o grupo */
+    function textoAgradecer(ev, p) {
+        var fotos = ev.album || ev.albumGoogle ? "📸 As fotos já estão aqui" + (p ? " (e dá para colocar as suas também)" : " (quem tiver fotos da festa, coloca lá também!)") + ":\n" +
+            (ev.album ? "iPhone: " + ev.album + "\n" : "") + (ev.albumGoogle ? "Android: " + ev.albumGoogle + "\n" : "") + "\n" : "";
+        if (p) return "Oi, " + primeiroNome(p) + "! 💙\n" +
+            "Muito obrigado por ter vindo na *" + ev.titulo + "*! Foi tudo muito bom, e a sua presença fez toda a diferença: o dia só foi tão especial porque você estava lá. 🥰\n" +
+            "É sempre muito bom estar com você!\n\n" +
+            fotos + "Tudo da festa continua neste link:\n" + linkEvento(ev, p) + "\n\nVamos nos reencontrar em breve! Um abraço. 🎉";
+        return "Oi, pessoal! 💙\n" +
+            "Passando para agradecer a todos que vieram na *" + ev.titulo + "*! Foi tudo muito bom, e a presença de cada um de vocês fez toda a diferença: a festa só foi tão especial porque vocês estavam lá. 🥰\n" +
+            "É sempre muito bom estar com vocês! Obrigado também a quem não pôde ir e mandou carinho.\n\n" +
+            fotos + "Tudo da festa continua aqui:\n" + linkEvento(ev) + "\n\nVamos nos reencontrar em breve! Um abraço a todos. 🎉";
     }
     function previa(tipo, ev, t) {
-        return tipo === "convite" ? textoConviteGeral(ev) : tipo === "lembrete" ? textoLembrete(ev, null, t && t.dia) : tipo === "agradecer" ? textoAgradecer(ev) : "";
+        return tipo === "convite" ? textoConviteGeral(ev) : tipo === "lembrete" ? textoLembrete(ev, null, t && t.dia) : tipo === "agradecer" ? textoAgradecer(ev) : tipo === "agradecer1" ? textoAgradecer(ev, { nome: "Fulano" }) : "";
     }
     /* Mudou um dado do evento dentro de uma tarefa: atualiza os textos prontos na tela */
     function atualizarPrevias(ev) {
@@ -1961,10 +1968,20 @@ body.seq-aberto{ overflow:hidden; }
                 irAba("convidados", "👥 Abrir Convidados") + '</div>');
         }
         else if (/agradec/.test(k)) {
-            botao = "💙 Ver agradecimento"; resumo = "Mensagem pronta com o link das fotos";
+            var foram = lista.filter(function (p) { return p.confirmado; });
+            var nAg = filaAgradecer(ev).length, jaAg = foram.filter(function (p) { return p.agradecido; }).length;
+            botao = "💙 Enviar agradecimento"; resumo = jaAg + " de " + foram.length + " confirmados já receberam o obrigado";
             partes.push(campos([campo("album", "Álbum do iPhone (iCloud)", ev.album || "", { cls: "m3", ph: "https://www.icloud.com/sharedalbum/..." }),
                     campo("albumGoogle", "Álbum do Android (Google Fotos)", ev.albumGoogle || "", { cls: "m3", ph: "https://photos.app.goo.gl/..." })]) +
-                '<div class="subtitulo-info">Mensagem</div>' + textoPronto("agradecer") + '</div>');
+                '<p class="nota-info">Coloque os álbuns acima e a mensagem já sai com o link das fotos. <b>Agradecer em sequência</b> abre o WhatsApp de cada confirmado, um por vez, com o nome da pessoa. Para o grupo, copie a mensagem do grupo.</p>' +
+                '<div class="acoes-info">' + (nAg ? '<button class="b verde" data-acao="sequencia-agradecer">' + I.whats + 'Agradecer em sequência (' + nAg + ')</button>'
+                    : '<span class="nota-info">' + (foram.length ? "Todos os confirmados com WhatsApp já receberam o obrigado. 👏" : "Ninguém confirmou presença ainda.") + '</span>') + '</div>' +
+                '<div class="subtitulo-info">👤 Mensagem individual (vai com o nome de cada um)</div>' + textoPronto("agradecer1") + '</div>' +
+                '<div class="subtitulo-info">👥 Mensagem para o grupo</div>' + textoPronto("agradecer") + '</div>' +
+                '<div class="subtitulo-info">Confirmados (' + foram.length + ')</div>' +
+                (foram.length ? '<ul class="pessoas-info">' + foram.map(function (p) {
+                    return '<li><span>' + esc(p.nome) + (p.agradecido ? ' <small>(obrigado enviado em ' + diaCurto(p.agradecido) + ')</small>' : '') + '</span>' + zap(p, textoAgradecer(ev, p), "Agradecer") + '</li>';
+                }).join("") + '</ul>' : '<p class="nota-info">Ninguém confirmou presença ainda.</p>'));
         }
         else if (/foto|album/.test(k)) {
             botao = "📸 Colocar os álbuns"; resumo = (ev.album || ev.albumGoogle) ? "Álbum já está no site ✓" : "Ainda sem álbum no site";
@@ -2374,14 +2391,22 @@ body.seq-aberto{ overflow:hidden; }
         });
         return fila;
     }
+    /* Quem confirmou presença, tem WhatsApp e ainda não recebeu o agradecimento */
+    function filaAgradecer(ev) {
+        var fila = [];
+        convidados(ev.id).forEach(function (p, i) {
+            if (String(p.nome || "").trim() && p.confirmado && !p.agradecido && numero(p.whats)) fila.push(i);
+        });
+        return fila;
+    }
     function linkConvite(ev, p) {
-        var cobrar = seq && seq.modo === "cobrar";
-        return "https://wa.me/" + numero(p.whats) + "?text=" + encodeURIComponent(cobrar ? textoCobranca(ev, p) : textoConvite(ev, p));
+        var m = seq && seq.modo;
+        return "https://wa.me/" + numero(p.whats) + "?text=" + encodeURIComponent(m === "cobrar" ? textoCobranca(ev, p) : m === "agradecer" ? textoAgradecer(ev, p) : textoConvite(ev, p));
     }
 
     function abrirSequencia(ev, modo) {
         convidados(ev.id).forEach(function (p) { if (!p.c) { p.c = novoCodigo(); p._codigoNovo = true; } });
-        seq = { ev: ev, modo: modo || "convite", fila: modo === "cobrar" ? filaCobrar(ev) : filaEnvio(ev), pos: 0, pulados: 0, ultimo: null };
+        seq = { ev: ev, modo: modo || "convite", fila: modo === "cobrar" ? filaCobrar(ev) : modo === "agradecer" ? filaAgradecer(ev) : filaEnvio(ev), pos: 0, pulados: 0, ultimo: null };
         var d = document.getElementById("seq");
         if (!d) {
             d = document.createElement("div");
@@ -2407,32 +2432,33 @@ body.seq-aberto{ overflow:hidden; }
         if (!d || !seq) return;
         var ev = seq.ev, lista = convidados(ev.id);
         var comWhats = lista.filter(function (p) { return String(p.nome || "").trim() && numero(p.whats); });
-        var cob = seq.modo === "cobrar";
+        var cob = seq.modo === "cobrar", agr = seq.modo === "agradecer";
         var feitos = comWhats.filter(function (p) { return p.enviado; }).length, total = comWhats.length;
         if (cob) { feitos = seq.pos - seq.pulados; total = seq.fila.length; }
+        if (agr) { var cw = comWhats.filter(function (x) { return x.confirmado; }); feitos = cw.filter(function (x) { return x.agradecido; }).length; total = cw.length; }
         var p = seq.pos < seq.fila.length ? lista[seq.fila[seq.pos]] : null;
         var u = seq.ultimo != null ? lista[seq.ultimo] : null;
         var primeiro = function (x) { return esc(String(x.nome).trim().split(" ")[0]); };
 
         d.innerHTML = '<div class="seq-caixa">' +
-            '<div class="seq-topo"><div><b>' + (cob ? "Pedir confirmação" : "Enviar em sequência") + '</b><small>' + esc(ev.titulo) + '</small></div>' +
+            '<div class="seq-topo"><div><b>' + (agr ? "Agradecer em sequência" : cob ? "Pedir confirmação" : "Enviar em sequência") + '</b><small>' + esc(ev.titulo) + '</small></div>' +
                 '<button class="b pequeno" data-seq="fechar">Fechar</button></div>' +
             '<div class="seq-prog"><i style="width:' + (total ? Math.round(feitos * 100 / total) : 0) + '%"></i></div>' +
-            '<div class="seq-conta"><span><b>' + feitos + ' de ' + total + '</b> ' + (cob ? "pedidos abertos" : "já convidados") + '</span><span>' +
+            '<div class="seq-conta"><span><b>' + feitos + ' de ' + total + '</b> ' + (agr ? "já agradecidos" : cob ? "pedidos abertos" : "já convidados") + '</span><span>' +
                 (p ? (seq.fila.length - seq.pos) + (seq.fila.length - seq.pos === 1 ? " falta" : " faltam") : "") + '</span></div>' +
             (p
-                ? '<div class="seq-pessoa"><small>' + (cob ? "Ainda não respondeu" : "Próximo convite") + '</small><strong>' + esc(p.nome) + '</strong><span>' + esc(p.whats) + '</span></div>' +
-                  '<a class="seq-enviar" data-seq="enviar" href="' + linkConvite(ev, p) + '" target="whats-convite">' + I.whats + (cob ? 'Pedir confirmação de ' : 'Abrir convite de ') + primeiro(p) + '</a>' +
+                ? '<div class="seq-pessoa"><small>' + (agr ? "Próximo agradecimento" : cob ? "Ainda não respondeu" : "Próximo convite") + '</small><strong>' + esc(p.nome) + '</strong><span>' + esc(p.whats) + '</span></div>' +
+                  '<a class="seq-enviar" data-seq="enviar" href="' + linkConvite(ev, p) + '" target="whats-convite">' + I.whats + (agr ? 'Agradecer ' : cob ? 'Pedir confirmação de ' : 'Abrir convite de ') + primeiro(p) + '</a>' +
                   '<div class="seq-acoes"><button class="b pequeno" data-seq="pular">Pular ' + primeiro(p) + '</button></div>'
                 : '<div class="seq-fim"><span class="e">🎉</span><strong>Fila concluída!</strong>' +
-                  (seq.pulados ? '<p>' + seq.pulados + (seq.pulados === 1 ? ' pessoa foi pulada e continua' : ' pessoas foram puladas e continuam') + (cob ? ' sem o pedido.' : ' sem convite.') + '</p>' : '<p>' + (cob ? 'Todos os pedidos de confirmação foram abertos. As respostas entram sozinhas pelo link.' : 'Todos os convites desta lista foram abertos.') + '</p>') +
+                  (seq.pulados ? '<p>' + seq.pulados + (seq.pulados === 1 ? ' pessoa foi pulada e continua' : ' pessoas foram puladas e continuam') + (agr ? ' sem o agradecimento.' : cob ? ' sem o pedido.' : ' sem convite.') + '</p>' : '<p>' + (agr ? 'Todos os agradecimentos foram abertos. Obrigado pela festa! 💙' : cob ? 'Todos os pedidos de confirmação foram abertos. As respostas entram sozinhas pelo link.' : 'Todos os convites desta lista foram abertos.') + '</p>') +
                   '</div><div class="seq-acoes"><button class="b cheio" data-seq="fechar">Voltar para a lista</button></div>') +
             (u
-                ? '<div class="seq-ultimo">✓ <b>' + esc(u.nome) + '</b> ' + (cob ? "recebeu o pedido de confirmação. " : "marcado(a) como convidado(a). ") +
+                ? '<div class="seq-ultimo">✓ <b>' + esc(u.nome) + '</b> ' + (agr ? "recebeu o agradecimento. " : cob ? "recebeu o pedido de confirmação. " : "marcado(a) como convidado(a). ") +
                   '<a href="' + linkConvite(ev, u) + '" target="whats-convite">Abrir de novo</a> · ' +
                   '<button data-seq="desfazer">Não consegui enviar</button></div>'
                 : "") +
-            '<p class="seq-dica">No WhatsApp, toque em <b>Enviar</b> e volte para esta tela. Para evitar bloqueio do WhatsApp, vá com calma: de preferência em blocos de 20 a 30 convites, com uma pausa entre eles. Pode fechar e continuar depois, que a fila começa de onde parou.</p>' +
+            '<p class="seq-dica">No WhatsApp, toque em <b>Enviar</b> e volte para esta tela. Para evitar bloqueio do WhatsApp, vá com calma: de preferência em blocos de 20 a 30 mensagens, com uma pausa entre eles. Pode fechar e continuar depois, que a fila começa de onde parou.</p>' +
         '</div>';
     }
 
@@ -2447,6 +2473,13 @@ body.seq-aberto{ overflow:hidden; }
         if (acao === "enviar") {
             /* O link abre o WhatsApp normalmente; aqui só marca e avança */
             var i = seq.fila[seq.pos], p = lista[i];
+            if (seq.modo === "agradecer") {
+                p.agradecido = agora().dia;
+                seq.ultimo = i; seq.pos++;
+                salvar("Agradecimento de " + String(p.nome).trim().split(" ")[0] + " aberto ✓");
+                setTimeout(desenharSequencia, 0);
+                return;
+            }
             if (seq.modo === "cobrar") {
                 p.cobrado = agora().dia;
                 seq.ultimo = i; seq.pos++;
@@ -2469,6 +2502,12 @@ body.seq-aberto{ overflow:hidden; }
         }
         if (acao === "desfazer" && seq.ultimo != null) {
             var pu = lista[seq.ultimo];
+            if (seq.modo === "agradecer") {
+                delete pu.agradecido;
+                seq.pos--; seq.fila[seq.pos] = seq.ultimo; seq.ultimo = null;
+                salvar("Agradecimento desmarcado");
+                return desenharSequencia();
+            }
             if (seq.modo === "cobrar") {
                 delete pu.cobrado;
                 seq.pos--; seq.fila[seq.pos] = seq.ultimo; seq.ultimo = null;
@@ -2840,6 +2879,10 @@ body.seq-aberto{ overflow:hidden; }
                 abrirSequencia(ev, "cobrar");
                 break;
 
+            case "sequencia-agradecer":
+                abrirSequencia(ev, "agradecer");
+                break;
+
             case "info-abrir":
                 var idInfo = alvo.getAttribute("data-id");
                 if (infoAberta[idInfo]) delete infoAberta[idInfo]; else infoAberta[idInfo] = true;
@@ -3132,6 +3175,7 @@ body.seq-aberto{ overflow:hidden; }
                     if (/^[a-z0-9]{8,20}$/.test(p.c || "")) o.c = p.c;
                     if (p.respEm) o.respEm = p.respEm;
                     if (/^\d{4}-\d{2}-\d{2}$/.test(p.cobrado || "")) o.cobrado = p.cobrado;
+                    if (/^\d{4}-\d{2}-\d{2}$/.test(p.agradecido || "")) o.agradecido = p.agradecido;
                     if (p.tipo === "adulto" || p.tipo === "crianca") o.tipo = p.tipo;
                     if (p.sexo === "m" || p.sexo === "f") o.sexo = p.sexo;
                     var id = parseInt(p.idade, 10);
