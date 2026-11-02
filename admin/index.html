@@ -98,6 +98,9 @@ body{ background:var(--fundo-suave); }
 
 .amostra{ grid-column:span 6; border-radius:14px; padding:22px 24px; display:flex; gap:16px; align-items:center; }
 .amostra .e{ font-size:46px; }
+.ideias-tema{ background:rgba(0,173,239,.08); border:1px solid rgba(0,173,239,.3); border-radius:12px; padding:12px 16px; margin:10px 0; font-size:14px; }
+.ideias-tema ul{ margin:6px 0 0; padding-left:20px; }
+.ideias-tema li{ margin:2px 0; }
 .amostra b{ font-family:"Montserrat",sans-serif; font-size:20px; display:block; }
 .amostra span.btn-a{ display:inline-block; margin-top:8px; border-radius:999px; padding:4px 12px; font-size:13px; font-weight:700; }
 
@@ -519,7 +522,7 @@ body.seq-aberto{ overflow:hidden; }
 </div>
 
 <script src="/assets/js/site.js"></script>
-<script src="/assets/js/eventos-comum.js?v=20261026a"></script>
+<script src="/assets/js/eventos-comum.js?v=20261102a"></script>
 <!-- Eventos do arquivo do site: usados só na primeira vez, para começar o painel -->
 <script src="/eventos/eventos.js"></script>
 <script>
@@ -563,12 +566,12 @@ body.seq-aberto{ overflow:hidden; }
     function textoConvite(ev, p) {
         var nome = p.nome;
         var link = window.AZUL.site + "/eventos/evento?id=" + encodeURIComponent(ev.id) + (p.c ? "&c=" + p.c : "");
-        if (p.c) return "Olá, " + String(nome).trim().split(" ")[0] + "! 🎉\n" +
+        if (p.c) return "Olá, " + String(nome).trim().split(" ")[0] + "! " + emojiConvite(ev) + "\n" +
             "Você está convidado(a) para *" + ev.titulo + "*.\n\n" +
             "📅 " + EV.dataLonga(ev) + (ev.hora ? ", às " + ev.hora : "") + "\n" +
             (ev.local ? "📍 " + ev.local + (ev.endereco ? " (" + ev.endereco + ")" : "") + "\n" : "") +
             "\n👉 *Confirme sua presença* (é só tocar em Vou ou Não vou) e veja mapa, previsão do tempo e playlist:\n" + link + "\n\nConto com você!";
-        return "Olá, " + String(nome).trim().split(" ")[0] + "! 🎉\n" +
+        return "Olá, " + String(nome).trim().split(" ")[0] + "! " + emojiConvite(ev) + "\n" +
             "Você está convidado(a) para *" + ev.titulo + "*.\n\n" +
             "📅 " + EV.dataLonga(ev) + (ev.hora ? ", às " + ev.hora : "") + "\n" +
             (ev.local ? "📍 " + ev.local + (ev.endereco ? " (" + ev.endereco + ")" : "") + "\n" : "") +
@@ -1642,13 +1645,23 @@ body.seq-aberto{ overflow:hidden; }
     /* Apelidos de tema: o que a pessoa costuma digitar -> tema pronto */
     var APELIDOS_TEMA = {
         "homem de ferro": "vingadores", "avengers": "vingadores", "capitao america": "vingadores", "hulk": "vingadores", "thor": "vingadores",
-        "homem aranha": "super-heroi", "aranha": "super-heroi", "heroi": "super-heroi", "herois": "super-heroi", "super heroi": "super-heroi", "batman": "super-heroi", "superman": "super-heroi",
+        "homem aranha": "super-heroi", "aranha": "super-heroi", "heroi": "super-heroi", "herois": "super-heroi", "super heroi": "super-heroi", "superman": "super-heroi",
+        "batman": "batman", "morcego": "batman", "gotham": "batman", "dc": "batman",
+        "mario": "super-mario", "luigi": "super-mario", "cogumelo": "super-mario",
+        "patrulha": "patrulha-canina", "paw patrol": "patrulha-canina", "chase": "patrulha-canina", "marshall": "patrulha-canina", "cachorrinho": "patrulha-canina",
+        "hot wheels": "hot-wheels", "hotwheels": "hot-wheels", "carrinho": "hot-wheels", "carros": "hot-wheels", "corrida": "hot-wheels",
+        "cavaleiros": "cavaleiros-zodiaco", "zodiaco": "cavaleiros-zodiaco", "seiya": "cavaleiros-zodiaco", "saint seiya": "cavaleiros-zodiaco",
+        "star wars": "star-wars", "guerra nas estrelas": "star-wars", "yoda": "star-wars", "baby yoda": "star-wars", "darth vader": "star-wars",
+        "rei leao": "rei-leao", "simba": "rei-leao", "leao": "rei-leao", "hakuna matata": "rei-leao", "safari": "rei-leao",
+        "dbz": "dragon-ball", "dragon ball": "dragon-ball", "dragon ball z": "dragon-ball", "esferas": "dragon-ball",
+        "toy story junino": "toy-story-junina", "toy story junina": "toy-story-junina", "arraia do woody": "toy-story-junina",
+        "cruzeiro esporte clube": "cruzeiro", "cabuloso": "cruzeiro", "jurassic park": "dinossauro",
         "dino": "dinossauro", "dinossauro": "dinossauro", "jurassic": "dinossauro",
         "junina": "festa-junina", "sao joao": "festa-junina", "arraia": "festa-junina", "quadrilha": "festa-junina",
         "pool": "piscina", "piscina": "piscina", "praia": "verao", "brasil": "copa", "selecao": "copa", "copa do mundo": "copa",
         "flores": "jardim", "borboleta": "jardim", "balada": "neon", "goku": "dragon-ball", "woody": "toy-story", "buzz": "toy-story",
         "fotos": "polaroid", "memorias": "polaroid", "ano novo": "reveillon", "cowboy": "sertanejo", "country": "sertanejo", "fazendinha": "sertanejo",
-        "batismo": "batizado", "princesa": "branca-de-neve", "bola": "futebol", "raposa": "cruzeiro", "azul": "padrao"
+        "batismo": "batizado", "batizado": "batizado", "princesa": "branca-de-neve", "bola": "futebol", "raposa": "cruzeiro", "azul": "padrao"
     };
     function acharTema(texto) {
         var k = chaveNome(texto).replace(/-/g, " ");
@@ -1670,13 +1683,45 @@ body.seq-aberto{ overflow:hidden; }
     function aplicarTema(ev, chave) {
         var t = window.TEMAS[chave];
         if (!t) return false;
+        var antigo = ev.tema;
         ev.tema = chave;
         delete ev.cores;
         delete ev.emoji;
-        if (!String(ev.descricao || "").trim()) ev.descricao = "Festa no tema " + t.nome + " " + t.emoji + "! Venha comemorar com a gente.";
+        trocarDescricaoDoTema(ev, antigo);
         marcarSujo();
         atualizarLista();
         return true;
+    }
+
+    /* Descrição automática do tema (usada quando a descrição do evento está vazia) */
+    function fraseTema(chave) {
+        var t = window.TEMAS[chave] || window.TEMAS.padrao;
+        return t.frase || "Festa no tema " + t.nome + " " + t.emoji + "! Venha comemorar com a gente.";
+    }
+    /* Descrição vazia (ou ainda a frase automática do tema anterior) -> usa a frase do tema novo */
+    function trocarDescricaoDoTema(ev, antigo) {
+        var d = String(ev.descricao || "").trim();
+        if (d && d !== fraseTema(antigo) && !/^Festa no tema .*Venha comemorar com a gente\.$/.test(d)) return false;
+        ev.descricao = fraseTema(ev.tema);
+        var cd = document.getElementById("c-descricao");
+        if (cd) cd.value = ev.descricao;
+        return true;
+    }
+    /* Temas na ordem da lista: festa infantil primeiro, depois os outros */
+    function chavesTemas() {
+        var k = Object.keys(window.TEMAS);
+        return k.filter(function (x) { return window.TEMAS[x].grupo === "infantil"; }).concat(k.filter(function (x) { return window.TEMAS[x].grupo !== "infantil"; }));
+    }
+    /* Emoji do tema para o convite do WhatsApp (se o emoji for imagem, usa 🎉) */
+    function emojiConvite(ev) {
+        var e = String(ev.emoji || (window.TEMAS[ev.tema] || window.TEMAS.padrao).emoji || "");
+        return !e || /\.(png|jpe?g|webp|gif|svg)(\?|$)/i.test(e) || /[\/]/.test(e) ? "🎉" : e;
+    }
+    /* Sugestões do tema (cores, decoração, bolo, lembrancinha) */
+    function ideiasTema(chave) {
+        var t = window.TEMAS[chave];
+        if (!t || !t.ideias || !t.ideias.length) return "";
+        return '<div class="ideias-tema"><b>💡 Ideias para o tema ' + esc(t.nome) + '</b><ul>' + t.ideias.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join("") + '</ul></div>';
     }
 
     function linkEvento(ev, p) {
@@ -1685,7 +1730,7 @@ body.seq-aberto{ overflow:hidden; }
     function primeiroNome(p) { return String(p.nome || "").trim().split(" ")[0]; }
     /* Convite para o grupo de WhatsApp ou para copiar (sem nome e sem link pessoal) */
     function textoConviteGeral(ev) {
-        return "Olá! 🎉\nVocês estão convidados para *" + (ev.titulo || "") + "*.\n\n" +
+        return "Olá! " + emojiConvite(ev) + "\nVocês estão convidados para *" + (ev.titulo || "") + "*.\n\n" +
             "📅 " + EV.dataLonga(ev) + (ev.hora ? ", às " + ev.hora : "") + "\n" +
             (ev.local ? "📍 " + ev.local + (ev.endereco ? " (" + ev.endereco + ")" : "") + "\n" : "") +
             "\nTodos os detalhes, mapa, previsão do tempo e playlist:\n" + linkEvento(ev) + "\n\nConto com vocês!";
@@ -1826,8 +1871,9 @@ body.seq-aberto{ overflow:hidden; }
             partes.push('<p class="nota-info">Digite o nome do tema. Se for um tema pronto, a página do evento e o convite já ficam com as cores, o emoji e o fundo dele.</p>' +
                 '<div class="tema-linha"><input id="tema-nome" list="lista-temas" placeholder="Ex.: Vingadores, Dinossauros, Festa Junina..." autocomplete="off" aria-label="Nome do tema">' +
                 '<button class="b cheio pequeno" data-acao="tema-aplicar">Aplicar tema</button></div>' +
-                '<datalist id="lista-temas">' + Object.keys(window.TEMAS).map(function (x) { return '<option value="' + esc(window.TEMAS[x].nome) + '">'; }).join("") + '</datalist>' +
+                '<datalist id="lista-temas">' + chavesTemas().map(function (x) { return '<option value="' + esc(window.TEMAS[x].nome) + '">'; }).join("") + '</datalist>' +
                 '<p class="tema-status" id="tema-status">Tema atual: <b>' + (window.TEMAS[ev.tema] || window.TEMAS.padrao).emoji + " " + esc((window.TEMAS[ev.tema] || window.TEMAS.padrao).nome) + '</b>' + (ev.cores ? " (com cores próprias)" : "") + '</p>' +
+                ideiasTema(ev.tema) +
                 campos([campo("emoji", "Emoji (opcional)", ev.emoji || "", { cls: "m3", ph: tm.emoji, dica: "Troca o emoji do tema." })]) +
                 '<div class="campo"><label class="check"><input type="checkbox" id="usar-cores"' + (ev.cores ? " checked" : "") + '> Usar cores próprias</label>' +
                     '<div class="cores' + (ev.cores ? "" : " oculto") + '" id="cores">' + corI("fundo1", "Fundo 1") + corI("fundo2", "Fundo 2") + corI("destaque", "Destaque") + corI("titulo", "Título") + corI("texto", "Texto") + '</div></div>' +
@@ -2131,10 +2177,13 @@ body.seq-aberto{ overflow:hidden; }
 
     function detalhesHTML(ev) {
         var c = ev.cores || {}, t = EV.tema(ev);
-        var opcoes = Object.keys(window.TEMAS).map(function (k) {
+        function opcao(k) {
             var x = window.TEMAS[k];
             return '<option value="' + k + '"' + ((ev.tema || "padrao") === k ? " selected" : "") + '>' + x.emoji + " " + esc(x.nome) + '</option>';
-        }).join("");
+        }
+        var ks = chavesTemas();
+        var opcoes = '<optgroup label="🎈 Festa infantil (prontos)">' + ks.filter(function (k) { return window.TEMAS[k].grupo === "infantil"; }).map(opcao).join("") + '</optgroup>' +
+            '<optgroup label="📅 Datas e outros">' + ks.filter(function (k) { return window.TEMAS[k].grupo !== "infantil"; }).map(opcao).join("") + '</optgroup>';
         function cor(k, rot) {
             return '<label>' + rot + '<input type="color" data-cor="' + k + '" value="' + esc(c[k] || t[k]) + '"></label>';
         }
@@ -2163,6 +2212,7 @@ body.seq-aberto{ overflow:hidden; }
                     '<label class="check" style="flex-direction:row;align-self:center"><input type="checkbox" data-cor="claro"' + (t.claro ? " checked" : "") + '> Fundo claro</label>' +
                 '</div></div>' +
             '<div class="amostra" id="amostra"></div>' +
+            '<div class="campo" id="ideias-det">' + ideiasTema(ev.tema) + '</div>' +
 
             '<div class="secao-form">Música e fotos</div>' +
             campo("playlist", "Playlist", ev.playlist || "", { ph: "Link do Apple Music, Spotify ou YouTube" }) +
@@ -2573,7 +2623,16 @@ body.seq-aberto{ overflow:hidden; }
         }
         var v = el.type === "checkbox" ? el.checked : el.value;
         if (c === "lat" || c === "lon") v = v === "" || isNaN(+v) ? "" : +v;
+        var temaAntigo = ev.tema;
         ev[c] = v;
+        /* Trocou o tema na lista: descrição e ideias do tema novo */
+        if (c === "tema") {
+            trocarDescricaoDoTema(ev, temaAntigo);
+            var bi = document.getElementById("ideias-det");
+            if (bi) bi.innerHTML = ideiasTema(v);
+            var ce = document.getElementById("c-emoji");
+            if (ce && window.TEMAS[v]) ce.placeholder = window.TEMAS[v].emoji;
+        }
 
         /* Evento novo: o link acompanha o título até ser salvo */
         if (c === "titulo" && ev._novo) {
