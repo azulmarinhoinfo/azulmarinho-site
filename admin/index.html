@@ -377,6 +377,10 @@ body.seq-aberto{ overflow:hidden; }
 .ver-info{ margin:5px 0 0 2px; border:1.5px solid var(--ciano); background:var(--branco); color:var(--ciano-escuro); border-radius:999px;
     padding:3px 11px; font:500 13px "Ubuntu",sans-serif; cursor:pointer; }
 .ver-info:hover, .ver-info.aberta{ background:var(--ciano); color:#fff; }
+.b-padrao{ margin:5px 0 0 6px; border:1.5px solid #F59E0B; background:#FFFBEB; color:#92400E; border-radius:999px; padding:3px 10px; font:600 12.5px "Ubuntu",sans-serif; cursor:pointer; }
+.b-padrao:hover{ background:#F59E0B; color:#fff; }
+.b-padrao.igual{ border-color:var(--borda); background:transparent; color:var(--texto-claro); font-weight:500; }
+.b-padrao.igual:hover{ background:var(--borda); color:var(--texto); }
 .info-tarefa{ grid-column:1 / -1; margin:6px 8px 4px 30px; background:var(--branco); border:1.5px solid #7DD3FC; border-radius:14px; padding:14px 16px; }
 .info-tarefa .campos-tarefa{ margin:6px 0 10px; gap:12px 14px; }
 .info-tarefa .campo textarea{ min-height:90px; }
@@ -900,7 +904,7 @@ body.seq-aberto{ overflow:hidden; }
     /* Tarefas que dependem do que vai ter na festa: desmarcou o item em Compras, a tarefa some (volta ao marcar de novo) */
     var ITENS_DA_TAREFA = [[/\bbolo\b|topo/, "bolo"], [/salgad/, "salgados"], [/doce/, "doces"], [/lembrancinha/, "lembrancinhas"], [/personalizad/, "personalizados"],
         [/refri/, "refri"], [/\bsuco\b/, "suco"], [/carne|carvao|churras/, "churrasco"], [/almoco|supermercado/, "almoco"],
-        [/\bgelo\b/, "refri"], [/\bgelo\b/, "suco"]];   // gelo só some se refri e suco estiverem desmarcados
+        [/\bgelo\b|bebida/, "refri"], [/\bgelo\b|bebida/, "suco"]];   // gelo e gelar bebidas só somem se refri e suco estiverem desmarcados
     var NOMES_ITEM = { bolo: "Bolo", salgados: "Salgados", doces: "Doces", lembrancinhas: "Lembrancinhas", personalizados: "Personalizados", refri: "Refri", suco: "Suco", churrasco: "Churrasco", almoco: "Almoço" };
     function itensDesligados(ev, t, tem) {
         var k = chaveNome(t.t), usa = ITENS_DA_TAREFA.filter(function (x) { return x[0].test(k); }).map(function (x) { return x[1]; });
@@ -1162,10 +1166,15 @@ body.seq-aberto{ overflow:hidden; }
         ["Limpeza", "Limpar laboratório", -2, "18:30", "20:00"],
         ["Compras", "Comprar carvão", -2, "20:00", "20:30"],
         ["Casa", "Separar caixa de primeiros socorros", -2, "20:30", "21:00"],
+        ["Montagem", "Conferir extensões e iluminação", -2, "17:30", "18:30"],
+        ["Montagem", "Configurar a automação do evento", -2, "21:00", "22:00"],
         ["Compras", "Comprar refri", -1, "08:00", "08:30"],
         ["Compras", "Comprar suco", -1, "08:30", "09:00"],
         ["Compras", "Comprar carne", -1, "09:00", "09:30"],
         ["Limpeza", "Cortar grama", -1, "09:30", "11:30"],
+        ["Casa", "Guardar a carne no congelador", -1, "11:30", "12:00"],
+        ["Montagem", "Conferir os itens da churrasqueira", -1, "12:30", "13:00"],
+        ["Compras", "Conferir carvão e gás", -1, "13:00", "13:30"],
         ["Limpeza", "Limpar piscina", -1, "13:30", "15:00"],
         ["Convites", "Lembrete aos confirmados (link do local)", -1, "12:00", "12:30"],
         ["Limpeza", "Limpar varanda", -1, "15:00", "16:00"],
@@ -1175,15 +1184,23 @@ body.seq-aberto{ overflow:hidden; }
         ["Montagem", "Ajustar rede Wi-Fi", -1, "18:30", "19:15"],
         ["Montagem", "Instalar redes para dormir", -1, "19:15", "20:00"],
         ["Limpeza", "Banheiro: papel higiênico e sabonete", -1, "20:00", "20:45"],
+        ["Montagem", "Testar o som e a playlist", -1, "20:45", "21:15"],
+        ["Montagem", "Carregar a caixa de som", -1, "21:15", "21:30"],
+        ["Limpeza", "Separar lixeiras e sacos de lixo", -1, "21:30", "22:00"],
+        ["Casa", "Pôr as bebidas para gelar no congelador", 0, "07:00", "07:30"],
         ["Compras", "Comprar gelo", 0, "07:30", "08:00"],
         ["Limpeza", "Limpar lixeira", 0, "08:00", "08:30"],
         ["Montagem", "Instalar cadeiras e mesas", 0, "08:30", "10:30"],
+        ["Limpeza", "Limpar a área da festa e em volta da piscina", 0, "10:30", "11:00"],
         ["Encomendas", "Pagar bolo", 0, -240, 15],
         ["Encomendas", "Buscar bolo", 0, -225, 30],
         ["Encomendas", "Pagar salgadinhos", 0, -180, 15],
         ["Encomendas", "Buscar salgadinhos", 0, -165, 30],
+        ["Dia da festa", "Separar copos, pratos e talheres", 0, -135, 15],
         ["Dia da festa", "Preparar churrasqueira", 0, -120, 30],
+        ["Dia da festa", "Posicionar tudo no lugar", 0, -90, 30],
         ["Dia da festa", "Ligar churrasqueira", 0, -60, 30],
+        ["Dia da festa", "Conferir tudo antes dos convidados chegarem", 0, -30, 30],
         ["Depois", "Recolher e levar o lixo", 1, "08:00", "09:00"],
         ["Depois", "Arrumar a casa", 1, "09:00", "12:00"],
         ["Depois", "Devolver o que foi emprestado", 1, "14:00", "15:30"],
@@ -1277,12 +1294,44 @@ body.seq-aberto{ overflow:hidden; }
     }
 
     function padraoAtual() { return estado.tarefasPadrao || TAREFAS_PADRAO; }
+
+    /* Uma tarefa do evento no padrão: cada tarefa lembra de qual tarefa do padrão nasceu (t.p, o nome dela no padrão),
+       mesmo que o nome, o dia ou o horário tenham mudado neste evento. */
+    function indicePadrao(t) {
+        var pd = padraoAtual(), chaves = [t.p, t.t].filter(Boolean).map(chaveNome);
+        for (var j = 0; j < chaves.length; j++) {
+            for (var i = 0; i < pd.length; i++) if (chaveNome(pd[i][1]) === chaves[j]) return i;
+        }
+        return -1;
+    }
+    /* Como a tarefa ficaria no padrão: dias em relação à festa; no dia da festa, se o padrão contava a partir do horário
+       do evento (ex.: 2 horas antes), continua contando assim, para servir em festas de outros horários. */
+    function linhaPadrao(ev, t, antiga) {
+        var d = difDias(t.dia, ev.data), ini = t.ini || "", fim = t.fim || "";
+        if (antiga && typeof antiga[3] === "number" && d === 0 && minutos(ini) != null) {
+            var h = horasEvento(ev).ini, i = minutos(ini), f = minutos(fim);
+            return [t.g || "Outras", String(t.t).trim(), d, i - h, f != null && f > i ? f - i : 30];
+        }
+        return [t.g || "Outras", String(t.t).trim(), d, ini, fim];
+    }
+    function situacaoPadrao(ev, t) {      // "fora" (não está no padrão), "diferente" ou "igual"
+        var i = indicePadrao(t);
+        if (i < 0) return "fora";
+        var antiga = padraoAtual()[i];
+        return JSON.stringify(linhaPadrao(ev, t, antiga)) === JSON.stringify(antiga) ? "igual" : "diferente";
+    }
+    function botaoPadrao(ev, t) {
+        var s = situacaoPadrao(ev, t);
+        return '<button class="b-padrao' + (s === "igual" ? " igual" : "") + '" data-acao="tarefa-padrao" data-id="' + t.id + '" title="' +
+            (s === "igual" ? "Esta tarefa está igual no padrão" : s === "fora" ? "Colocar esta tarefa no padrão dos próximos eventos" : "Levar o que você mudou aqui para o padrão dos próximos eventos") + '">' +
+            (s === "igual" ? "✓ Igual ao padrão" : s === "fora" ? "⭐ Pôr no padrão" : "⭐ Atualizar no padrão") + '</button>';
+    }
     function montarTarefas(ev) {
         var h = horasEvento(ev).ini;
         return padraoAtual().map(function (x) {
             var ini = typeof x[3] === "number" ? hhmm(h + x[3]) : x[3];
             var fim = typeof x[4] === "number" ? hhmm(minutos(ini) + x[4]) : x[4];
-            return { id: "t" + novoCodigo().slice(0, 8), g: x[0], t: x[1], dia: somarDias(ev.data, x[2]), ini: ini, fim: fim };
+            return { id: "t" + novoCodigo().slice(0, 8), g: x[0], t: x[1], p: x[1], dia: somarDias(ev.data, x[2]), ini: ini, fim: fim };
         }).sort(ordemTarefa);
     }
     function cronograma(ev) {
@@ -1404,7 +1453,8 @@ body.seq-aberto{ overflow:hidden; }
                         '<input type="checkbox" class="ok" data-tf="feito" data-id="' + t.id + '"' + (t.feito ? " checked" : "") + ' title="Marcar como feita" aria-label="Feita">' +
                         '<span class="tt-box"><input type="text" data-tf="t" data-id="' + t.id + '" value="' + esc(t.t) + '" aria-label="Tarefa">' +
                             '<small>' + iconeGrupo(t.g) + " " + esc(t.g || "Outras") + (lg && lg.resumo ? ' · <span class="resumo-t">' + esc(lg.resumo) + '</span>' : '') + '</small>' +
-                            (lg ? '<button class="ver-info' + (aberta ? ' aberta' : '') + '" data-acao="info-abrir" data-id="' + t.id + '" aria-expanded="' + (aberta ? 'true' : 'false') + '">' + lg.botao + (aberta ? ' ▴' : ' ▾') + '</button>' : '') + '</span>' +
+                            (lg ? '<button class="ver-info' + (aberta ? ' aberta' : '') + '" data-acao="info-abrir" data-id="' + t.id + '" aria-expanded="' + (aberta ? 'true' : 'false') + '">' + lg.botao + (aberta ? ' ▴' : ' ▾') + '</button>' : '') +
+                            botaoPadrao(ev, t) + '</span>' +
                         '<span class="quando">' +
                             (s === "feita" ? '<span class="selo-t feita">Feita ✓</span>' : s === "atrasada" ? '<span class="selo-t atrasada">Atrasada</span>' : s === "agora" ? '<span class="selo-t agora">Agora</span>' : "") +
                             (ch[t.id] ? '<span class="selo-t choque" title="Outra tarefa no mesmo horário">⚠️ mesmo horário</span>' : "") +
@@ -1715,6 +1765,8 @@ body.seq-aberto{ overflow:hidden; }
         else if (/salgad/.test(k)) salg();
         else if (/doce/.test(k)) doces();
         else if (/lembrancinha/.test(k)) lembr();
+        else if (/bebida/.test(k)) { refri(); suco(); gelo(); }
+        else if (/copos|talher/.test(k)) desc();
         else if (/churrasqueira/.test(k)) { carne(); carvao(); }
         else if (/congelador/.test(k)) { gelo(); refri(); }
         else if (/cadeira|mesa/.test(k)) cadeiras();
@@ -1724,6 +1776,25 @@ body.seq-aberto{ overflow:hidden; }
         else return null;
         return l;
     }
+
+    /* Tarefas de conferir: lista pronta do que olhar (dá para copiar e mandar para quem vai ajudar) */
+    var LISTAS_CONFERIR = [
+        [/itens da churrasqueira/, "O que precisa estar separado para o churrasco:",
+            ["Grelha e espetos limpos", "Faca afiada e tábua de carne", "Pegador e garfão", "Sal grosso e temperos", "Acendedor, álcool em gel e fósforo", "Abanador ou secador", "Luva térmica", "Bandejas para servir a carne", "Pano e papel-toalha perto da churrasqueira"]],
+        [/carvao e gas/, "Veja se dá para o dia todo (se faltar, ainda dá tempo de comprar):",
+            ["Carvão: sacos suficientes (a quantidade certa está abaixo)", "Gás do fogão/cooktop: botijão cheio ou um reserva", "Acendedor da churrasqueira"]],
+        [/extens|iluminac/, "Teste tudo ligado na tomada, de dia, para dar tempo de comprar o que faltar:",
+            ["Extensões e filtros de linha (quantos e onde)", "Tomadas da área da festa funcionando", "Lâmpadas queimadas trocadas", "Luzes da área da piscina e do jardim", "Cordão de luz / decoração ligada", "Lanterna ou luz de emergência"]],
+        [/automac/, "Deixe os aparelhos programados para a festa rodar sozinha:",
+            ["Tomadas inteligentes com os horários da festa", "Luzes: cenas e horários (acender ao escurecer)", "Som / Alexa: playlist e volume", "Bomba e luz da piscina", "Câmeras e portão", "Testar tudo pelo celular (e pela voz)"]],
+        [/lixeiras/, "Espalhe as lixeiras pela festa e deixe sacos de reserva:",
+            ["Lixeira perto da mesa de comida", "Lixeira perto da churrasqueira", "Lixeira na área da piscina", "Lixeira no banheiro", "Sacos de lixo grandes de reserva", "Lugar para juntar o lixo no fim"]],
+        [/copos, pratos e talheres/, "Deixe tudo à mão, perto da comida e das bebidas (quantidades abaixo):", ["Copos", "Pratinhos e pratos", "Garfinhos, garfos e facas", "Guardanapos", "Papel-toalha"]],
+        [/posicionar tudo/, "Antes de começar, cada coisa no seu lugar:",
+            ["Mesa do bolo e dos doces montada", "Salgados e comida na mesa (ou no forno para esquentar)", "Bebidas geladas no congelador/caixa térmica", "Copos, pratos e talheres na mesa", "Cadeiras e mesas arrumadas", "Lixeiras no lugar", "Decoração e personalizados na mesa"]],
+        [/conferir tudo/, "Última volta antes de chegar gente:",
+            ["Som tocando e playlist no ponto", "Churrasqueira acesa", "Bebidas geladas", "Banheiro com papel e sabonete", "Luzes e automação ligadas", "Portão aberto / alguém para receber", "Celular carregado para as fotos"]]
+    ];
 
     function ligacoes(ev, t) {
         var k = chaveNome(t.t), id = t.id, n = 0, partes = [], botao = "", resumo = "";
@@ -1853,6 +1924,13 @@ body.seq-aberto{ overflow:hidden; }
             botao = "📸 Colocar os álbuns"; resumo = (ev.album || ev.albumGoogle) ? "Álbum já está no site ✓" : "Ainda sem álbum no site";
             partes.push(campos([campo("album", "Álbum do iPhone (iCloud)", ev.album || "", { cls: "m3", ph: "https://www.icloud.com/sharedalbum/...", dica: "Álbum compartilhado com \"Site Público\" ligado." }),
                 campo("albumGoogle", "Álbum do Android (Google Fotos)", ev.albumGoogle || "", { cls: "m3", ph: "https://photos.app.goo.gl/...", dica: "Álbum compartilhado com \"Colaborar\" ligado." })]));
+        }
+        else if (LISTAS_CONFERIR.some(function (x) { return x[0].test(k); })) {
+            var lcf = LISTAS_CONFERIR.filter(function (x) { return x[0].test(k); })[0];
+            var txtC = "☑️ " + t.t + " — " + ev.titulo + "\n" + lcf[2].map(function (x) { return "☐ " + x; }).join("\n");
+            botao = "☑️ Ver o que conferir"; resumo = plural(lcf[2].length, "item", "itens") + " para conferir";
+            partes.push('<p class="nota-info">' + lcf[1] + '</p><ul class="pessoas-info">' + lcf[2].map(function (x) { return '<li><span>☐ ' + esc(x) + '</span></li>'; }).join("") + '</ul>' +
+                '<div class="acoes-info">' + copiar(txtC, "📋 Copiar a lista") + '</div>');
         }
         else if (/previs|chuva/.test(k)) {
             botao = "⛅ Ver previsão"; resumo = "A previsão aparece na página do evento";
@@ -2424,6 +2502,8 @@ body.seq-aberto{ overflow:hidden; }
             if (tf === "dia" && !/^\d{4}-\d{2}-\d{2}$/.test(el.value)) return;
             tt[tf] = el.value;
             marcarSujo();
+            var bp = painel.querySelector('[data-acao="tarefa-padrao"][data-id="' + tt.id + '"]');
+            if (bp) bp.outerHTML = botaoPadrao(ev, tt);     // mostra na hora que a tarefa ficou diferente do padrão
             return;
         }
 
@@ -2822,6 +2902,24 @@ body.seq-aberto{ overflow:hidden; }
                 redesenharTarefas();
                 break;
 
+            case "tarefa-padrao": {
+                /* Leva só esta tarefa para o padrão (nome, grupo, dia e horário), sem mexer nas outras */
+                var tp = tarefa(ev, alvo.getAttribute("data-id"));
+                if (!tp || !String(tp.t || "").trim()) break;
+                var ip = indicePadrao(tp), sp = situacaoPadrao(ev, tp);
+                if (sp === "igual") { mostrarBarra("\"" + tp.t + "\" já está assim no padrão.", false); break; }
+                var pdN = padraoAtual().map(function (x) { return x.slice(); });
+                var nova = linhaPadrao(ev, tp, ip >= 0 ? pdN[ip] : null);
+                if (ip >= 0) pdN[ip] = nova; else pdN.push(nova);
+                estado.tarefasPadrao = pdN;
+                tp.p = nova[1];
+                var dN = nova[2];
+                marcarSujo(); redesenharTarefas();
+                mostrarBarra((ip >= 0 ? "Atualizei no padrão: " : "Coloquei no padrão: ") + "\"" + nova[1] + "\" (" +
+                    (dN === 0 ? "no dia da festa" : dN < 0 ? (dN === -1 ? "na véspera" : -dN + " dias antes") : (dN === 1 ? "1 dia depois" : dN + " dias depois")) +
+                    (tp.ini ? ", " + tp.ini + (tp.fim ? " às " + tp.fim : "") : "") + "). Os próximos eventos já vêm assim. Clique em Salvar.", false);
+                break;
+            }
             case "tarefa-remover":
                 var tr = tarefa(ev, alvo.getAttribute("data-id"));
                 if (tr && confirm("Apagar a tarefa \"" + tr.t + "\"?")) {
@@ -2867,8 +2965,8 @@ body.seq-aberto{ overflow:hidden; }
             case "tarefas-completar": {
                 /* Acrescenta só as tarefas do padrão que este evento ainda não tem (pelo nome), sem mexer nas outras */
                 var cr = cronograma(ev), tem = {};
-                cr.itens.forEach(function (t) { tem[String(t.t).trim().toLowerCase()] = true; });
-                var novas = montarTarefas(ev).filter(function (t) { return !tem[String(t.t).trim().toLowerCase()]; });
+                cr.itens.forEach(function (t) { tem[chaveNome(t.t)] = true; if (t.p) tem[chaveNome(t.p)] = true; });
+                var novas = montarTarefas(ev).filter(function (t) { return !tem[chaveNome(t.t)]; });
                 if (!novas.length) { mostrarBarra("Este evento já tem todas as tarefas do padrão.", false); break; }
                 cr.itens = cr.itens.concat(novas).sort(ordemTarefa);
                 marcarSujo(); redesenharTarefas();
@@ -2988,7 +3086,7 @@ body.seq-aberto{ overflow:hidden; }
             var c = estado.tarefas[ev.id];
             if (!c) return;
             tarefas[ev.id] = { base: c.base || ev.data, itens: c.itens.filter(function (t) { return String(t.t || "").trim() && /^\d{4}-\d{2}-\d{2}$/.test(t.dia || ""); })
-                .map(function (t) { var o = { id: t.id, t: String(t.t).trim(), g: t.g || "Outras", dia: t.dia, ini: t.ini || "", fim: t.fim || "" }; if (t.feito) o.feito = true; return o; }) };
+                .map(function (t) { var o = { id: t.id, t: String(t.t).trim(), g: t.g || "Outras", dia: t.dia, ini: t.ini || "", fim: t.fim || "" }; if (t.feito) o.feito = true; if (t.p) o.p = String(t.p); return o; }) };
             if (c.tem && typeof c.tem === "object") tarefas[ev.id].tem = c.tem;
         });
 
