@@ -27,7 +27,7 @@ export async function onRequestGet(context) {
 
     var eventos = await lerJSON(env.DADOS, "eventos", []);
     var ev = (Array.isArray(eventos) ? eventos : []).filter(function (x) { return x && x.id === e; })[0];
-    if (!ev || ev.rascunho) return json({ erro: "Evento não encontrado." }, 404);
+    if (!ev) return json({ erro: "Evento não encontrado." }, 404);
 
     var lista = ((await lerJSON(env.DADOS, "convidados", {}))[e] || []).filter(function (p) { return p && String(p.nome || "").trim(); });
 

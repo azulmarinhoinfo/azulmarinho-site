@@ -86,7 +86,7 @@ export async function onRequestGet(context) {
     if (!id || !pagina.ok || !(pagina.headers.get("Content-Type") || "").includes("text/html")) return pagina;
 
     var eventos = await lerEventos(env, request);
-    var ev = eventos.find(function (e) { return e && e.id === id && !e.rascunho; });
+    var ev = eventos.find(function (e) { return e && e.id === id; });
     if (!ev) return pagina;
 
     var titulo = String(ev.titulo || "Evento").trim();
@@ -114,5 +114,6 @@ export async function onRequestGet(context) {
     var cab = new Headers(resposta.headers);
     cab.set("Cache-Control", "public, max-age=60");
     cab.delete("ETag");
+    if (ev.rascunho) cab.set("X-Robots-Tag", "noindex, nofollow");   // rascunho: abre pelo link, mas fora do Google
     return new Response(resposta.body, { status: resposta.status, headers: cab });
 }
