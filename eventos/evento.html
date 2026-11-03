@@ -188,7 +188,7 @@ main, .rodape{ position:relative; z-index:1; }
 <div id="rodape"></div>
 
 <script src="/assets/js/site.js"></script>
-<script src="/assets/js/eventos-comum.js?v=20261102a"></script>
+<script src="/assets/js/eventos-comum.js?v=20261103a"></script>
 <script>document.write('<script src="/eventos/dados?id=' + encodeURIComponent(new URLSearchParams(location.search).get("id") || "") + '"><\/script>')</script>
 <script>window.EVENTOS || document.write('<script src="/eventos/eventos.js"><\/script>')</script>
 <script>
@@ -301,7 +301,7 @@ main, .rodape{ position:relative; z-index:1; }
             '<div class="bloco ' + (ev.playlist ? "c7" : "c12") + '"><h2>✨ Sobre o evento</h2>' + paragrafos(ev.descricao) + '</div>' +
             (ev.playlist ? '<div class="bloco c5 playlist"><h2>🎵 Playlist</h2>' + embedPlaylist(ev.playlist) + '</div>' : "") +
 
-            '<div class="bloco c12"><h2>📸 Álbum de fotos</h2>' +
+            '<div class="bloco c12"><h2>' + esc(t.album) + '</h2>' +
                 (fotos.length
                     ? '<div class="album">' + fotos.map(function (f, i) {
                         return '<button data-i="' + i + '" aria-label="Abrir foto ' + (i + 1) + '"><img src="' + esc(EV.img(f)) + '" loading="lazy" alt="Foto ' + (i + 1) + ' do evento"></button>';

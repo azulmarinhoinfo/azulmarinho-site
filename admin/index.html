@@ -553,7 +553,7 @@ body.seq-aberto{ overflow:hidden; }
 </div>
 
 <script src="/assets/js/site.js"></script>
-<script src="/assets/js/eventos-comum.js?v=20261102a"></script>
+<script src="/assets/js/eventos-comum.js?v=20261103a"></script>
 <!-- Eventos do arquivo do site: usados só na primeira vez, para começar o painel -->
 <script src="/eventos/eventos.js"></script>
 <script>
@@ -2537,6 +2537,7 @@ body.seq-aberto{ overflow:hidden; }
             campo("playlist", "Playlist", ev.playlist || "", { ph: "Link do Apple Music, Spotify ou YouTube" }) +
             campo("album", "Álbum do iPhone (iCloud)", ev.album || "", { ph: "https://www.icloud.com/sharedalbum/...", dica: "Álbum compartilhado com \"Site Público\" ligado." }) +
             campo("albumGoogle", "Álbum do Android (Google Fotos)", ev.albumGoogle || "", { ph: "https://photos.app.goo.gl/...", dica: "Álbum compartilhado com \"Colaborar\" ligado." }) +
+            campo("nomeAlbum", "Nome do álbum na página (opcional)", ev.nomeAlbum || "", { ph: (window.NOMES_ALBUM[ev.tema] || window.NOMES_ALBUM.padrao), dica: "Vazio = o nome que combina com o tema." }) +
             (ev._ini ? "" : campoCapa(ev)) +
 
             '<div class="secao-form">Publicação</div>' +
