@@ -31,6 +31,13 @@ body{ background:var(--fundo-suave); }
 .quem a{ color:var(--ciano); }
 
 .painel{ display:grid; grid-template-columns:300px 1fr; gap:24px; padding:28px 0 120px; align-items:start; }
+.painel.so-lista{ grid-template-columns:1fr; max-width:640px; gap:14px; }
+.painel.so-lista .lateral{ position:static; max-height:none; }
+.painel.so-lista .lateral .itens{ max-height:none; }
+.painel.com-evento{ grid-template-columns:1fr; gap:12px; }
+.titulo-lista{ font-family:"Montserrat",sans-serif; font-size:24px; margin:0; color:var(--marinho, #0F1F47); }
+.nota-lista{ margin:0; font-size:14px; color:var(--texto-claro); }
+.voltar-lista{ display:flex; }
 .caixa{ background:var(--branco); border:1px solid var(--borda); border-radius:var(--raio); min-width:0; }
 
 /* Lista de eventos */
@@ -726,14 +733,21 @@ body.seq-aberto{ overflow:hidden; }
 
     /* ---------------- Desenho ---------------- */
 
+    /* Sem evento aberto: só a lista para escolher. Com evento aberto: só o evento, com "Escolher outro evento" no topo. */
     function desenhar() {
         window.EVENTOS = estado.eventos;
-        painel.innerHTML =
-            '<aside class="caixa lateral">' +
+        var aberto = !!(atual && evento(atual));
+        painel.classList.toggle("so-lista", !aberto);
+        painel.classList.toggle("com-evento", aberto);
+        painel.innerHTML = aberto
+            ? '<div class="voltar-lista"><button class="b pequeno" data-acao="voltar-lista">← Escolher outro evento</button></div>' +
+              '<section class="caixa" id="editor">' + editorHTML() + '</section>'
+            : '<h2 class="titulo-lista">Escolha um evento</h2>' +
+              '<aside class="caixa lateral">' +
                 '<div class="topo-lista"><button class="b cheio largo" data-acao="novo">＋ Novo evento</button></div>' +
                 '<div class="itens">' + listaHTML() + '</div>' +
-            '</aside>' +
-            '<section class="caixa" id="editor">' + editorHTML() + '</section>';
+              '</aside>' +
+              '<p class="nota-lista">Toque em um evento para ver os detalhes, os convidados, as compras e as tarefas dele.</p>';
         ligarEditor();
     }
 
@@ -2763,10 +2777,18 @@ body.seq-aberto{ overflow:hidden; }
 
     function abrir(id) {
         atual = id;
-        history.replaceState(null, "", id ? "#" + encodeURIComponent(id) : location.pathname);
+        /* Abrir um evento entra no histórico: o "voltar" do celular volta para a lista de eventos */
+        if (id && !location.hash) history.pushState(null, "", "#" + encodeURIComponent(id));
+        else history.replaceState(null, "", id ? "#" + encodeURIComponent(id) : location.pathname);
         desenhar();
-        if (window.innerWidth < 900) document.getElementById("editor").scrollIntoView({ behavior: "smooth" });
+        window.scrollTo(0, 0);
     }
+    window.addEventListener("popstate", function () {
+        var pedido = decodeURIComponent(location.hash.slice(1));
+        atual = evento(pedido) ? pedido : null;
+        desenhar();
+        window.scrollTo(0, 0);
+    });
 
     function adicionar(nome, whats, de) {
         nome = String(nome || "").trim();
@@ -2867,6 +2889,10 @@ body.seq-aberto{ overflow:hidden; }
                 marcarSujo();
                 abrir(novo.id);
                 document.getElementById("c-titulo").focus();
+                break;
+
+            case "voltar-lista":
+                abrir(null);
                 break;
 
             case "duplicar":
