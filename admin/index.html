@@ -66,6 +66,14 @@ body{ background:var(--fundo-suave); }
 .b.perigo{ border-color:#E11D48; color:#BE123C; }
 .b.perigo:hover{ background:#E11D48; color:#fff; }
 .b.pequeno{ padding:5px 12px; font-size:13px; }
+
+/* Prévia do evento (por cima do painel) */
+#previa{ position:fixed; inset:0; z-index:1000; background:#0F1F47; display:none; flex-direction:column; }
+#previa.aberta{ display:flex; }
+#previa .previa-barra{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 16px;
+    background:#FACC15; color:#1F2937; font-size:14px; line-height:1.35; }
+#previa .previa-barra .b{ background:#fff; flex-shrink:0; }
+#previa iframe{ flex:1; width:100%; border:0; background:#fff; }
 .b svg{ width:16px; height:16px; }
 .b[disabled]{ opacity:.5; cursor:default; }
 .largo{ width:100%; }
@@ -563,6 +571,46 @@ body.seq-aberto{ overflow:hidden; }
 
     function copia(o) { return JSON.parse(JSON.stringify(o)); }
 
+    /* Link para a página do evento. Em rascunho a página pública não mostra o evento:
+       aí o botão abre a prévia (só no painel, com o que está na tela, mesmo sem salvar). */
+    function linkPagina(ev, texto, ancora) {
+        if (ev.rascunho) return '<button class="b pequeno" data-acao="previa">👁️ Ver prévia</button>';
+        return '<a class="b pequeno" href="/eventos/evento?id=' + encodeURIComponent(ev.id) + (ancora || "") + '" target="_blank" rel="noopener">' + texto + '</a>';
+    }
+
+    /* Prévia: abre a página do evento por cima do painel, como os convidados vão ver.
+       O evento vai direto desta janela para a página (window.__previaEvento): não é salvo nem publicado. */
+    function abrirPrevia(ev) {
+        var dados = copia(ev);
+        delete dados._novo; delete dados._ini; delete dados.rascunho;
+        window.__previaEvento = dados;
+        var caixa = document.getElementById("previa");
+        if (!caixa) {
+            caixa = document.createElement("div");
+            caixa.id = "previa";
+            caixa.setAttribute("role", "dialog");
+            caixa.setAttribute("aria-label", "Prévia do evento");
+            caixa.innerHTML = '<div class="previa-barra"><span><b>👁️ Prévia</b> <span class="previa-nota"></span></span>' +
+                '<button class="b pequeno" data-fechar-previa>✕ Fechar prévia</button></div><iframe title="Prévia da página do evento"></iframe>';
+            document.body.appendChild(caixa);
+            caixa.querySelector("[data-fechar-previa]").onclick = fecharPrevia;
+            document.addEventListener("keydown", function (e) { if (e.key === "Escape" && caixa.classList.contains("aberta")) fecharPrevia(); });
+        }
+        caixa.querySelector(".previa-nota").textContent = ev.rascunho
+            ? "Assim os convidados vão ver. Ainda é rascunho: ninguém vê até você publicar."
+            : "Assim os convidados vão ver, já com o que você mudou (mesmo sem salvar).";
+        caixa.querySelector("iframe").src = "/eventos/evento?previa=1&id=" + encodeURIComponent(ev.id) + "&t=" + Date.now();
+        caixa.classList.add("aberta");
+        document.body.style.overflow = "hidden";
+    }
+    function fecharPrevia() {
+        var caixa = document.getElementById("previa");
+        if (!caixa) return;
+        caixa.classList.remove("aberta");
+        caixa.querySelector("iframe").src = "about:blank";
+        document.body.style.overflow = "";
+    }
+
     function slug(t) {
         return String(t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase()
             .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60) || "evento";
@@ -784,6 +832,13 @@ body.seq-aberto{ overflow:hidden; }
         return html || '<p style="padding:16px;color:var(--texto-claro)">Nenhum evento ainda.</p>';
     }
 
+    function acoesTopoHTML(ev) {
+        return '<button class="b pequeno' + (ev.rascunho ? " cheio" : "") + '" data-acao="previa">👁️ Ver prévia</button>' +
+            (ev.rascunho ? "" : '<a class="b pequeno" href="/eventos/evento?id=' + encodeURIComponent(ev.id) + '" target="_blank" rel="noopener">Ver página</a>') +
+            '<button class="b pequeno" data-acao="duplicar">Duplicar</button>' +
+            '<button class="b pequeno perigo" data-acao="excluir">Excluir</button>';
+    }
+
     function editorHTML() {
         var ev = atual && evento(atual);
         if (!ev) {
@@ -791,10 +846,7 @@ body.seq-aberto{ overflow:hidden; }
                 '<p style="color:var(--texto-claro)">Depois de mexer, clique em <b>Salvar alterações</b> na barra de baixo. O site atualiza em até 1 minuto.</p></div>';
         }
         var qtd = convidados(ev.id).length;
-        return '<div class="editor-topo"><h2>' + esc(ev.titulo || "Novo evento") + '</h2><div class="acoes">' +
-                '<a class="b pequeno" href="/eventos/evento?id=' + encodeURIComponent(ev.id) + '" target="_blank" rel="noopener">Ver página</a>' +
-                '<button class="b pequeno" data-acao="duplicar">Duplicar</button>' +
-                '<button class="b pequeno perigo" data-acao="excluir">Excluir</button></div></div>' +
+        return '<div class="editor-topo"><h2>' + esc(ev.titulo || "Novo evento") + '</h2><div class="acoes">' + acoesTopoHTML(ev) + '</div></div>' +
             '<div class="abas"><button data-aba="detalhes" class="' + (aba === "detalhes" ? "ativa" : "") + '">Detalhes</button>' +
                 '<button data-aba="convidados" class="' + (aba === "convidados" ? "ativa" : "") + '">Convidados (' + qtd + ')</button>' +
                 '<button data-aba="respostas" class="' + (aba === "respostas" ? "ativa" : "") + '">Respostas</button>' +
@@ -2124,7 +2176,7 @@ body.seq-aberto{ overflow:hidden; }
                 '<div class="campo"><label class="check"><input type="checkbox" id="usar-cores"' + (ev.cores ? " checked" : "") + '> Usar cores próprias</label>' +
                     '<div class="cores' + (ev.cores ? "" : " oculto") + '" id="cores">' + corI("fundo1", "Fundo 1") + corI("fundo2", "Fundo 2") + corI("destaque", "Destaque") + corI("titulo", "Título") + corI("texto", "Texto") + '</div></div>' +
                 '<div class="amostra" id="amostra"></div>' +
-                '<div class="acoes-info"><a class="b pequeno" href="/eventos/evento?id=' + encodeURIComponent(ev.id) + '" target="_blank" rel="noopener">Ver página do evento</a></div>');
+                '<div class="acoes-info">' + linkPagina(ev, "Ver página do evento") + '</div>');
         }
         else if (/definir/.test(k) && /data|horario|local/.test(k)) {
             botao = "📅 Preencher data e local"; resumo = (ev.data ? EV.dataCurta(ev) : "sem data") + (ev.hora ? ", " + ev.hora : "") + (ev.local ? " • " + ev.local : " • sem local");
@@ -2150,7 +2202,7 @@ body.seq-aberto{ overflow:hidden; }
                     campo("descricao", "Descrição (aparece na página do convite)", ev.descricao || "", { tipo: "area", ph: "Conte sobre o evento." }),
                     campo("capa", "Foto de capa (opcional)", ev.capa || "", { ph: "Link direto de uma imagem (.jpg, .png)", dica: "Aparece na prévia do WhatsApp." })]) +
                 '<div class="subtitulo-info">Como o convite chega no WhatsApp</div>' + textoPronto("convite") +
-                '<a class="b pequeno" href="/eventos/evento?id=' + encodeURIComponent(ev.id) + '" target="_blank" rel="noopener">Ver página do convite</a></div>');
+                linkPagina(ev, "Ver página do convite") + '</div>');
         }
         else if (/convite/.test(k) || /grupo/.test(k) && /whats/.test(k)) {
             var comW = lista.filter(function (p) { return numero(p.whats); }), env = comW.filter(function (p) { return p.enviado; }).length, falta = filaEnvio(ev).length;
@@ -2249,7 +2301,7 @@ body.seq-aberto{ overflow:hidden; }
             botao = "⛅ Ver previsão"; resumo = "A previsão aparece na página do evento";
             partes.push('<p class="nota-info">A previsão do tempo fica na página do evento (aparece quando faltam até 16 dias).</p>' +
                 campos([campo("cidade", "Cidade para a previsão do tempo", ev.cidade || "", { cls: "m3", ph: "Ipatinga" })]) +
-                '<div class="acoes-info"><a class="b pequeno" href="/eventos/evento?id=' + encodeURIComponent(ev.id) + '#clima" target="_blank" rel="noopener">⛅ Abrir a previsão</a></div>');
+                '<div class="acoes-info">' + linkPagina(ev, "⛅ Abrir a previsão", "#clima") + '</div>');
         }
 
         /* ---- Quantidades da aba Compras: duas contas, só confirmados e com quem não respondeu ---- */
@@ -2943,6 +2995,7 @@ body.seq-aberto{ overflow:hidden; }
             if (campoId) campoId.value = id;
         }
         if (c === "titulo") painel.querySelector(".editor-topo h2").textContent = v || "Novo evento";
+        if (c === "rascunho") painel.querySelector(".editor-topo .acoes").innerHTML = acoesTopoHTML(ev);
         marcarSujo();
         atualizarPrevias(ev);
         if (c === "titulo" || c === "data" || c === "rascunho" || c === "tema" || c === "emoji") { atualizarLista(); amostra(); }
@@ -3147,6 +3200,10 @@ body.seq-aberto{ overflow:hidden; }
 
             case "voltar-lista":
                 abrir(null);
+                break;
+
+            case "previa":
+                abrirPrevia(ev);
                 break;
 
             case "duplicar":

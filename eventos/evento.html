@@ -198,6 +198,24 @@ main, .rodape{ position:relative; z-index:1; }
     var ev = id ? EV.buscar(id) : null;
     var alvo = document.getElementById("conteudo");
 
+    /* Prévia do painel (/admin/): o evento vem da janela do painel, que abre esta
+       página dentro dela. Nada é publicado: os dados só existem no aparelho do organizador. */
+    var previa = new URLSearchParams(location.search).has("previa");
+    if (previa) {
+        ev = null;
+        try { if (window.parent !== window && window.parent.__previaEvento) ev = window.parent.__previaEvento; } catch (e) { ev = null; }
+        var robo = document.createElement("meta");
+        robo.name = "robots"; robo.content = "noindex, nofollow";
+        document.head.appendChild(robo);
+        if (!ev) {
+            document.body.classList.remove("tema");
+            alvo.innerHTML = '<div class="wrap nao-achou"><h1>Prévia indisponível</h1>' +
+                '<p style="margin-bottom:24px">A prévia só abre pelo painel do organizador, no botão <b>Ver prévia</b>.</p>' +
+                '<a class="btn btn-ciano" href="/admin/">Abrir o painel</a></div>';
+            return;
+        }
+    }
+
     if (!ev) {
         document.body.classList.remove("tema");
         alvo.innerHTML = '<div class="wrap nao-achou"><h1>Evento não encontrado</h1>' +
@@ -220,7 +238,8 @@ main, .rodape{ position:relative; z-index:1; }
 
     var passado = EV.diasAte(ev) < 0;
     var linkMapa = EV.linkMapa(ev);
-    var textoWhats = ev.titulo + " • " + EV.dataCurta(ev) + (ev.hora ? " às " + ev.hora : "") + "\n" + location.href;
+    var textoWhats = ev.titulo + " • " + EV.dataCurta(ev) + (ev.hora ? " às " + ev.hora : "") + "\n" +
+        (previa ? location.origin + "/eventos/evento?id=" + encodeURIComponent(ev.id) : location.href);
 
     function paragrafos(txt) {
         return String(txt || "").split(/\n\s*\n/).map(function (p) { return "<p>" + esc(p).replace(/\n/g, "<br>") + "</p>"; }).join("");
@@ -320,7 +339,7 @@ main, .rodape{ position:relative; z-index:1; }
             })
             .catch(function () {});
     }
-    carregarTotais();
+    if (!previa) carregarTotais();
 
     /* Confirmação de presença: só com o link pessoal do convite (&c=código) */
     var codigo = new URLSearchParams(location.search).get("c");
@@ -340,7 +359,7 @@ main, .rodape{ position:relative; z-index:1; }
             '<button class="btn btn-tema-contorno" data-rsvp="nao">Não vou</button></div>' +
             (erro ? '<p class="suave" style="margin-top:12px">' + esc(erro) + '</p>' : "");
     }
-    if (codigo && !passado) {
+    if (codigo && !passado && !previa) {
         fetch("/eventos/confirmar?e=" + encodeURIComponent(ev.id) + "&c=" + encodeURIComponent(codigo), { cache: "no-store" })
             .then(function (r) { return r.ok ? r.json() : null; })
             .then(function (d) { if (d) { nomeConv = d.nome; caixaRsvp(d.resposta); } })
