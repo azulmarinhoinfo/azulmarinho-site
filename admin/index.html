@@ -411,6 +411,12 @@ body.seq-aberto{ overflow:hidden; }
 .inicio-novo{ grid-column:span 6; background:rgba(0,173,239,.08); border:1.5px solid rgba(0,173,239,.45); border-radius:14px; padding:14px 16px; display:flex; flex-direction:column; gap:12px; }
 .inicio-novo h3{ margin:0; font-family:"Montserrat",sans-serif; font-size:16px; color:var(--marinho); }
 .inicio-novo .campo{ margin:0; }
+.capa-linha{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+.capa-linha input[type=text]{ flex:1 1 240px; }
+.botao-foto{ cursor:pointer; white-space:nowrap; }
+.capa-previa{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:8px; }
+.capa-previa:empty{ display:none; }
+.capa-previa img{ max-width:220px; max-height:140px; border-radius:10px; border:1px solid var(--borda); object-fit:cover; }
 .capa-ini{ border-top:1px solid rgba(0,173,239,.3); padding-top:12px; }
 .capa-ini input{ width:100%; }
 .inicio-novo select{ font-size:16px; }
@@ -2514,7 +2520,47 @@ body.seq-aberto{ overflow:hidden; }
     }
 
     function campoCapa(ev) {
-        return campo("capa", "Foto de capa (opcional)", ev.capa || "", { ph: "Link de uma imagem", dica: "Cole o link direto da imagem (https://..., termina em .jpg, .png ou .webp) ou um caminho do site, como fotos/meu-evento/capa.jpg. Aparece no cartão do evento e na prévia do WhatsApp. Sem capa, aparece o emoji do tema." });
+        return '<div class="campo"><label for="c-capa">Foto de capa (opcional)</label>' +
+            '<div class="capa-linha"><label class="b cheio pequeno botao-foto">📷 Escolher da fototeca<input type="file" id="capa-arquivo" accept="image/*" hidden></label>' +
+                '<input type="text" data-c="capa" id="c-capa" value="' + esc(ev.capa || "") + '" placeholder="ou cole o link de uma imagem"></div>' +
+            '<div class="capa-previa" id="capa-previa">' + previaCapa(ev.capa) + '</div>' +
+            '<span class="dica">Escolha uma foto do celular ou do computador, ou cole o link direto da imagem (https://..., termina em .jpg, .png ou .webp). Aparece no cartão do evento e na prévia do WhatsApp. Sem capa, aparece o emoji do tema.</span></div>';
+    }
+    function previaCapa(c) {
+        return c ? '<img src="' + esc(EV.img(c)) + '" alt="Foto de capa"><button type="button" class="b pequeno perigo" data-acao="capa-tirar">Tirar a foto</button>' : "";
+    }
+    /* Foto da fototeca: reduz (lado maior 1600 px, JPEG) e envia para o site */
+    function reduzirFoto(arquivo, max, q) {
+        return new Promise(function (ok, falhou) {
+            var url = URL.createObjectURL(arquivo), im = new Image();
+            im.onload = function () {
+                var w = im.naturalWidth, h = im.naturalHeight, k = Math.min(1, max / Math.max(w, h));
+                var c = document.createElement("canvas"); c.width = Math.round(w * k); c.height = Math.round(h * k);
+                c.getContext("2d").drawImage(im, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+                c.toBlob(function (b) { b ? ok(b) : falhou(new Error("blob")); }, "image/jpeg", q);
+            };
+            im.onerror = function () { URL.revokeObjectURL(url); falhou(new Error("img")); };
+            im.src = url;
+        });
+    }
+    function enviarCapa(ev, arquivo) {
+        var pv = document.getElementById("capa-previa");
+        if (pv) pv.innerHTML = '<span class="nota-info">⏳ Enviando a foto...</span>';
+        reduzirFoto(arquivo, 1600, 0.85).then(function (blob) {
+            return fetch("/api/admin/capa", { method: "POST", credentials: "same-origin", headers: { "Content-Type": "image/jpeg" }, body: blob });
+        }).then(function (r) {
+            return r.json().catch(function () { return {}; }).then(function (d) { if (!r.ok || !d.caminho) throw new Error(d.erro || "Erro " + r.status); return d; });
+        }).then(function (d) {
+            ev.capa = d.caminho;
+            if (ev._ini) ev._ini.mexeu.capa = true;
+            var ci = document.getElementById("c-capa");
+            if (ci) ci.value = d.caminho;
+            if (pv) pv.innerHTML = previaCapa(d.caminho);
+            marcarSujo(); atualizarPrevias(ev); atualizarLista();
+            mostrarBarra("Foto de capa pronta ✓ Clique em Salvar para publicar.", false);
+        }).catch(function (e) {
+            if (pv) pv.innerHTML = '<span class="nota-info">⚠️ Não consegui usar essa foto' + (e && e.message && !/^(img|blob)$/.test(e.message) ? " (" + esc(e.message) + ")" : "") + '. Tente outra foto.</span>' + (ev.capa ? previaCapa(ev.capa) : "");
+        });
     }
     function detalhesHTML(ev) {
         var c = ev.cores || {}, t = EV.tema(ev);
@@ -3002,6 +3048,7 @@ body.seq-aberto{ overflow:hidden; }
         var temaAntigo = ev.tema;
         ev[c] = v;
         if (ev._ini && c !== "tema") ev._ini.mexeu[c] = true;   // a pessoa escreveu: não preencho mais este campo
+        if (c === "capa") { var cpr = document.getElementById("capa-previa"); if (cpr) cpr.innerHTML = previaCapa(/^(https?:\/\/|\/)\S+$/.test(v.trim()) ? v.trim() : ""); }
         /* Trocou o tema na lista: descrição e ideias do tema novo */
         if (c === "tema") {
             if (ev._ini) { delete ev.cores; delete ev.emoji; preencherNovo(ev); }
@@ -3029,6 +3076,11 @@ body.seq-aberto{ overflow:hidden; }
     painel.addEventListener("change", function (e) {
         var ev = atual && evento(atual), el = e.target;
         if (!ev) return;
+        if (el.id === "capa-arquivo") {
+            if (el.files && el.files[0]) enviarCapa(ev, el.files[0]);
+            el.value = "";
+            return;
+        }
         if (el.hasAttribute("data-tf")) {
             if (ev._ini) ev._ini.cron = false;   // mexeu nas tarefas: não monto de novo
             var tf = el.getAttribute("data-tf"), tt = tarefa(ev, el.getAttribute("data-id"));
@@ -3213,6 +3265,13 @@ body.seq-aberto{ overflow:hidden; }
                 abrir(novo.id);
                 preencherNovo(novo);
                 document.getElementById("c-tema").focus();
+                break;
+
+            case "capa-tirar":
+                ev.capa = "";
+                var cc = document.getElementById("c-capa"); if (cc) cc.value = "";
+                var cpv = document.getElementById("capa-previa"); if (cpv) cpv.innerHTML = "";
+                marcarSujo(); atualizarPrevias(ev); atualizarLista();
                 break;
 
             case "ini":
