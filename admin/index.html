@@ -856,10 +856,10 @@ body.seq-aberto{ overflow:hidden; }
         var qtd = convidados(ev.id).length;
         return '<div class="editor-topo"><h2>' + esc(ev.titulo || "Novo evento") + '</h2><div class="acoes">' + acoesTopoHTML(ev) + '</div></div>' +
             '<div class="abas"><button data-aba="detalhes" class="' + (aba === "detalhes" ? "ativa" : "") + '">Detalhes</button>' +
+                '<button data-aba="fornecedores" class="' + (aba === "fornecedores" ? "ativa" : "") + '">Fornecedores' + (fornecedores(ev.id).length ? " (" + fornecedores(ev.id).length + ")" : "") + '</button>' +
+                '<button data-aba="compras" class="' + (aba === "compras" ? "ativa" : "") + '">Compras</button>' +
                 '<button data-aba="convidados" class="' + (aba === "convidados" ? "ativa" : "") + '">Convidados (' + qtd + ')</button>' +
                 '<button data-aba="respostas" class="' + (aba === "respostas" ? "ativa" : "") + '">Respostas</button>' +
-                '<button data-aba="compras" class="' + (aba === "compras" ? "ativa" : "") + '">Compras</button>' +
-                '<button data-aba="fornecedores" class="' + (aba === "fornecedores" ? "ativa" : "") + '">Fornecedores' + (fornecedores(ev.id).length ? " (" + fornecedores(ev.id).length + ")" : "") + '</button>' +
                 '<button data-aba="tarefas" class="' + (aba === "tarefas" ? "ativa" : "") + '">Tarefas</button></div>' +
             '<div class="conteudo-aba">' + faixaTarefasHTML(ev) + (aba === "detalhes" ? detalhesHTML(ev) : aba === "respostas" ? respostasHTML(ev) : aba === "compras" ? comprasHTML(ev) : aba === "tarefas" ? tarefasHTML(ev) : aba === "fornecedores" ? fornecedoresHTML(ev) : convidadosHTML(ev)) + '</div>';
     }
