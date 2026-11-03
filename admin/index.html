@@ -319,6 +319,7 @@ body.seq-aberto{ overflow:hidden; }
 .selo-t{ display:inline-block; font-size:12px; font-weight:700; border-radius:999px; padding:2px 9px; white-space:nowrap; }
 .selo-t.atrasada{ background:#FFE4E6; color:#9F1239; } .selo-t.agora{ background:#E0F2FE; color:#075985; }
 .selo-t.feita{ background:#DCFCE7; color:#14532D; } .selo-t.choque{ background:#FEF3C7; color:#92400E; }
+.selo-t.trancada{ background:#EEF2F7; color:#475569; white-space:normal; }
 .padrao-t{ margin-top:26px; padding:14px 16px; border:1px dashed var(--borda); border-radius:12px; font-size:14px; color:var(--texto); }
 .padrao-t p{ margin:0 0 10px; }
 .padrao-t div{ display:flex; gap:8px; flex-wrap:wrap; }
@@ -717,6 +718,7 @@ body.seq-aberto{ overflow:hidden; }
         separarRefriCarne();
         estado.fornecedores = d.fornecedores && typeof d.fornecedores === "object" ? d.fornecedores : {};
         estado.tarefasPadrao = Array.isArray(d.tarefasPadrao) ? d.tarefasPadrao : null;
+        incluirSelecionarConvidados();
         estado.versao = d.versao || "";
         var novas = aplicarRespostas(d.respostas || {});
         window.EVENTOS = estado.eventos;
@@ -1167,6 +1169,7 @@ body.seq-aberto{ overflow:hidden; }
         ["Planejamento", "Definir data, horário e local", -30, "19:00", "20:00"],
         ["Planejamento", "Definir tema", -30, "20:00", "21:00"],
         ["Convites", "Fazer novo convite", -28, "20:00", "21:30"],
+        ["Convites", "Selecionar os convidados", -26, "19:00", "20:30"],
         ["Convites", "Atualizar grupo de WhatsApp", -25, "20:00", "20:30"],
         ["Convites", "Enviar o convite", -21, "19:00", "20:30"],
         ["Encomendas", "Encomendar lembrancinhas", -20, "19:00", "19:30"],
@@ -1321,6 +1324,35 @@ body.seq-aberto{ overflow:hidden; }
 
     function padraoAtual() { return estado.tarefasPadrao || TAREFAS_PADRAO; }
 
+    /* Tarefa que só pode ser feita depois de outra: [tarefa, a que vem antes]. Enquanto a de antes não estiver feita,
+       a tarefa fica trancada (some da faixa das abas e não mostra o botão de enviar). */
+    var DEPOIS_DE = [[/enviar.*convite/, /selecion.*convidad/]];
+    function tarefaAntes(ev, t) {
+        var k = chaveNome(t.t), regra = DEPOIS_DE.filter(function (x) { return x[0].test(k); })[0];
+        if (!regra) return null;
+        return cronograma(ev).itens.filter(function (x) { return x !== t && !x.feito && regra[1].test(chaveNome(x.t)); })[0] || null;
+    }
+    /* Eventos e padrão que já existiam ganham "Selecionar os convidados" logo antes de "Enviar o convite"
+       (se o convite já foi enviado, ela já entra como feita). */
+    function incluirSelecionarConvidados() {
+        var nome = "Selecionar os convidados", sel = /selecion.*convidad/, envia = /enviar.*convite/;
+        Object.keys(estado.tarefas).forEach(function (id) {
+            var c = estado.tarefas[id];
+            if (!c || !Array.isArray(c.itens) || c.itens.some(function (t) { return sel.test(chaveNome(t.t)); })) return;
+            var env = c.itens.filter(function (t) { return envia.test(chaveNome(t.t)); })[0];
+            if (!env) return;
+            var x = { id: "t" + novoCodigo().slice(0, 8), t: nome, p: nome, g: env.g || "Convites", dia: somarDias(env.dia, -5), ini: "19:00", fim: "20:30" };
+            if (env.feito) x.feito = true;
+            c.itens.splice(c.itens.indexOf(env), 0, x);
+        });
+        var pd = estado.tarefasPadrao;
+        if (Array.isArray(pd) && !pd.some(function (x) { return sel.test(chaveNome(x[1])); })) {
+            var i = -1;
+            pd.forEach(function (x, j) { if (i < 0 && envia.test(chaveNome(x[1]))) i = j; });
+            if (i >= 0) pd.splice(i, 0, ["Convites", nome, (typeof pd[i][2] === "number" ? pd[i][2] : -21) - 5, "19:00", "20:30"]);
+        }
+    }
+
     /* Uma tarefa do evento no padrão: cada tarefa lembra de qual tarefa do padrão nasceu (t.p, o nome dela no padrão),
        mesmo que o nome, o dia ou o horário tenham mudado neste evento. */
     function indicePadrao(t) {
@@ -1473,7 +1505,7 @@ body.seq-aberto{ overflow:hidden; }
             return '<div class="dia-tarefas' + (dia === ev.data ? " festa" : "") + '"><h3>' + diaCurto(dia) + '<small>' + quandoRelativo(dia, ev) + '</small>' +
                 (dia === a.dia ? '<span class="hj">hoje</span>' : "") + '</h3><ul>' +
                 porDia[dia].map(function (t) {
-                    var lg = ligacoes(ev, t), aberta = lg && infoAberta[t.id];
+                    var antes = tarefaAntes(ev, t), lg = antes ? null : ligacoes(ev, t), aberta = lg && infoAberta[t.id];
                     var s = situacaoTarefa(t, a), invertido = minutos(t.fim) != null && minutos(t.ini) != null && minutos(t.fim) <= minutos(t.ini);
                     return '<li class="linha-tarefa s-' + s + '" data-linha-tarefa="' + t.id + '">' +
                         '<input type="checkbox" class="ok" data-tf="feito" data-id="' + t.id + '"' + (t.feito ? " checked" : "") + ' title="Marcar como feita" aria-label="Feita">' +
@@ -1482,6 +1514,7 @@ body.seq-aberto{ overflow:hidden; }
                             (lg ? '<button class="ver-info' + (aberta ? ' aberta' : '') + '" data-acao="info-abrir" data-id="' + t.id + '" aria-expanded="' + (aberta ? 'true' : 'false') + '">' + lg.botao + (aberta ? ' ▴' : ' ▾') + '</button>' : '') +
                             botaoPadrao(ev, t) + '</span>' +
                         '<span class="quando">' +
+                            (antes ? '<span class="selo-t trancada" title="Faça antes: ' + esc(antes.t) + '">🔒 depois de ' + esc(antes.t) + '</span>' : "") +
                             (s === "feita" ? '<span class="selo-t feita">Feita ✓</span>' : s === "atrasada" ? '<span class="selo-t atrasada">Atrasada</span>' : s === "agora" ? '<span class="selo-t agora">Agora</span>' : "") +
                             (ch[t.id] ? '<span class="selo-t choque" title="Outra tarefa no mesmo horário">⚠️ mesmo horário</span>' : "") +
                             (invertido ? '<span class="selo-t choque">⚠️ termina antes de começar</span>' : "") +
@@ -2054,6 +2087,13 @@ body.seq-aberto{ overflow:hidden; }
                     campo("local", "Nome do lugar", ev.local || "", { cls: "m3", ph: "Ex.: Chácara Feliz" }), campo("endereco", "Endereço completo", ev.endereco || "", { cls: "m3", ph: "Rua, número, bairro, cidade - UF" }),
                     campo("mapa", "Link do mapa (opcional)", ev.mapa || "", { ph: "https://maps.app.goo.gl/...", dica: "Se ficar vazio, o botão do mapa usa o endereço." })]));
         }
+        else if (/selecion/.test(k) && /convidad/.test(k)) {
+            var comZap = lista.filter(function (p) { return numero(p.whats); }).length;
+            botao = "👥 Montar a lista"; resumo = plural(lista.length, "convidado na lista", "convidados na lista") + (lista.length > comZap ? " (" + (lista.length - comZap) + " sem WhatsApp)" : "");
+            partes.push('<p class="nota-info">Escolha quem vai ser convidado: na aba <b>Convidados</b>, toque nos nomes dos outros eventos, digite um nome novo ou use <b>Adicionar vários</b>. Tire quem não vai ser convidado desta vez (no <b>×</b>) e confira o WhatsApp de cada um.</p>' +
+                '<p class="nota-info">Quando a lista estiver pronta, marque esta tarefa como feita: aí aparece a tarefa <b>Enviar o convite</b>.</p>' +
+                '<div class="acoes-info">' + irAba("convidados", "👥 Abrir Convidados") + '</div>');
+        }
         else if (/convite/.test(k) && /fazer|criar|novo|montar/.test(k)) {
             botao = "💌 Montar o convite"; resumo = "O convite sai pronto com os dados do evento";
             partes.push('<p class="nota-info">O convite é montado sozinho com os dados do evento. Mude aqui e veja o texto mudar embaixo.</p>' +
@@ -2267,7 +2307,7 @@ body.seq-aberto{ overflow:hidden; }
     /* Tarefas que pertencem a cada aba: aparecem no topo dela e marcar ali conclui a tarefa na aba Tarefas */
     var TAREFAS_DA_ABA = {
         detalhes: ["Tarefas do evento", /^definir|fazer novo convite|criar convite|playlist|album|\bfotos\b/, true],
-        convidados: ["Tarefas dos convites", /convite|grupo de whats|lembrete|lembrar|confirm|agradec/, false],
+        convidados: ["Tarefas dos convites", /convite|selecion.*convidad|grupo de whats|lembrete|lembrar|confirm|agradec/, false],
         respostas: ["Tarefas das respostas", /confirm|lembrete|lembrar/, false],
         compras: ["Tarefas de compras e encomendas", /compra|supermercado|refri|\bsuco\b|gelo|descartave|carne|carvao|\bbolo\b|salgad|doce|lembrancinha|cadeira|congelador/, true],
         fornecedores: ["Tarefas com fornecedores", /encomend|buscar|pagar|devolver|emprestad|cadeira|\bsom\b|carne|carvao|supermercado/, false]
@@ -2277,7 +2317,7 @@ body.seq-aberto{ overflow:hidden; }
         var cfg = TAREFAS_DA_ABA[aba];
         if (!cfg || !ev.data) return "";
         var c = cronograma(ev);
-        var a = agora(), l = tarefasVisiveis(ev, c).filter(function (t) { return cfg[1].test(chaveNome(t.t)); }).sort(ordemTarefa);
+        var a = agora(), l = tarefasVisiveis(ev, c).filter(function (t) { return cfg[1].test(chaveNome(t.t)) && !tarefaAntes(ev, t); }).sort(ordemTarefa);
         if (!l.length) return "";
         COPIAS = {};
         var feitas = l.filter(function (t) { return t.feito; }).length;
@@ -2479,6 +2519,10 @@ body.seq-aberto{ overflow:hidden; }
             return '<button type="button" data-i="' + i + '" data-campo="' + campo + '" data-v="' + v + '"' +
                 (p[campo] === v ? ' class="ativa" aria-pressed="true"' : ' aria-pressed="false"') + '>' + texto + '</button>';
         }
+        var selec = ev.data && tarefaAntes(ev, { t: "Enviar o convite" });
+        if (selec) return '<div class="seq-inicio parado"><span><b>👥 Primeiro: selecionar os convidados</b><small>Monte a lista de quem vai ser convidado (abaixo). ' +
+                'Quando terminar, marque a tarefa <b>Selecionar os convidados</b> lá em cima: aí aparecem o <b>Enviar o convite</b> e o <b>Enviar em sequência</b>.</small></span></div>' +
+            convidadosLista(ev, lista, enviados, opcao);
         var faltam = filaEnvio(ev).length, semWhats = lista.filter(function (p) { return !p.enviado && String(p.nome || "").trim() && !numero(p.whats); }).length;
         return (faltam
                 ? '<div class="seq-inicio"><span><b>' + faltam + (faltam === 1 ? ' convidado ainda sem convite' : ' convidados ainda sem convite') + '</b>' +
@@ -2497,8 +2541,10 @@ body.seq-aberto{ overflow:hidden; }
                 return nc ? '<div class="seq-inicio cobrar"><span><b>' + nc + (nc === 1 ? ' convidado recebeu o convite e ainda não respondeu' : ' convidados receberam o convite e ainda não responderam') + '</b>' +
                     '<small>Manda um pedido de confirmação (mensagem diferente do convite, explicando por que a resposta é importante), um por um.</small></span>' +
                     '<button class="b verde" data-acao="sequencia-cobrar">' + I.whats + 'Pedir confirmação</button></div>' : "";
-            })() +
-            '<div class="add-conv">' +
+            })() + convidadosLista(ev, lista, enviados, opcao);
+    }
+    function convidadosLista(ev, lista, enviados, opcao) {
+        return '<div class="add-conv">' +
                 '<input id="novo-nome" placeholder="Nome do convidado" autocomplete="off" list="sugestoes">' +
                 '<input id="novo-whats" placeholder="WhatsApp com DDD (opcional)" inputmode="tel" autocomplete="off">' +
                 '<button class="b cheio" data-acao="add-conv">Adicionar</button>' +
