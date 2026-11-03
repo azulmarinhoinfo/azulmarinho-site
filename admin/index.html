@@ -67,6 +67,10 @@ body{ background:var(--fundo-suave); }
 .b.perigo:hover{ background:#E11D48; color:#fff; }
 .b.pequeno{ padding:5px 12px; font-size:13px; }
 
+/* Nome sugerido do álbum (iCloud / Google Fotos) */
+.nome-album-sug{ display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px 12px;
+    background:#EEF8FD; border:1px solid #BEE6F7; border-radius:12px; padding:10px 14px; margin:6px 0 14px; font-size:14px; }
+
 /* Prévia do evento (por cima do painel) */
 #previa{ position:fixed; inset:0; z-index:1000; background:#0F1F47; display:none; flex-direction:column; }
 #previa.aberta{ display:flex; }
@@ -1995,6 +1999,7 @@ body.seq-aberto{ overflow:hidden; }
             '<div class="pergunta-ini' + (ini.mesv === null ? " falta" : "") + '"><span class="q">🎂 É mesversário do ' + ANIVERSARIANTE + '?</span>' + sn("mesv", "Sim", "Não") + '</div>' +
             '<div class="pergunta-ini' + (ini.alm === null ? " falta" : "") + '"><span class="q">🍖 Tem almoço?</span>' + sn("alm", "Sim, 13h 🍖", "Não, 15h") + '</div>' +
             '<p class="resumo-ini" id="resumo-ini">' + resumoNovo(ev) + '</p>' +
+            nomeAlbumHTML(ev) +
             '<div class="capa-ini">' + campoCapa(ev) + '</div></div>';
     }
 
@@ -2055,7 +2060,26 @@ body.seq-aberto{ overflow:hidden; }
         return tipo === "convite" ? textoConviteGeral(ev) : tipo === "lembrete" ? textoLembrete(ev, null, t && t.dia) : tipo === "agradecer" ? textoAgradecer(ev) : tipo === "agradecer1" ? textoAgradecer(ev, { nome: "Fulano" }) : "";
     }
     /* Mudou um dado do evento dentro de uma tarefa: atualiza os textos prontos na tela */
+    /* Nome para criar o álbum no iCloud / Google Fotos, no padrão dos títulos:
+       mesversário → "Heitor 3 Meses — Super Mario" (sempre com o nome do tema escolhido);
+       outros eventos → o próprio título. */
+    function nomeAlbumSugerido(ev) {
+        var titulo = String(ev.titulo || "").trim();
+        var m = /^(.*?\d+\s+m[eê]s(?:es)?)\b/i.exec(titulo);
+        var tm = window.TEMAS[ev.tema];
+        if (m && tm && ev.tema !== "padrao") return m[1].trim() + " — " + tm.nome.replace(/\s*\(.*\)\s*$/, "");
+        return titulo || "Álbum do evento";
+    }
+    function nomeAlbumHTML(ev) {
+        return '<div class="nome-album-sug"><span>📸 Nome para o álbum no iCloud e no Google Fotos: <b data-nome-album>' + esc(nomeAlbumSugerido(ev)) + '</b></span>' +
+            '<button class="b pequeno" data-acao="copiar-nome-album">📋 Copiar o nome</button></div>';
+    }
+    function atualizarNomeAlbum(ev) {
+        painel.querySelectorAll("[data-nome-album]").forEach(function (el) { el.textContent = nomeAlbumSugerido(ev); });
+    }
+
     function atualizarPrevias(ev) {
+        atualizarNomeAlbum(ev);
         painel.querySelectorAll("[data-previa]").forEach(function (el) {
             var t = tarefa(ev, el.getAttribute("data-tid"));
             var txt = previa(el.getAttribute("data-previa"), ev, t);
@@ -2285,7 +2309,7 @@ body.seq-aberto{ overflow:hidden; }
         }
         else if (/foto|album/.test(k)) {
             botao = "📸 Colocar os álbuns"; resumo = (ev.album || ev.albumGoogle) ? "Álbum já está no site ✓" : "Ainda sem álbum no site";
-            partes.push(campos([campo("album", "Álbum do iPhone (iCloud)", ev.album || "", { cls: "m3", ph: "https://www.icloud.com/sharedalbum/...", dica: "Álbum compartilhado com \"Site Público\" ligado." }),
+            partes.push(nomeAlbumHTML(ev) + campos([campo("album", "Álbum do iPhone (iCloud)", ev.album || "", { cls: "m3", ph: "https://www.icloud.com/sharedalbum/...", dica: "Álbum compartilhado com \"Site Público\" ligado." }),
                 campo("albumGoogle", "Álbum do Android (Google Fotos)", ev.albumGoogle || "", { cls: "m3", ph: "https://photos.app.goo.gl/...", dica: "Álbum compartilhado com \"Colaborar\" ligado." })]));
         }
         else if (LISTAS_CONFERIR.some(function (x) { return x[0].test(k); })) {
@@ -2534,6 +2558,7 @@ body.seq-aberto{ overflow:hidden; }
             '<div class="campo" id="ideias-det">' + ideiasTema(ev.tema) + '</div>' +
 
             '<div class="secao-form">Música e fotos</div>' +
+            nomeAlbumHTML(ev) +
             campo("playlist", "Playlist", ev.playlist || "", { ph: "Link do Apple Music, Spotify ou YouTube" }) +
             campo("album", "Álbum do iPhone (iCloud)", ev.album || "", { ph: "https://www.icloud.com/sharedalbum/...", dica: "Álbum compartilhado com \"Site Público\" ligado." }) +
             campo("albumGoogle", "Álbum do Android (Google Fotos)", ev.albumGoogle || "", { ph: "https://photos.app.goo.gl/...", dica: "Álbum compartilhado com \"Colaborar\" ligado." }) +
@@ -2837,6 +2862,7 @@ body.seq-aberto{ overflow:hidden; }
     });
 
     function amostra() {
+        if (atual && evento(atual)) atualizarNomeAlbum(evento(atual));
         var a = document.getElementById("amostra");
         if (!a) return;
         var t = EV.tema(evento(atual));
@@ -3241,6 +3267,14 @@ body.seq-aberto{ overflow:hidden; }
                 var idInfo = alvo.getAttribute("data-id");
                 if (infoAberta[idInfo]) delete infoAberta[idInfo]; else infoAberta[idInfo] = true;
                 redesenharTarefas();
+                break;
+
+            case "copiar-nome-album":
+                var rotA = alvo.textContent;
+                copiarTexto(nomeAlbumSugerido(ev)).then(function () {
+                    alvo.textContent = "Copiado! ✓";
+                    setTimeout(function () { alvo.textContent = rotA; }, 1800);
+                });
                 break;
 
             case "copiar-texto":
