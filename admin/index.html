@@ -455,6 +455,10 @@ body.seq-aberto{ overflow:hidden; }
 .add-forn input, .add-forn select, .linha-forn input, .linha-forn select{ font:inherit; font-size:15px; color:var(--texto); border:1.5px solid var(--borda); border-radius:10px; padding:8px 10px; background:var(--branco); min-width:0; width:100%; }
 .add-forn input:focus, .linha-forn input:focus, .linha-forn select:focus{ outline:none; border-color:var(--ciano); box-shadow:0 0 0 3px rgba(0,173,239,.18); }
 .reusar-forn{ display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-top:12px; }
+.reusar-forn .rotulo small{ display:block; font-weight:400; color:var(--texto-claro); font-size:12px; }
+.chip-agenda{ display:inline-flex; align-items:center; gap:2px; }
+.chip-agenda .esquecer-ag{ border:0; background:none; color:var(--texto-claro); font-size:17px; line-height:1; padding:2px 5px; cursor:pointer; border-radius:6px; }
+.chip-agenda .esquecer-ag:hover{ color:#B91C1C; background:#FEE2E2; }
 .chips-forn{ display:flex; gap:6px; flex-wrap:wrap; margin-top:16px; }
 .chips-forn span{ background:var(--fundo-suave); border-radius:999px; padding:4px 11px; font-size:13px; }
 .linhas-forn{ list-style:none; margin:12px 0 0; padding:0; border-top:1px solid var(--borda); }
@@ -547,7 +551,7 @@ body.seq-aberto{ overflow:hidden; }
     var esc = EV.esc, I = window.ICONES;
     var DO_ARQUIVO = (window.EVENTOS || []).slice();
 
-    var estado = { eventos: [], convidados: {}, tarefas: {}, tarefasPadrao: null, fornecedores: {}, versao: "" };
+    var estado = { eventos: [], convidados: {}, tarefas: {}, tarefasPadrao: null, fornecedores: {}, agenda: [], versao: "" };
     var atual = null;          // id do evento aberto
     var aba = "detalhes";
     var sujo = false;
@@ -717,6 +721,7 @@ body.seq-aberto{ overflow:hidden; }
         estado.tarefas = d.tarefas || {};
         separarRefriCarne();
         estado.fornecedores = d.fornecedores && typeof d.fornecedores === "object" ? d.fornecedores : {};
+        iniciarAgenda(d.agendaFornecedores);
         estado.tarefasPadrao = Array.isArray(d.tarefasPadrao) ? d.tarefasPadrao : null;
         incluirSelecionarConvidados();
         estado.versao = d.versao || "";
@@ -792,8 +797,8 @@ body.seq-aberto{ overflow:hidden; }
                 '<button data-aba="convidados" class="' + (aba === "convidados" ? "ativa" : "") + '">Convidados (' + qtd + ')</button>' +
                 '<button data-aba="respostas" class="' + (aba === "respostas" ? "ativa" : "") + '">Respostas</button>' +
                 '<button data-aba="compras" class="' + (aba === "compras" ? "ativa" : "") + '">Compras</button>' +
-                '<button data-aba="tarefas" class="' + (aba === "tarefas" ? "ativa" : "") + '">Tarefas</button>' +
-                '<button data-aba="fornecedores" class="' + (aba === "fornecedores" ? "ativa" : "") + '">Fornecedores' + (fornecedores(ev.id).length ? " (" + fornecedores(ev.id).length + ")" : "") + '</button></div>' +
+                '<button data-aba="fornecedores" class="' + (aba === "fornecedores" ? "ativa" : "") + '">Fornecedores' + (fornecedores(ev.id).length ? " (" + fornecedores(ev.id).length + ")" : "") + '</button>' +
+                '<button data-aba="tarefas" class="' + (aba === "tarefas" ? "ativa" : "") + '">Tarefas</button></div>' +
             '<div class="conteudo-aba">' + faixaTarefasHTML(ev) + (aba === "detalhes" ? detalhesHTML(ev) : aba === "respostas" ? respostasHTML(ev) : aba === "compras" ? comprasHTML(ev) : aba === "tarefas" ? tarefasHTML(ev) : aba === "fornecedores" ? fornecedoresHTML(ev) : convidadosHTML(ev)) + '</div>';
     }
 
@@ -1689,6 +1694,45 @@ body.seq-aberto{ overflow:hidden; }
     ];
     function emojiTipo(tipo) { var x = TIPOS_FORNECEDOR.filter(function (y) { return y[0] === tipo; })[0]; return x ? x[1] : "📌"; }
     function fornecedores(id) { return estado.fornecedores[id] || (estado.fornecedores[id] = []); }
+
+    /* Agenda de fornecedores: lista fixa, que não depende dos eventos (excluir um evento não apaga
+       ninguém daqui). Todo fornecedor cadastrado em um evento entra na agenda sozinho. */
+    function chaveForn(f) { return chaveNome(f.nome) + "|" + f.tipo; }
+    function guardarNaAgenda(f) {
+        if (!f || !String(f.nome || "").trim()) return;
+        var k = chaveForn(f), ja = estado.agenda.filter(function (a) { return chaveForn(a) === k; })[0];
+        if (ja) { if (String(f.whats || "").trim()) ja.whats = String(f.whats).trim(); return; }
+        estado.agenda.push({ tipo: f.tipo || "Outros", nome: String(f.nome).trim(), whats: String(f.whats || "").trim() });
+    }
+    function iniciarAgenda(salva) {
+        estado.agenda = [];
+        if (Array.isArray(salva)) { salva.forEach(guardarNaAgenda); return; }
+        /* Primeira vez: a agenda nasce com os fornecedores que já estão nos eventos */
+        estado.eventos.slice().sort(function (a, b) { return (b.data || "").localeCompare(a.data || ""); }).forEach(function (o) {
+            (estado.fornecedores[o.id] || []).forEach(guardarNaAgenda);
+        });
+    }
+    /* Marcou "Pago" no fornecedor: a tarefa "Pagar ..." do mesmo tipo fica feita quando todos os
+       fornecedores daquele tipo estão pagos; desmarcou, ela volta para Pendentes. */
+    function tiposDaTarefaPagar(k) {
+        if (/topo/.test(k)) return ["Personalizados e lembrancinhas"];
+        return TIPOS_FORNECEDOR.filter(function (x) { return x[2] && x[2].test(k); }).map(function (x) { return x[0]; });
+    }
+    function pagoNasTarefas(ev, tipo) {
+        var c = cronograma(ev);
+        if (!c || !Array.isArray(c.itens)) return;
+        var lf = fornecedores(ev.id).filter(function (f) { return String(f.nome || "").trim(); });
+        c.itens.forEach(function (t) {
+            var k = chaveNome(t.t);
+            if (!/^pagar\b/.test(k)) return;
+            var tipos = tiposDaTarefaPagar(k);
+            if (tipos.indexOf(tipo) < 0) return;
+            var fs = lf.filter(function (f) { return tipos.indexOf(f.tipo) >= 0; });
+            if (!fs.length) return;
+            if (fs.every(function (f) { return f.pago; })) t.feito = true;
+            else delete t.feito;
+        });
+    }
     function valorReais(s) {
         var t = String(s || "").replace(/[^\d,.]/g, "");
         if (!t) return 0;
@@ -2257,16 +2301,12 @@ body.seq-aberto{ overflow:hidden; }
         function opcoesTipo(sel) {
             return TIPOS_FORNECEDOR.map(function (x) { return '<option value="' + esc(x[0]) + '"' + (x[0] === sel ? " selected" : "") + '>' + x[1] + " " + esc(x[0]) + '</option>'; }).join("");
         }
-        /* Fornecedores de outros eventos, para trazer com um toque */
-        var jaTem = {}, outros = [], vistos = {};
-        lista.forEach(function (f) { jaTem[chaveNome(f.nome) + "|" + f.tipo] = true; });
-        estado.eventos.slice().sort(function (a, b) { return (b.data || "").localeCompare(a.data || ""); }).forEach(function (o) {
-            if (o.id === ev.id) return;
-            (estado.fornecedores[o.id] || []).forEach(function (f) {
-                var kf = chaveNome(f.nome) + "|" + f.tipo;
-                if (!String(f.nome || "").trim() || jaTem[kf] || vistos[kf]) return;
-                vistos[kf] = true; outros.push(f);
-            });
+        /* Agenda de fornecedores, para trazer com um toque (só quem ainda não está neste evento) */
+        var jaTem = {};
+        lista.forEach(function (f) { jaTem[chaveForn(f)] = true; });
+        var ordemTipo = TIPOS_FORNECEDOR.map(function (x) { return x[0]; });
+        var outros = estado.agenda.filter(function (f) { return !jaTem[chaveForn(f)]; }).sort(function (a, b) {
+            return (ordemTipo.indexOf(a.tipo) - ordemTipo.indexOf(b.tipo)) || chaveNome(a.nome).localeCompare(chaveNome(b.nome));
         });
         FORN_OUTROS = outros;
         var porTipo = {};
@@ -2278,8 +2318,9 @@ body.seq-aberto{ overflow:hidden; }
                 '<input id="nf-nome" placeholder="Nome do fornecedor" autocomplete="off" aria-label="Nome">' +
                 '<input id="nf-whats" placeholder="WhatsApp / telefone" inputmode="tel" autocomplete="off" aria-label="WhatsApp">' +
                 '<button class="b cheio" data-acao="fornecedor-add">Adicionar</button></div>' +
-            (outros.length ? '<div class="reusar-forn"><span class="rotulo">Já usados em outros eventos:</span>' + outros.map(function (f, i) {
-                return '<button class="b pequeno" data-acao="fornecedor-reusar" data-k="' + i + '">＋ ' + emojiTipo(f.tipo) + " " + esc(f.nome) + '</button>';
+            (outros.length ? '<div class="reusar-forn"><span class="rotulo">📒 Agenda de fornecedores:<small>Toque para trazer para este evento. Fica guardada mesmo se excluir um evento.</small></span>' + outros.map(function (f, i) {
+                return '<span class="chip-agenda"><button class="b pequeno" data-acao="fornecedor-reusar" data-k="' + i + '"' + (f.whats ? ' title="' + esc(f.whats) + '"' : '') + '>＋ ' + emojiTipo(f.tipo) + " " + esc(f.nome) + '</button>' +
+                    '<button class="esquecer-ag" data-acao="agenda-esquecer" data-k="' + i + '" title="Tirar da agenda" aria-label="Tirar ' + esc(f.nome) + ' da agenda">×</button></span>';
             }).join("") + '</div>' : "") +
             (lista.length
                 ? '<div class="chips-forn">' + Object.keys(porTipo).map(function (tp) { return '<span>' + emojiTipo(tp) + " " + esc(tp) + ": <b>" + porTipo[tp] + '</b></span>'; }).join("") + '</div>' +
@@ -2814,6 +2855,7 @@ body.seq-aberto{ overflow:hidden; }
             if (!fo) return;
             if (el.type === "checkbox") { if (el.checked) fo[cf] = true; else delete fo[cf]; } else fo[cf] = el.value;
             marcarSujo();
+            if (cf === "pago") pagoNasTarefas(ev, fo.tipo);
             if (cf === "valor" || cf === "pago") {
                 var tot = 0, pg = 0;
                 fornecedores(ev.id).forEach(function (f) { var v = valorReais(f.valor); tot += v; if (f.pago) pg += v; });
@@ -2921,6 +2963,8 @@ body.seq-aberto{ overflow:hidden; }
             return;
         }
         if (aba === "tarefas" && el.getAttribute("data-fo") === "pago") { redesenharTarefas(); return; }
+        if (aba === "fornecedores" && el.getAttribute("data-fo") === "pago") { var yp = window.scrollY; desenhar(); window.scrollTo(0, yp); return; }
+        if (el.hasAttribute("data-fo") && /^(nome|whats|tipo)$/.test(el.getAttribute("data-fo"))) guardarNaAgenda(fornecedores(ev.id)[+el.getAttribute("data-i")]);
         if (el.hasAttribute("data-fo") && el.getAttribute("data-fo") === "tipo") { var yf = window.scrollY; desenhar(); window.scrollTo(0, yf); return; }
         if (aba === "tarefas" && el.getAttribute("data-c") === "data") { redesenharTarefas(); return; }
         if (el.hasAttribute("data-item-compra")) {
@@ -3160,7 +3204,9 @@ body.seq-aberto{ overflow:hidden; }
             case "fornecedor-add":
                 var nfNome = document.getElementById("nf-nome");
                 if (!nfNome.value.trim()) { nfNome.focus(); break; }
-                fornecedores(ev.id).push({ tipo: document.getElementById("nf-tipo").value, nome: nfNome.value.trim(), whats: document.getElementById("nf-whats").value.trim() });
+                var nfNovo = { tipo: document.getElementById("nf-tipo").value, nome: nfNome.value.trim(), whats: document.getElementById("nf-whats").value.trim() };
+                fornecedores(ev.id).push(nfNovo);
+                guardarNaAgenda(nfNovo);
                 marcarSujo(); desenhar();
                 var nn = document.getElementById("nf-nome"); if (nn) nn.focus();
                 break;
@@ -3170,6 +3216,13 @@ body.seq-aberto{ overflow:hidden; }
                 if (!fr) break;
                 fornecedores(ev.id).push({ tipo: fr.tipo, nome: fr.nome, whats: fr.whats || "" });
                 marcarSujo(); var yr = window.scrollY; desenhar(); window.scrollTo(0, yr);
+                break;
+
+            case "agenda-esquecer":
+                var fe = FORN_OUTROS[+alvo.getAttribute("data-k")];
+                if (!fe || !confirm("Tirar " + fe.nome + " da agenda de fornecedores?\n\nQuem já está em algum evento continua lá.")) break;
+                estado.agenda = estado.agenda.filter(function (a) { return a !== fe; });
+                marcarSujo(); var ye = window.scrollY; desenhar(); window.scrollTo(0, ye);
                 break;
 
             case "fornecedor-remover":
@@ -3452,6 +3505,11 @@ body.seq-aberto{ overflow:hidden; }
             });
             if (l.length) forn[ev.id] = l;
         });
+        var agenda = estado.agenda.filter(function (f) { return String(f.nome || "").trim(); }).map(function (f) {
+            var o = { tipo: String(f.tipo || "Outros"), nome: String(f.nome).trim() };
+            if (String(f.whats || "").trim()) o.whats = String(f.whats).trim();
+            return o;
+        });
 
         salvando = true;
         var botao = document.getElementById("salvar");
@@ -3461,7 +3519,7 @@ body.seq-aberto{ overflow:hidden; }
         fetch("/api/admin/dados", {
             method: "PUT", credentials: "same-origin",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ eventos: eventos, convidados: conv, tarefas: tarefas, tarefasPadrao: estado.tarefasPadrao, fornecedores: forn, versao: estado.versao })
+            body: JSON.stringify({ eventos: eventos, convidados: conv, tarefas: tarefas, tarefasPadrao: estado.tarefasPadrao, fornecedores: forn, agendaFornecedores: agenda, versao: estado.versao })
         })
         .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { d._status = r.status; return d; }); })
         .then(function (d) {
