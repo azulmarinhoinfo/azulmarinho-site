@@ -75,6 +75,47 @@ window.TEMAS = {
                        ideias: ["Cores: laranja, amarelo, marrom e verde", "Decoração: Pedra do Reino, pôr do sol, folhagens e bichinhos da savana", "Bolo: Pedra do Reino ou Simba", "Lembrancinha: pelúcia de leão ou kit safári"] }
 };
 
+/* Nome do álbum de fotos na página do evento, de acordo com o tema.
+   Tema sem nome aqui (ou tema novo) usa "📸 Álbum de fotos". */
+window.NOMES_ALBUM = {
+    "padrao":          "📸 Álbum de fotos",
+    "verao":           "☀️ Fotos ao sol",
+    "carnaval":        "🎭 Folia em fotos",
+    "pascoa":          "🐰 Caça às fotos",
+    "festa-junina":    "🌽 Arraiá em fotos",
+    "dia-dos-pais":    "👔 Fotos com o paizão",
+    "primavera":       "🌸 Jardim de memórias",
+    "outubro-rosa":    "🎀 Momentos em rosa",
+    "halloween":       "🎃 Fotos assombradas",
+    "natal":           "🎄 Fotos debaixo da árvore",
+    "reveillon":       "🥂 Brindes registrados",
+    "rock":            "🎸 Bastidores do show",
+    "sertanejo":       "🤠 Modão em fotos",
+    "neon":            "🪩 Flashes da pista",
+    "futebol":         "⚽ Melhores lances",
+    "aniversario":     "🎂 Fotos do parabéns",
+    "copa":            "🇧🇷 Lances da torcida",
+    "piscina":         "🏖️ Fotos à beira da piscina",
+    "super-heroi":     "🕷️ Arquivo secreto dos heróis",
+    "branca-de-neve":  "🍎 Espelho, espelho meu",
+    "jardim":          "🌷 Flores e memórias",
+    "polaroid":        "📸 Álbum de memórias",
+    "dinossauro":      "🦖 Fósseis da festa",
+    "vingadores":      "🦸‍♂️ Arquivos da S.H.I.E.L.D.",
+    "super-mario":     "🍄 Fases da festa",
+    "patrulha-canina": "🐾 Missão registrada",
+    "hot-wheels":      "🏁 Fotos da linha de chegada",
+    "batizado":        "🕊️ Momentos abençoados",
+    "cruzeiro":        "💙 Galeria da torcida celeste",
+    "cavaleiros-zodiaco": "✨ Constelação de memórias",
+    "batman":          "🦇 Arquivos da Batcaverna",
+    "toy-story":       "🚀 Memórias ao infinito e além",
+    "toy-story-junina": "🤠 Arraiá do Woody em fotos",
+    "star-wars":       "🌌 Memórias de uma galáxia distante",
+    "dragon-ball":     "🐉 Esferas de memórias",
+    "rei-leao":        "🦁 Memórias da Pedra do Reino"
+};
+
 window.EV = (function () {
     var MESES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
     var DIAS = ["domingo", "segunda-feira", "terça-feira", "quarta-feira", "quinta-feira", "sexta-feira", "sábado"];
@@ -143,7 +184,8 @@ window.EV = (function () {
             texto: c.texto || t.texto,
             titulo: c.titulo || t.titulo,
             claro: c.claro != null ? c.claro : !!t.claro,
-            padrao: ev.padrao || t.padrao || ""
+            padrao: ev.padrao || t.padrao || "",
+            album: String(ev.nomeAlbum || "").trim() || window.NOMES_ALBUM[ev.tema] || window.NOMES_ALBUM.padrao
         };
     }
 
