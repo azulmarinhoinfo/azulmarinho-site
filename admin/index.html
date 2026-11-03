@@ -395,6 +395,15 @@ body.seq-aberto{ overflow:hidden; }
 .info-tarefa .campos-tarefa{ margin:6px 0 10px; gap:12px 14px; }
 .info-tarefa .campo textarea{ min-height:90px; }
 .nota-info{ font-size:14px; color:var(--texto); margin:0 0 10px; }
+.inicio-novo{ grid-column:span 6; background:rgba(0,173,239,.08); border:1.5px solid rgba(0,173,239,.45); border-radius:14px; padding:14px 16px; display:flex; flex-direction:column; gap:12px; }
+.inicio-novo h3{ margin:0; font-family:"Montserrat",sans-serif; font-size:16px; color:var(--marinho); }
+.inicio-novo .campo{ margin:0; }
+.inicio-novo select{ font-size:16px; }
+.pergunta-ini{ display:flex; flex-wrap:wrap; gap:8px 12px; align-items:center; }
+.pergunta-ini .q{ font-weight:600; flex:0 1 auto; min-width:200px; }
+.pergunta-ini .opcoes button{ padding:8px 16px; font-size:15px; }
+.pergunta-ini.falta .q::after{ content:" ← responda"; color:#C2410C; font-weight:500; font-size:13px; }
+.resumo-ini{ font-size:14px; margin:0; color:var(--texto); }
 .subtitulo-info{ font:700 12px "Montserrat",sans-serif; letter-spacing:1px; text-transform:uppercase; color:var(--ciano-escuro); margin:14px 0 8px; }
 .subtitulo-info:first-child{ margin-top:0; }
 .texto-pronto{ white-space:pre-wrap; font:15px/1.45 "Ubuntu",sans-serif; color:#0B1F14; background:#DCF8C6; border-radius:12px 12px 12px 4px;
@@ -1726,6 +1735,139 @@ body.seq-aberto{ overflow:hidden; }
         var k = Object.keys(window.TEMAS);
         return k.filter(function (x) { return window.TEMAS[x].grupo === "infantil"; }).concat(k.filter(function (x) { return window.TEMAS[x].grupo !== "infantil"; }));
     }
+    /* ---------------- Novo evento: tema primeiro, perguntas e tudo preenchido ----------------
+       ev._ini = { mesv: true/false/null, alm: true/false/null, mexeu: {campo: true} } (só enquanto o evento é novo; não é salvo) */
+    var ANIVERSARIANTE = "Heitor";
+    function nomeCurtoTema(chave) {
+        var t = window.TEMAS[chave] || window.TEMAS.padrao;
+        return String(t.nome).replace(/\s*\(.*\)\s*/g, " ").trim();
+    }
+    function mesesDoTitulo(titulo) {
+        var m = chaveNome(titulo).match(/(\d+)\s*(meses|mes|anos|ano)\b/);
+        return m ? (/ano/.test(m[2]) ? +m[1] * 12 : +m[1]) : null;
+    }
+    /* Mês "absoluto" (ano*12 + mês) do dia 20 que abriu aquele mesversário */
+    function mesDoDia20(iso) { var d = deISO(iso); var n = d.getFullYear() * 12 + d.getMonth(); return d.getDate() >= 20 ? n : n - 1; }
+    /* Primeiro domingo DEPOIS do dia 20 daquele mês */
+    function domingoDepoisDo20(n) {
+        var d = new Date(Math.floor(n / 12), n % 12, 20);
+        d.setDate(d.getDate() + (7 - d.getDay()));
+        return diaISO(d);
+    }
+    function mesversariosAnteriores(ignorar) {
+        var k = chaveNome(ANIVERSARIANTE);
+        return estado.eventos.filter(function (e) {
+            return e !== ignorar && chaveNome(e.titulo).indexOf(k) >= 0 && mesesDoTitulo(e.titulo) && /^\d{4}-\d{2}-\d{2}$/.test(e.data || "");
+        }).sort(function (a, b) { return mesesDoTitulo(a.titulo) - mesesDoTitulo(b.titulo) || (a.data || "").localeCompare(b.data || ""); });
+    }
+    function textoIdade(n, maiusc) {
+        var t = n % 12 === 0 ? (n / 12) + (n === 12 ? " ano" : " anos") : n + (n === 1 ? " mês" : " meses");
+        return maiusc ? t.replace(/\b(ano|anos|mês|meses)\b/, function (x) { return x[0].toUpperCase() + x.slice(1); }) : t;
+    }
+    /* Próximo mesversário: domingo depois do próximo dia 20 (que ainda não tenha evento) */
+    function proximoMesversario(ev) {
+        var ant = mesversariosAnteriores(ev);
+        var nasc = ant.length ? mesDoDia20(ant[0].data) - mesesDoTitulo(ant[0].titulo) : null;
+        var hoje = diaISO(new Date()), h = new Date(), n = h.getFullYear() * 12 + h.getMonth();
+        if (domingoDepoisDo20(n) < hoje) n++;
+        var feitos = ant.map(function (e) { return mesesDoTitulo(e.titulo); });
+        while (nasc !== null && feitos.indexOf(n - nasc) >= 0) n++;
+        return { data: domingoDepoisDo20(n), meses: nasc === null ? null : n - nasc, ultimo: ant[ant.length - 1] || null };
+    }
+    /* Título no padrão do último mesversário (ex.: "Heitor 2 Meses — Vingadores" -> "Heitor 3 Meses — Super Mario") */
+    function tituloMesversario(ultimo, meses, chave) {
+        var tema = nomeCurtoTema(chave), idade = meses ? textoIdade(meses, true) : "";
+        if (ultimo && meses) {
+            var tAnt = nomeCurtoTema(ultimo.tema), t = ultimo.titulo;
+            var reIdade = /\d+\s*(Meses|Mês|Mes|Anos|Ano|meses|mês|mes|anos|ano)\b/;
+            if (reIdade.test(t) && tAnt && t.indexOf(tAnt) >= 0) return t.replace(reIdade, idade).replace(tAnt, tema);
+        }
+        return ANIVERSARIANTE + (idade ? " " + idade : "") + " — " + tema;
+    }
+    function descricaoNovo(ev, ini, meses) {
+        var partes = [];
+        if (ini.mesv) partes.push("Nosso pequeno " + ANIVERSARIANTE + (meses ? " está completando " + textoIdade(meses) : " está fazendo mais um mesversário") + "! 👶🏻💙");
+        partes.push(fraseTema(ev.tema));
+        if (ini.alm) partes.push("Vai ter almoço com churrasco, então venha com fome! 🍖 Começamos às 13h.");
+        else if (ini.alm === false) partes.push((ini.mesv || (window.TEMAS[ev.tema] || {}).grupo === "infantil" ? "Vai ter bolo, salgadinhos e muita alegria." : "Vai ser uma tarde de muita alegria.") + " Começamos às 15h. 🎉");
+        return partes.join("\n\n");
+    }
+    function preencherNovo(ev) {
+        var ini = ev._ini;
+        if (!ini) return;
+        var mx = ini.mexeu, info = ini.mesv ? proximoMesversario(ev) : null, f = {};
+        /* Local, mapa, coordenadas, playlist e álbuns: iguais aos do último mesversário (vale para qualquer evento novo) */
+        var ant = mesversariosAnteriores(ev), modelo = ant.length ? ant.sort(function (a, b) { return (a.data || "").localeCompare(b.data || ""); })[ant.length - 1] : null;
+        f.cidade = "Santana do Paraíso";
+        if (ini.mesv) {
+            f.titulo = tituloMesversario(info.ultimo, info.meses, ev.tema);
+            f.data = info.data;
+        } else {
+            f.titulo = ev.tema === "padrao" ? "" : (window.TEMAS[ev.tema].grupo === "infantil" ? "Festa " : "") + nomeCurtoTema(ev.tema);
+        }
+        if (ini.alm !== null) f.hora = ini.alm ? "13:00" : "15:00";
+        if (modelo) ["local", "endereco", "mapa", "lat", "lon", "playlist", "album", "albumGoogle"].forEach(function (k) { if (modelo[k] !== undefined && modelo[k] !== "") f[k] = modelo[k]; });
+        if (ev.tema !== "padrao" || ini.mesv) f.descricao = descricaoNovo(ev, ini, info && info.meses);
+        Object.keys(f).forEach(function (k) {
+            if (mx[k]) return;
+            ev[k] = f[k];
+            var el = document.getElementById("c-" + k);
+            if (el) el.value = f[k] == null ? "" : f[k];
+        });
+        /* Nome curto do link: igual ao título (mesversário) ou tema + ano */
+        if (!mx.id && ev.titulo) {
+            var id = idLivre(slug(ev.titulo) + (ini.mesv ? "" : "-" + String(ev.data || "").slice(0, 4)), ev);
+            trocarId(ev, id);
+            var ci = document.getElementById("c-id");
+            if (ci) { ci.value = id; ci.classList.remove("erro"); }
+        }
+        /* Almoço -> tem churrasco; sem almoço -> sem churrasco (aba Compras e tarefas) */
+        if (ini.alm !== null) {
+            var c = estado.tarefas[ev.id];
+            if (!c || ini.cron) {
+                var tem = c && c.tem ? c.tem : null;
+                c = estado.tarefas[ev.id] = { base: ev.data, itens: montarTarefas(ev) };
+                if (tem) c.tem = tem;
+                ini.cron = true;
+            } else if (c.base !== ev.data) {
+                var dd = difDias(ev.data, c.base);
+                c.itens.forEach(function (t) { t.dia = somarDias(t.dia, dd); });
+                c.base = ev.data;
+            }
+            var tm = itensCompras(ev);
+            tm.almoco = !!ini.alm; tm.churrasco = !!ini.alm;
+            c.tem = tm;
+        }
+        var h2 = painel.querySelector(".editor-topo h2");
+        if (h2) h2.textContent = ev.titulo || "Novo evento";
+        var r = document.getElementById("resumo-ini");
+        if (r) r.innerHTML = resumoNovo(ev);
+        marcarSujo();
+        atualizarPrevias(ev);
+        atualizarLista(); amostra();
+    }
+    function resumoNovo(ev) {
+        var ini = ev._ini;
+        if (ev.tema === "padrao" && ini.mesv === null && ini.alm === null) return "Escolha o tema e responda as duas perguntas: eu preencho o resto.";
+        var l = [];
+        if (ini.mesv && ev.data) l.push("📅 Data: <b>" + esc(EV.dataLonga(ev)) + "</b> (domingo depois do dia 20)");
+        if (ini.alm === true) l.push("🍖 Com almoço às 13h: churrasco marcado em Compras e nas Tarefas");
+        if (ini.alm === false) l.push("🎂 Sem almoço, às 15h: sem churrasco em Compras e nas Tarefas");
+        return l.length ? "✅ Preenchido. " + l.join(" • ") + ". Confira abaixo e mude o que quiser." : "✅ Preenchido. Confira abaixo e mude o que quiser.";
+    }
+    function inicioNovoHTML(ev, seletor) {
+        var ini = ev._ini;
+        function sn(k, sim, nao) {
+            var v = ini[k];
+            return '<span class="opcoes"><button type="button" data-acao="ini" data-k="' + k + '" data-v="1"' + (v === true ? ' class="ativa"' : "") + '>' + sim + '</button>' +
+                '<button type="button" data-acao="ini" data-k="' + k + '" data-v="0"' + (v === false ? ' class="ativa"' : "") + '>' + nao + '</button></span>';
+        }
+        return '<div class="inicio-novo"><h3>✨ Comece por aqui</h3>' + seletor +
+            '<div class="pergunta-ini' + (ini.mesv === null ? " falta" : "") + '"><span class="q">🎂 É mesversário do ' + ANIVERSARIANTE + '?</span>' + sn("mesv", "Sim", "Não") + '</div>' +
+            '<div class="pergunta-ini' + (ini.alm === null ? " falta" : "") + '"><span class="q">🍖 Tem almoço?</span>' + sn("alm", "Sim, 13h 🍖", "Não, 15h") + '</div>' +
+            '<p class="resumo-ini" id="resumo-ini">' + resumoNovo(ev) + '</p></div>';
+    }
+
     /* Emoji do tema para o convite do WhatsApp (se o emoji for imagem, usa 🎉) */
     function emojiConvite(ev) {
         var e = String(ev.emoji || (window.TEMAS[ev.tema] || window.TEMAS.padrao).emoji || "");
@@ -2225,8 +2367,11 @@ body.seq-aberto{ overflow:hidden; }
         function cor(k, rot) {
             return '<label>' + rot + '<input type="color" data-cor="' + k + '" value="' + esc(c[k] || t[k]) + '"></label>';
         }
+        var seletor = '<div class="campo m3"><label for="c-tema">Tema</label><select id="c-tema" data-c="tema">' + (ev.tema === "padrao" && ev._ini ? '<option value="padrao" selected>Escolha o tema...</option>' : "") + opcoes + '</select></div>';
         return '<div class="campos">' +
+            (ev._ini ? inicioNovoHTML(ev, seletor) : "") +
             '<div class="secao-form">O evento</div>' +
+            (ev._ini ? "" : seletor) +
             campo("titulo", "Título *", ev.titulo || "", { ph: "Ex.: Heloísa 2 Anos" }) +
             campo("data", "Data *", ev.data || "", { tipo: "date", cls: "m2" }) +
             campo("hora", "Horário", ev.hora || "", { cls: "m2", ph: "15:00 ou 15:00 às 21:00" }) +
@@ -2242,8 +2387,7 @@ body.seq-aberto{ overflow:hidden; }
             campo("lon", "Longitude (opcional)", ev.lon == null ? "" : ev.lon, { cls: "m2", ph: "-42.569" }) +
 
             '<div class="secao-form">Tema e cores</div>' +
-            '<div class="campo m3"><label for="c-tema">Tema</label><select id="c-tema" data-c="tema">' + opcoes + '</select></div>' +
-            campo("emoji", "Emoji (opcional)", ev.emoji || "", { cls: "m3", ph: t.emoji, dica: "Troca o emoji do tema." }) +
+            campo("emoji", "Emoji (opcional)", ev.emoji || "", { cls: "m6", ph: t.emoji, dica: "Troca o emoji do tema." }) +
             '<div class="campo"><label class="check"><input type="checkbox" id="usar-cores"' + (ev.cores ? " checked" : "") + '> Usar cores próprias</label>' +
                 '<div class="cores' + (ev.cores ? "" : " oculto") + '" id="cores">' +
                     cor("fundo1", "Fundo 1") + cor("fundo2", "Fundo 2") + cor("destaque", "Destaque") + cor("titulo", "Título") + cor("texto", "Texto") +
@@ -2607,6 +2751,7 @@ body.seq-aberto{ overflow:hidden; }
 
         /* Tarefas: o texto muda na hora; dia e horários reorganizam a lista ao sair do campo */
         if (el.hasAttribute("data-tf")) {
+            if (ev._ini) ev._ini.cron = false;   // mexeu nas tarefas: não monto de novo
             var tf = el.getAttribute("data-tf"), tt = tarefa(ev, el.getAttribute("data-id"));
             if (!tt || tf === "feito") return;
             if (tf === "dia" && !/^\d{4}-\d{2}-\d{2}$/.test(el.value)) return;
@@ -2685,9 +2830,11 @@ body.seq-aberto{ overflow:hidden; }
         if (c === "lat" || c === "lon") v = v === "" || isNaN(+v) ? "" : +v;
         var temaAntigo = ev.tema;
         ev[c] = v;
+        if (ev._ini && c !== "tema") ev._ini.mexeu[c] = true;   // a pessoa escreveu: não preencho mais este campo
         /* Trocou o tema na lista: descrição e ideias do tema novo */
         if (c === "tema") {
-            trocarDescricaoDoTema(ev, temaAntigo);
+            if (ev._ini) { delete ev.cores; delete ev.emoji; preencherNovo(ev); }
+            else trocarDescricaoDoTema(ev, temaAntigo);
             var bi = document.getElementById("ideias-det");
             if (bi) bi.innerHTML = ideiasTema(v);
             var ce = document.getElementById("c-emoji");
@@ -2695,7 +2842,7 @@ body.seq-aberto{ overflow:hidden; }
         }
 
         /* Evento novo: o link acompanha o título até ser salvo */
-        if (c === "titulo" && ev._novo) {
+        if (c === "titulo" && ev._novo && !(ev._ini && ev._ini.mexeu.id)) {
             var id = idLivre(slug(v), ev);
             trocarId(ev, id);
             var campoId = document.getElementById("c-id");
@@ -2711,6 +2858,7 @@ body.seq-aberto{ overflow:hidden; }
         var ev = atual && evento(atual), el = e.target;
         if (!ev) return;
         if (el.hasAttribute("data-tf")) {
+            if (ev._ini) ev._ini.cron = false;   // mexeu nas tarefas: não monto de novo
             var tf = el.getAttribute("data-tf"), tt = tarefa(ev, el.getAttribute("data-id"));
             if (!tt) return;
             if (tf === "feito") {
@@ -2881,14 +3029,24 @@ body.seq-aberto{ overflow:hidden; }
                 var hoje = new Date(); hoje.setDate(hoje.getDate() + 30);
                 var novo = {
                     id: idLivre("novo-evento"), titulo: "", data: hoje.toISOString().slice(0, 10), hora: "",
-                    local: "", endereco: "", cidade: "Ipatinga", tema: "padrao", descricao: "", playlist: "",
-                    fotos: [], album: "", rascunho: true, _novo: true
+                    local: "", endereco: "", cidade: "Santana do Paraíso", tema: "padrao", descricao: "", playlist: "",
+                    fotos: [], album: "", rascunho: true, _novo: true,
+                    _ini: { mesv: null, alm: null, mexeu: {}, cron: true }
                 };
                 estado.eventos.unshift(novo);
                 aba = "detalhes";
                 marcarSujo();
                 abrir(novo.id);
-                document.getElementById("c-titulo").focus();
+                preencherNovo(novo);
+                document.getElementById("c-tema").focus();
+                break;
+
+            case "ini":
+                if (!ev._ini) break;
+                ev._ini[alvo.getAttribute("data-k")] = alvo.getAttribute("data-v") === "1";
+                alvo.parentNode.querySelectorAll("button").forEach(function (b) { b.classList.toggle("ativa", b === alvo); });
+                alvo.closest(".pergunta-ini").classList.remove("falta");
+                preencherNovo(ev);
                 break;
 
             case "voltar-lista":
@@ -3228,7 +3386,7 @@ body.seq-aberto{ overflow:hidden; }
                     return o; });
             if (l.length) conv[ev.id] = l;
         });
-        var eventos = estado.eventos.map(function (ev) { var o = copia(ev); delete o._novo; return limpo(o); });
+        var eventos = estado.eventos.map(function (ev) { var o = copia(ev); delete o._novo; delete o._ini; return limpo(o); });
         var tarefas = {};
         estado.eventos.forEach(function (ev) {
             var c = estado.tarefas[ev.id];
@@ -3263,7 +3421,7 @@ body.seq-aberto{ overflow:hidden; }
         .then(function (d) {
             if (d._status !== 200) throw new Error(d.erro || "Erro " + d._status);
             estado.versao = d.versao;
-            estado.eventos.forEach(function (ev) { delete ev._novo; });
+            estado.eventos.forEach(function (ev) { delete ev._novo; delete ev._ini; });
             sujo = false;
             mostrarBarra(typeof silencioso === "string" ? silencioso : silencioso ? "Convite marcado como enviado ✓" : "Tudo salvo ✓ O site atualiza em até 1 minuto.", false);
             setTimeout(function () { if (!sujo) document.getElementById("barra").classList.remove("visivel"); }, 4000);
