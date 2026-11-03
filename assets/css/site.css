@@ -257,3 +257,11 @@ h1,h2,h3{
     .topo .logo-grupo{ font-size:24px; }
     .grade-contato{ grid-template-columns:1fr; }
 }
+
+/* Área do organizador: link discreto para o painel (/admin/) */
+.link-organizador{
+    display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:500; text-decoration:none;
+    color:inherit; opacity:.75; border:1px solid currentColor; border-radius:999px; padding:5px 14px;
+}
+.link-organizador:hover{ opacity:1; }
+.organizador-fim{ text-align:center; margin-top:34px; color:var(--texto-claro, #5B6785); }

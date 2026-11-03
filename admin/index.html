@@ -596,9 +596,7 @@ body.seq-aberto{ overflow:hidden; }
             caixa.querySelector("[data-fechar-previa]").onclick = fecharPrevia;
             document.addEventListener("keydown", function (e) { if (e.key === "Escape" && caixa.classList.contains("aberta")) fecharPrevia(); });
         }
-        caixa.querySelector(".previa-nota").textContent = ev.rascunho
-            ? "Assim os convidados vão ver. Ainda é rascunho: ninguém vê até você publicar."
-            : "Assim os convidados vão ver, já com o que você mudou (mesmo sem salvar).";
+        caixa.querySelector(".previa-nota").textContent = "Assim os convidados vão ver (mesmo sem salvar). É rascunho: fica fora da lista de eventos, só abre pelo link do convite.";
         caixa.querySelector("iframe").src = "/eventos/evento?previa=1&id=" + encodeURIComponent(ev.id) + "&t=" + Date.now();
         caixa.classList.add("aberta");
         document.body.style.overflow = "hidden";
@@ -833,8 +831,8 @@ body.seq-aberto{ overflow:hidden; }
     }
 
     function acoesTopoHTML(ev) {
-        return '<button class="b pequeno' + (ev.rascunho ? " cheio" : "") + '" data-acao="previa">👁️ Ver prévia</button>' +
-            (ev.rascunho ? "" : '<a class="b pequeno" href="/eventos/evento?id=' + encodeURIComponent(ev.id) + '" target="_blank" rel="noopener">Ver página</a>') +
+        return (ev.rascunho ? '<button class="b pequeno cheio" data-acao="previa">👁️ Ver prévia</button>'
+                : '<a class="b pequeno" href="/eventos/evento?id=' + encodeURIComponent(ev.id) + '" target="_blank" rel="noopener">Ver página</a>') +
             '<button class="b pequeno" data-acao="duplicar">Duplicar</button>' +
             '<button class="b pequeno perigo" data-acao="excluir">Excluir</button>';
     }
@@ -2542,8 +2540,8 @@ body.seq-aberto{ overflow:hidden; }
             (ev._ini ? "" : campoCapa(ev)) +
 
             '<div class="secao-form">Publicação</div>' +
-            '<div class="campo"><label class="check"><input type="checkbox" data-c="rascunho"' + (ev.rascunho ? " checked" : "") + '> Rascunho: esconder este evento do site</label>' +
-                '<span class="dica">Use enquanto ainda está preenchendo. Você pode mandar convites mesmo assim.</span></div>' +
+            '<div class="campo"><label class="check"><input type="checkbox" data-c="rascunho"' + (ev.rascunho ? " checked" : "") + '> Rascunho: esconder este evento da lista do site</label>' +
+                '<span class="dica">Use enquanto ainda está preenchendo. O evento some da lista de eventos, mas quem recebe o convite abre a página pelo link normalmente.</span></div>' +
         '</div>';
     }
 
