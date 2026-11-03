@@ -23,6 +23,7 @@ self.addEventListener("activate", function (e) {
 function naoGuardar(url) {
     return /^\/(api|admin)(\/|$)/.test(url.pathname) ||
         /^\/eventos\/(confirmar|totais|dados)$/.test(url.pathname) ||
+        url.searchParams.has("previa") ||
         /^\/sports\/(admin|api|img)(\/|$)/.test(url.pathname);
 }
 
