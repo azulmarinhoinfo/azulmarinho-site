@@ -402,6 +402,11 @@ body.seq-aberto{ overflow:hidden; }
 .ver-info:hover, .ver-info.aberta{ background:var(--ciano); color:#fff; }
 .b-padrao{ margin:5px 0 0 6px; border:1.5px solid #F59E0B; background:#FFFBEB; color:#92400E; border-radius:999px; padding:3px 10px; font:600 12.5px "Ubuntu",sans-serif; cursor:pointer; }
 .b-padrao:hover{ background:#F59E0B; color:#fff; }
+.selo-piscina{ display:inline-block; margin:5px 0 0 6px; border:1.5px solid #00ADEF; background:#E6F7FD; color:#075985; border-radius:999px; padding:3px 10px; font:600 12.5px "Ubuntu",sans-serif; }
+.linha-tarefa input:disabled{ opacity:1; background:#F1F5F9; color:var(--texto-claro); cursor:not-allowed; }
+.remover.vazio{ display:inline-block; width:32px; cursor:default; }
+.remover.vazio:hover{ background:none; }
+.passos-piscina{ margin:8px 0 10px 20px; line-height:1.6; }
 .b-padrao.igual{ border-color:var(--borda); background:transparent; color:var(--texto-claro); font-weight:500; }
 .b-padrao.igual:hover{ background:var(--borda); color:var(--texto); }
 .info-tarefa{ grid-column:1 / -1; margin:6px 8px 4px 30px; background:var(--branco); border:1.5px solid #7DD3FC; border-radius:14px; padding:14px 16px; }
@@ -798,6 +803,7 @@ body.seq-aberto{ overflow:hidden; }
         atual = evento(pedido) ? pedido : null;
 
         desenhar();
+        carregarPiscina();
         if (novas) mostrarBarra(novas + (novas === 1 ? " convidado respondeu" : " convidados responderam") + " pelo link do convite (já marcado na lista).", false);
         if (primeiraVez) {
             marcarSujo();
@@ -1302,7 +1308,7 @@ body.seq-aberto{ overflow:hidden; }
         ["Depois", "Devolver o que foi emprestado", 1, "14:00", "15:30"],
         ["Depois", "Agradecer com o link das fotos", 1, "19:00", "19:30"]
     ];
-    var GRUPOS_TAREFA = [["Planejamento", "💡"], ["Convites", "💌"], ["Encomendas", "🎂"], ["Compras", "🛒"], ["Limpeza", "🧹"],
+    var GRUPOS_TAREFA = [["Planejamento", "💡"], ["Convites", "💌"], ["Encomendas", "🎂"], ["Compras", "🛒"], ["Limpeza", "🧹"], ["Piscina", "🏊"],
         ["Casa", "🏠"], ["Montagem", "🔧"], ["Dia da festa", "🎉"], ["Depois", "📸"], ["Outras", "📌"]];
     var SEMANA = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
     var MESES_T = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
@@ -1466,9 +1472,90 @@ body.seq-aberto{ overflow:hidden; }
             marcarSujo();
             mostrarBarra("Montei o cronograma padrão deste evento. Mude o que quiser e clique em Salvar.", false);
         }
+        sincronizarPiscina(ev, c);
         return c;
     }
     function tarefa(ev, id) { return cronograma(ev).itens.filter(function (t) { return t.id === id; })[0]; }
+
+    /* ---------------- Piscina: a rotina de limpeza entra nas tarefas da semana da festa ----------------
+       A agenda vem da página da Piscina (piscina/agenda.js + a Semana 1 escolhida lá), então os dias e horários são
+       sempre os mesmos dela. Cada tarefa da piscina guarda o dia de origem (t.pis); dia e horário não se mudam aqui.
+       Vai de 7 dias antes da festa até o dia da festa. Se uma tarefa do evento cair no mesmo horário, ela vai para antes. */
+    var PISCINA = null, PISCINA_DIAS_ANTES = 7;
+    function carregarPiscina() {
+        var cfg = fetch("/api/piscina/config", { credentials: "same-origin", cache: "no-store" })
+            .then(function (r) { return r.ok ? r.json() : {}; }).catch(function () { return {}; });
+        Promise.all([import("/piscina/agenda.js"), cfg]).then(function (r) {
+            PISCINA = { mod: r[0], cfg: r[1] || {} };
+            if (atual && evento(atual)) redesenharTarefas();
+        }).catch(function () {});
+    }
+    function rotinaPiscina(ev) {
+        if (!PISCINA || !ev.data) return [];
+        var l = [], ini = PISCINA.cfg.inicioSemana1 || PISCINA.mod.INICIO_PADRAO;
+        for (var n = -PISCINA_DIAS_ANTES; n <= 0; n++) {
+            var d = somarDias(ev.data, n), x = PISCINA.mod.tarefasDoDia(d, ini);
+            if (x) l.push({ dia: d, x: x });
+        }
+        return l;
+    }
+    function tituloPiscina(x) { return "Piscina: " + x.curto + (x.opcional && !/opcional/i.test(x.curto) ? " (opcional)" : ""); }
+    /* Uma tarefa do evento que bate com a da piscina vai para o horário livre mais perto, antes da piscina */
+    function desviarDaPiscina(c, p, movidas) {
+        var fp = faixa(p);
+        c.itens.forEach(function (t) {
+            if (t === p || t.pis || t.feito || t.dia !== p.dia || !t.ini) return;
+            var ft = faixa(t);
+            if (!(ft.i < fp.f && fp.i < ft.f)) return;
+            var dur = ft.f - ft.i, ocupadas = c.itens.filter(function (x) { return x !== t && !x.feito && x.dia === p.dia && x.ini; }).map(faixa);
+            for (var i = Math.floor((fp.i - dur) / 15) * 15; i >= 7 * 60; i -= 15) {
+                if (ocupadas.every(function (o) { return !(i < o.f && o.i < i + dur); })) {
+                    t.ini = hhmm(i); t.fim = hhmm(i + dur); movidas.push(t);
+                    return;
+                }
+            }
+        });
+    }
+    function sincronizarPiscina(ev, c) {
+        if (!PISCINA || !ev.data || ev.data < agora().dia || !Array.isArray(c.itens)) return;
+        var rot = rotinaPiscina(ev), por = {}, mudou = false, novas = [], movidas = [];
+        rot.forEach(function (r) { por[r.dia] = r; });
+        c.itens = c.itens.filter(function (t) {
+            if (!t.pis || por[t.pis] || t.feito) return true;
+            mudou = true;          // a festa mudou de data: a piscina daquele dia não é mais da semana da festa
+            return false;
+        });
+        rot.forEach(function (r) {
+            var t = c.itens.filter(function (x) { return x.pis === r.dia; })[0];
+            var ini = r.x.hora, fim = hhmm(minutos(ini) + r.x.minutos), titulo = tituloPiscina(r.x);
+            if (!t) {
+                t = { id: "t" + novoCodigo().slice(0, 8), g: "Piscina", t: titulo, pis: r.dia, dia: r.dia, ini: ini, fim: fim };
+                c.itens.push(t); novas.push(t); mudou = true;
+            } else if (t.t !== titulo || t.dia !== r.dia || t.ini !== ini || t.fim !== fim || t.g !== "Piscina") {
+                t.t = titulo; t.dia = r.dia; t.ini = ini; t.fim = fim; t.g = "Piscina"; mudou = true;
+            }
+        });
+        novas.forEach(function (p) { desviarDaPiscina(c, p, movidas); });
+        if (!mudou) return;
+        c.itens.sort(ordemTarefa);
+        marcarSujo();
+        if (novas.length) mostrarBarra("🏊 Coloquei " + plural(novas.length, "tarefa da piscina", "tarefas da piscina") + " na semana da festa (" +
+            diaCurto(novas[0].dia) + (novas.length > 1 ? " a " + diaCurto(novas[novas.length - 1].dia) : "") + ")" +
+            (movidas.length ? ". Para não bater com a piscina, mudei o horário de: " + movidas.map(function (t) { return t.t + " (" + t.ini + ")"; }).join(", ") : "") +
+            ". Clique em Salvar.", false);
+    }
+    function ligacaoPiscina(ev, t) {
+        var x = PISCINA && PISCINA.mod.tarefasDoDia(t.pis, PISCINA.cfg.inicioSemana1 || PISCINA.mod.INICIO_PADRAO);
+        return {
+            botao: "🏊 Ver os passos",
+            resumo: x ? x.nome + " · Semana " + x.semana : "da agenda da Piscina",
+            html: (x ? '<p class="nota-info">' + esc(x.nome) + ", " + x.hora + " (cerca de " + horasTexto(x.minutos) + "), Semana " + x.semana +
+                (x.semana === 1 ? " (com algicida)" : " (sem algicida)") + ". Os passos são os mesmos da página da Piscina.</p>" +
+                '<ol class="passos-piscina">' + x.tarefas.map(function (p) { return '<li>' + esc(p) + '</li>'; }).join("") + '</ol>'
+                : '<p class="nota-info">Carregando os passos da Piscina…</p>') +
+                '<div class="acoes-info"><a class="b pequeno" href="/piscina/" target="piscina" rel="noopener">Abrir o plano da Piscina</a></div>'
+        };
+    }
 
     function agora() { var a = new Date(); return { dia: diaISO(a), min: a.getHours() * 60 + a.getMinutes() }; }
     function situacaoTarefa(t, a) {
@@ -1573,24 +1660,25 @@ body.seq-aberto{ overflow:hidden; }
                 (dia === a.dia ? '<span class="hj">hoje</span>' : "") + '</h3><ul>' +
                 porDia[dia].map(function (t) {
                     var antes = tarefaAntes(ev, t), lg = antes ? null : ligacoes(ev, t), aberta = lg && infoAberta[t.id];
+                    var tranca = t.pis ? ' disabled title="Dia e horário da agenda da Piscina"' : '';
                     var s = situacaoTarefa(t, a), invertido = minutos(t.fim) != null && minutos(t.ini) != null && minutos(t.fim) <= minutos(t.ini);
                     return '<li class="linha-tarefa s-' + s + '" data-linha-tarefa="' + t.id + '">' +
                         '<input type="checkbox" class="ok" data-tf="feito" data-id="' + t.id + '"' + (t.feito ? " checked" : "") + ' title="Marcar como feita" aria-label="Feita">' +
-                        '<span class="tt-box"><input type="text" data-tf="t" data-id="' + t.id + '" value="' + esc(t.t) + '" aria-label="Tarefa">' +
+                        '<span class="tt-box"><input type="text" data-tf="t" data-id="' + t.id + '" value="' + esc(t.t) + '" aria-label="Tarefa"' + (t.pis ? ' readonly title="Vem da agenda da Piscina"' : '') + '>' +
                             '<small>' + iconeGrupo(t.g) + " " + esc(t.g || "Outras") + (lg && lg.resumo ? ' · <span class="resumo-t">' + esc(lg.resumo) + '</span>' : '') + '</small>' +
                             (lg ? '<button class="ver-info' + (aberta ? ' aberta' : '') + '" data-acao="info-abrir" data-id="' + t.id + '" aria-expanded="' + (aberta ? 'true' : 'false') + '">' + lg.botao + (aberta ? ' ▴' : ' ▾') + '</button>' : '') +
-                            botaoPadrao(ev, t) + '</span>' +
+                            (t.pis ? '<span class="selo-piscina" title="Os dias e horários vêm da página da Piscina">🏊 da agenda da Piscina</span>' : botaoPadrao(ev, t)) + '</span>' +
                         '<span class="quando">' +
                             (antes ? '<span class="selo-t trancada" title="Faça antes: ' + esc(antes.t) + '">🔒 depois de ' + esc(antes.t) + '</span>' : "") +
                             (s === "feita" ? '<span class="selo-t feita">Feita ✓</span>' : s === "atrasada" ? '<span class="selo-t atrasada">Atrasada</span>' : s === "agora" ? '<span class="selo-t agora">Agora</span>' : "") +
                             (ch[t.id] ? '<span class="selo-t choque" title="Outra tarefa no mesmo horário">⚠️ mesmo horário</span>' : "") +
                             (invertido ? '<span class="selo-t choque">⚠️ termina antes de começar</span>' : "") +
-                            '<input type="date" data-tf="dia" data-id="' + t.id + '" value="' + esc(t.dia) + '" aria-label="Dia">' +
-                            '<input type="time" data-tf="ini" data-id="' + t.id + '" value="' + esc(t.ini || "") + '" aria-label="Começa">' +
+                            '<input type="date" data-tf="dia" data-id="' + t.id + '" value="' + esc(t.dia) + '" aria-label="Dia"' + tranca + '>' +
+                            '<input type="time" data-tf="ini" data-id="' + t.id + '" value="' + esc(t.ini || "") + '" aria-label="Começa"' + tranca + '>' +
                             '<span class="as">às</span>' +
-                            '<input type="time" data-tf="fim" data-id="' + t.id + '" value="' + esc(t.fim || "") + '" aria-label="Termina">' +
+                            '<input type="time" data-tf="fim" data-id="' + t.id + '" value="' + esc(t.fim || "") + '" aria-label="Termina"' + tranca + '>' +
                         '</span>' +
-                        '<button class="remover" data-acao="tarefa-remover" data-id="' + t.id + '" title="Apagar tarefa" aria-label="Apagar ' + esc(t.t) + '">×</button>' +
+                        (t.pis ? '<span class="remover vazio" aria-hidden="true"></span>' : '<button class="remover" data-acao="tarefa-remover" data-id="' + t.id + '" title="Apagar tarefa" aria-label="Apagar ' + esc(t.t) + '">×</button>') +
                         (aberta ? '<div class="info-tarefa">' + lg.html + '</div>' : '') +
                     '</li>';
                 }).join("") + '</ul></div>';
@@ -2175,6 +2263,7 @@ body.seq-aberto{ overflow:hidden; }
     ];
 
     function ligacoes(ev, t) {
+        if (t.pis) return ligacaoPiscina(ev, t);
         var k = chaveNome(t.t), id = t.id, n = 0, partes = [], botao = "", resumo = "";
         function copiar(texto, rotulo) {
             var key = id + ":" + (n++);
@@ -2979,7 +3068,7 @@ body.seq-aberto{ overflow:hidden; }
         if (el.hasAttribute("data-tf")) {
             if (ev._ini) ev._ini.cron = false;   // mexeu nas tarefas: não monto de novo
             var tf = el.getAttribute("data-tf"), tt = tarefa(ev, el.getAttribute("data-id"));
-            if (!tt || tf === "feito") return;
+            if (!tt || tf === "feito" || tt.pis) return;
             if (tf === "dia" && !/^\d{4}-\d{2}-\d{2}$/.test(el.value)) return;
             tt[tf] = el.value;
             marcarSujo();
@@ -3490,6 +3579,7 @@ body.seq-aberto{ overflow:hidden; }
             }
             case "tarefa-remover":
                 var tr = tarefa(ev, alvo.getAttribute("data-id"));
+                if (tr && tr.pis) { mostrarBarra("Essa tarefa vem da agenda da Piscina. Para mudar, mude na página da Piscina.", false); break; }
                 if (tr && confirm("Apagar a tarefa \"" + tr.t + "\"?")) {
                     cronograma(ev).itens = cronograma(ev).itens.filter(function (t) { return t !== tr; });
                     marcarSujo(); redesenharTarefas();
@@ -3517,7 +3607,7 @@ body.seq-aberto{ overflow:hidden; }
 
             case "tarefas-guardar-padrao":
                 if (!confirm("Usar as tarefas deste evento como padrão para os próximos eventos?\n\nOs dias ficam contados a partir da data da festa (ex.: 3 dias antes). Os eventos que já têm cronograma não mudam.\n\nIsso só vale depois de Salvar.")) break;
-                estado.tarefasPadrao = cronograma(ev).itens.slice().sort(ordemTarefa).map(function (t) {
+                estado.tarefasPadrao = cronograma(ev).itens.filter(function (t) { return !t.pis; }).sort(ordemTarefa).map(function (t) {
                     return [t.g || "Outras", t.t, difDias(t.dia, ev.data), t.ini || "", t.fim || ""];
                 });
                 marcarSujo(); redesenharTarefas();
@@ -3656,7 +3746,7 @@ body.seq-aberto{ overflow:hidden; }
             var c = estado.tarefas[ev.id];
             if (!c) return;
             tarefas[ev.id] = { base: c.base || ev.data, itens: c.itens.filter(function (t) { return String(t.t || "").trim() && /^\d{4}-\d{2}-\d{2}$/.test(t.dia || ""); })
-                .map(function (t) { var o = { id: t.id, t: String(t.t).trim(), g: t.g || "Outras", dia: t.dia, ini: t.ini || "", fim: t.fim || "" }; if (t.feito) o.feito = true; if (t.p) o.p = String(t.p); return o; }) };
+                .map(function (t) { var o = { id: t.id, t: String(t.t).trim(), g: t.g || "Outras", dia: t.dia, ini: t.ini || "", fim: t.fim || "" }; if (t.feito) o.feito = true; if (t.p) o.p = String(t.p); if (t.pis) o.pis = String(t.pis); return o; }) };
             if (c.tem && typeof c.tem === "object") tarefas[ev.id].tem = c.tem;
         });
 
