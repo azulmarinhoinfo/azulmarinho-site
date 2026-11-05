@@ -3,7 +3,7 @@
    Só funciona com o login do Cloudflare Access (lib/acesso.js).
    Os dados ficam no KV "DADOS" do Cloudflare, fora do GitHub:
      eventos     lista de eventos (a mesma estrutura de eventos.js)
-     convidados  { "id-do-evento": [ { nome, whats, enviado, confirmado,
+     convidados  { "id-do-evento": [ { nome, whats, enviado, confirmado, noGrupo (já está no grupo do WhatsApp),
                    naoVai, tipo: "adulto"|"crianca", sexo: "m"|"f", idade,
                    c: código do link de confirmação, respEm: última resposta já aplicada } ] }
      resposta:<evento>:<código>  resposta do convidado pelo link (functions/eventos/confirmar.js),
