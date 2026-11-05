@@ -142,6 +142,7 @@ body{ background:var(--fundo-suave); }
 .marca input{ width:15px; height:15px; margin:0; accent-color:var(--ciano); }
 .marca:has(input:checked){ border-color:var(--ciano); background:var(--ciano-claro); color:var(--marinho); font-weight:500; }
 .marca.conf:has(input:checked){ border-color:#16A34A; background:#DCFCE7; color:#14532D; }
+.marca.grp:has(input:checked){ border-color:#25D366; background:#E7FBEF; color:#075E54; }
 .marca.nao:has(input:checked){ border-color:#E11D48; background:#FFE4E6; color:#881337; }
 .pelo-link{ font-size:12px; color:var(--texto-claro); white-space:nowrap; }
 .opcoes{ display:inline-flex; border:1.5px solid var(--borda); border-radius:999px; overflow:hidden; background:var(--branco); }
@@ -2270,12 +2271,22 @@ body.seq-aberto{ overflow:hidden; }
         else if (/confirm/.test(k) && /presenc/.test(k)) {
             var vai = lista.filter(function (p) { return p.confirmado; }).length, nao = lista.filter(function (p) { return p.naoVai; }).length;
             var sem = lista.filter(function (p) { return situacao(p) === "sem"; });
-            botao = "✅ Ver respostas"; resumo = "✅ " + vai + " vão • ❌ " + nao + " não vão • ⏳ " + sem.length + " sem resposta";
+            var confG = lista.filter(function (p) { return p.confirmado; }), noG = confG.filter(function (p) { return p.noGrupo; }).length;
+            var faltaG = confG.filter(function (p) { return !p.noGrupo; });
+            botao = "✅ Ver respostas"; resumo = "✅ " + vai + " vão • ❌ " + nao + " não vão • ⏳ " + sem.length + " sem resposta" + (confG.length ? " • 👥 " + noG + " de " + confG.length + " no grupo" : "");
             var nCob = filaCobrar(ev).length;
             partes.push('<p class="nota-info">Para quem recebeu o convite e ainda não respondeu, mande um <b>pedido de confirmação</b>: é uma mensagem diferente do convite, explicando por que a resposta é importante, com o link para tocar em Vou ou Não vou.</p>' +
                 (nCob ? '<div class="acoes-info"><button class="b verde" data-acao="sequencia-cobrar">' + I.whats + 'Pedir confirmação em sequência (' + nCob + ')</button></div>' : '') +
                 '<details class="ver-convite"><summary>👀 Ver a mensagem do pedido</summary><pre class="texto-pronto">' + esc(textoCobranca(ev, { nome: "Fulano", c: "codigo" }).replace("&c=codigo", "&c=…")) + '</pre></details>' +
                 '<div class="mini-totais"><span class="v">✅ <b>' + vai + '</b> vão</span><span class="x">❌ <b>' + nao + '</b> não vão</span><span class="s">⏳ <b>' + sem.length + '</b> sem resposta</span></div>' +
+                '<div class="subtitulo-info">👥 Grupo do WhatsApp (<span class="cont-grupo">' + noG + '</span> de ' + confG.length + ' confirmados já estão no grupo)</div>' +
+                (confG.length ? '<p class="nota-info">Quem confirmou precisa estar no grupo do WhatsApp do evento. Coloque a pessoa no grupo e marque <b>Já está no grupo</b>.</p>' +
+                    '<ul class="pessoas-info lista-grupo">' + confG.map(function (p) {
+                        return '<li><span>' + esc(p.nome) + (p.whats ? ' <small>' + esc(p.whats) + '</small>' : ' <small>(sem WhatsApp)</small>') + '</span>' +
+                            '<label class="marca conf"><input type="checkbox" data-grp data-i="' + convidados(ev.id).indexOf(p) + '"' + (p.noGrupo ? " checked" : "") + '>Já está no grupo</label></li>';
+                    }).join("") + '</ul>' +
+                    (faltaG.length ? '<div class="acoes-info">' + copiar("Colocar no grupo do WhatsApp (" + ev.titulo + "):\n" + faltaG.map(function (p) { return "• " + p.nome + (p.whats ? " — " + p.whats : ""); }).join("\n"), "📋 Copiar quem falta pôr no grupo") + '</div>' : '')
+                  : '<p class="nota-info">Quando alguém confirmar, o nome aparece aqui para você marcar se já está no grupo do WhatsApp.</p>') +
                 '<div class="subtitulo-info">Quem ainda não respondeu</div>' +
                 (sem.length ? '<ul class="pessoas-info">' + sem.map(function (p) {
                     return '<li><span>' + esc(p.nome) + (!p.enviado ? ' <small>(convite ainda não enviado)</small>' : p.cobrado ? ' <small>(confirmação pedida em ' + diaCurto(p.cobrado) + ')</small>' : '') + '</span>' +
@@ -2679,6 +2690,8 @@ body.seq-aberto{ overflow:hidden; }
             q(conta(function (p) { return p.confirmado; }), "confirmado", "confirmados")];
         var nv = conta(function (p) { return p.naoVai; });
         if (nv) partes.push(q(nv, "não vai", "não vão"));
+        var ng = conta(function (p) { return p.noGrupo; });
+        if (ng) partes.push(ng + " no grupo do WhatsApp");
         var ad = conta(function (p) { return p.tipo === "adulto"; }), cr = conta(function (p) { return p.tipo === "crianca"; });
         var m = conta(function (p) { return p.sexo === "m"; }), f = conta(function (p) { return p.sexo === "f"; });
         if (ad || cr) partes.push(q(ad, "adulto", "adultos"), q(cr, "criança", "crianças"));
@@ -2748,6 +2761,7 @@ body.seq-aberto{ overflow:hidden; }
                             '<label class="marca" title="O convite já foi enviado"><input type="checkbox" data-i="' + i + '" data-m="enviado"' + (p.enviado ? " checked" : "") + '>Convidado</label>' +
                             '<label class="marca conf" title="A pessoa confirmou presença"><input type="checkbox" data-i="' + i + '" data-m="confirmado"' + (p.confirmado ? " checked" : "") + '>Confirmado</label>' +
                             '<label class="marca nao" title="A pessoa avisou que não vai"><input type="checkbox" data-i="' + i + '" data-m="naoVai"' + (p.naoVai ? " checked" : "") + '>Não vai</label>' +
+                            '<label class="marca grp" title="Já coloquei a pessoa no grupo do WhatsApp do evento"><input type="checkbox" data-i="' + i + '" data-m="noGrupo"' + (p.noGrupo ? " checked" : "") + '>👥 Está no grupo</label>' +
                             '<span class="opcoes" role="group" aria-label="Adulto ou criança">' + opcao(i, "tipo", "adulto", p, "Adulto") + opcao(i, "tipo", "crianca", p, "Criança") + '</span>' +
                             '<span class="opcoes" role="group" aria-label="Sexo">' + opcao(i, "sexo", "m", p, "Masculino") + opcao(i, "sexo", "f", p, "Feminino") + '</span>' +
                             '<label class="idade' + (p.tipo === "crianca" ? " visivel" : "") + '">Idade <input data-i="' + i + '" data-c="idade" value="' + esc(p.idade || "") + '" type="number" min="0" max="17" inputmode="numeric" aria-label="Idade"> anos</label>' +
@@ -2959,6 +2973,7 @@ body.seq-aberto{ overflow:hidden; }
         li.querySelector('[data-m="enviado"]').checked = !!p.enviado;
         li.querySelector('[data-m="confirmado"]').checked = !!p.confirmado;
         li.querySelector('[data-m="naoVai"]').checked = !!p.naoVai;
+        li.querySelector('[data-m="noGrupo"]').checked = !!p.noGrupo;
         li.querySelectorAll("[data-campo]").forEach(function (b) {
             var on = p[b.getAttribute("data-campo")] === b.getAttribute("data-v");
             b.classList.toggle("ativa", on);
@@ -2967,6 +2982,17 @@ body.seq-aberto{ overflow:hidden; }
         li.querySelector(".idade").classList.toggle("visivel", p.tipo === "crianca");
         var conv = li.querySelector("a.convite");
         if (conv) { conv.classList.toggle("enviado", !!p.enviado); conv.innerHTML = I.whats + (p.enviado ? "✓ Enviado · Enviar de novo" : "Enviar convite"); }
+        atualizarResumo(ev);
+    }
+
+    /* "Está no grupo" é o mesmo dado na aba Convidados e na tarefa "Confirmar presenças": marcar num lugar marca no outro */
+    function sincronizarGrupo(ev, i) {
+        var p = convidados(ev.id)[i];
+        if (!p) return;
+        painel.querySelectorAll('[data-grp][data-i="' + i + '"], [data-m="noGrupo"][data-i="' + i + '"]').forEach(function (x) { x.checked = !!p.noGrupo; });
+        var n = convidados(ev.id).filter(function (q) { return q.confirmado && q.noGrupo; }).length;
+        painel.querySelectorAll(".cont-grupo").forEach(function (x) { x.textContent = n; });
+        painel.querySelectorAll(".resumo-t").forEach(function (x) { x.textContent = x.textContent.replace(/👥 \d+ de/, "👥 " + n + " de"); });
         atualizarResumo(ev);
     }
 
@@ -3029,6 +3055,7 @@ body.seq-aberto{ overflow:hidden; }
             if (m === "confirmado" && el.checked) delete pc.naoVai;
             if (m === "naoVai" && el.checked) { delete pc.confirmado; pc.enviado = true; }
             atualizarLinha(i);
+            if (m === "noGrupo") sincronizarGrupo(ev, i);
             marcarSujo();
             return;
         }
@@ -3086,6 +3113,15 @@ body.seq-aberto{ overflow:hidden; }
     painel.addEventListener("change", function (e) {
         var ev = atual && evento(atual), el = e.target;
         if (!ev) return;
+        /* Tarefa "Confirmar presenças": confirmado já está no grupo do WhatsApp */
+        if (el.hasAttribute("data-grp")) {
+            var pg = convidados(ev.id)[+el.getAttribute("data-i")];
+            if (!pg) return;
+            if (el.checked) pg.noGrupo = true; else delete pg.noGrupo;
+            sincronizarGrupo(ev, +el.getAttribute("data-i"));
+            salvar(String(pg.nome).trim().split(" ")[0] + (el.checked ? " está no grupo ✓" : " fora do grupo"));
+            return;
+        }
         if (el.id === "capa-arquivo") {
             if (el.files && el.files[0]) enviarCapa(ev, el.files[0]);
             el.value = "";
@@ -3638,6 +3674,7 @@ body.seq-aberto{ overflow:hidden; }
                 .map(function (p) { var o = { nome: String(p.nome).trim() }; if (p.whats) o.whats = String(p.whats).trim(); if (p.enviado) o.enviado = true;
                     if (p.confirmado) o.confirmado = true;
                     if (p.naoVai) o.naoVai = true;
+                    if (p.noGrupo) o.noGrupo = true;
                     if (/^[a-z0-9]{8,20}$/.test(p.c || "")) o.c = p.c;
                     if (p.respEm) o.respEm = p.respEm;
                     if (/^\d{4}-\d{2}-\d{2}$/.test(p.cobrado || "")) o.cobrado = p.cobrado;
