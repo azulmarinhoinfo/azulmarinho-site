@@ -1,0 +1,38 @@
+# Aviso no celular na hora de cada tarefa dos eventos (aba Tarefas do painel /admin/).
+# A cada 30 minutos chama o site, que pega as tarefas que começam na próxima hora
+# e deixa o aviso agendado no app ntfy para a hora exata
+# (functions/api/tarefas/lembrete.js). Cada tarefa avisa uma vez só.
+#
+# O GitHub desliga agendamentos de repositório público depois de 60 dias sem
+# alteração. O passo "Manter ligado" reativa este próprio workflow pela API.
+name: Lembrete das tarefas dos eventos
+
+on:
+  schedule:
+    - cron: "7,37 * * * *"
+  workflow_dispatch:
+
+permissions:
+  actions: write
+
+jobs:
+  avisar:
+    runs-on: ubuntu-latest
+    steps:
+      # Se o ntfy recusar (limite por IP, resposta 429), tenta de novo até 3 vezes.
+      # O site só marca a tarefa como avisada quando o envio dá certo.
+      - name: Chamar o site
+        run: |
+          for i in 1 2 3; do
+            r=$(curl -fsS -X POST https://azulmarinhoinfo.com.br/api/tarefas/lembrete || true)
+            echo "$r"
+            if echo "$r" | grep -q -e '"ok":true' -e '"motivo"'; then exit 0; fi
+            [ "$i" -lt 3 ] && sleep 60
+          done
+          exit 1
+
+      - name: Manter ligado
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/tarefas-lembrete.yml/enable"

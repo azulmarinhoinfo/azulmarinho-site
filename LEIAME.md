@@ -268,3 +268,10 @@ no portal, com o menu para Informática, Eventos, Piscina e Sports, e sempre mos
 | `functions/sports/[[path]].js` | Põe o app também nas páginas da loja vistas em `/sports/` |
 
 Mudou o `sw.js`? Troque a `VERSAO` no topo dele para limpar as cópias antigas nos celulares.
+
+## Aviso no celular na hora de cada tarefa dos eventos
+- `functions/api/tarefas/lembrete.js` + `.github/workflows/tarefas-lembrete.yml` (roda a cada 30 min).
+- Pega as tarefas não concluídas que começam na próxima hora e agenda o aviso no app **ntfy** (campo `delay`) para a hora exata.
+  Cada tarefa avisa uma vez (KV `tarefas:aviso:<evento>:<id>`, guarda dia+hora: mudou o horário, avisa de novo).
+- Tópico padrão no código; variável `NTFY_TOPICO_TAREFAS` no Cloudflare troca. Ligar/desligar e teste: caixa 🔔 na aba Tarefas (KV `tarefas:avisos`).
+- Tarefas da Piscina ficam de fora (a /piscina/ já avisa). O toque abre `/admin/?aba=tarefas#<evento>`.
