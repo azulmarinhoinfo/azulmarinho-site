@@ -120,6 +120,8 @@ body{ background:var(--fundo-suave); }
 .ideias-tema{ background:rgba(0,173,239,.08); border:1px solid rgba(0,173,239,.3); border-radius:12px; padding:12px 16px; margin:10px 0; font-size:14px; }
 .ideias-tema ul{ margin:6px 0 0; padding-left:20px; }
 .ideias-tema li{ margin:2px 0; }
+.foto-grupo-capa{ display:flex; align-items:center; gap:12px; margin-top:10px; font-size:14px; }
+.foto-grupo-capa img{ width:72px; height:72px; object-fit:cover; border-radius:50%; flex:none; border:2px solid var(--borda); }
 .amostra b{ font-family:"Montserrat",sans-serif; font-size:20px; display:block; }
 .amostra span.btn-a{ display:inline-block; margin-top:8px; border-radius:999px; padding:4px 12px; font-size:13px; font-weight:700; }
 
@@ -2160,8 +2162,83 @@ body.seq-aberto{ overflow:hidden; }
             "É sempre muito bom estar com vocês! Obrigado também a quem não pôde ir e mandou carinho.\n\n" +
             fotos + "Tudo da festa continua aqui:\n" + linkEvento(ev) + "\n\nVamos nos reencontrar em breve! Um abraço a todos. 🎉";
     }
+    /* ---------------- Grupo do WhatsApp do evento: nome, descrição, mensagem de boas-vindas e ideia de foto ----------------
+       Uma linha por tema: [boas-vindas (abre a mensagem inicial), ideia de foto do grupo].
+       Tema novo sem linha aqui usa a de "padrao". */
+    var GRUPO_TEMA = {
+        "padrao":        ["Que bom ter vocês aqui! 🎉", "A foto de capa do evento, ou uma foto bonita do aniversariante sorrindo."],
+        "verao":         ["Bem-vindos ao grupo mais ensolarado do ano! ☀️🌊", "Foto ao ar livre com sol, óculos escuros e cores quentes (laranja e amarelo)."],
+        "carnaval":      ["Bem-vindos ao bloco! 🎭🎊 Aqui a folia começa antes da festa.", "Máscara de carnaval com confetes e serpentinas coloridas em volta."],
+        "pascoa":        ["Bem-vindos à toca do coelho! 🐰🥚", "Coelhinho com ovos de Páscoa em cores pastel."],
+        "festa-junina":  ["Bem-vindos ao nosso arraiá, sô! 🌽🔥", "Bandeirinhas coloridas com fogueira e chapéu de palha."],
+        "dia-dos-pais":  ["Bem-vindos! Aqui é tudo para o paizão. 👔💙", "Foto do pai com os filhos, de preferência rindo juntos."],
+        "primavera":     ["Bem-vindos ao nosso jardim! 🌸🌼", "Flores coloridas de perto, em tons de rosa e verde."],
+        "outubro-rosa":  ["Bem-vindos! Juntos pelo Outubro Rosa. 🎀", "Laço rosa sobre fundo claro."],
+        "halloween":     ["Bem-vindos à casa assombrada! 🎃👻 Entrem se tiverem coragem.", "Abóbora iluminada com fundo roxo escuro e morcegos."],
+        "natal":         ["Bem-vindos ao nosso Natal! 🎄✨", "Árvore de Natal com luzinhas acesas (foto à noite fica linda)."],
+        "reveillon":     ["Bem-vindos à contagem regressiva! 🥂✨", "Taças brindando com fogos de artifício ao fundo, em dourado e preto."],
+        "rock":          ["Bem-vindos ao backstage! 🎸🤘 O show vai começar.", "Guitarra com luz vermelha, ou o aniversariante fazendo o sinal do rock."],
+        "sertanejo":     ["Bem-vindos, peãozada! 🤠🎶", "Chapéu de cowboy e violão sobre madeira rústica."],
+        "neon":          ["Bem-vindos à pista! 🪩 Hoje a noite brilha.", "Luzes neon rosa e azul com globo de espelhos."],
+        "futebol":       ["Bem-vindos ao vestiário! ⚽ O time está completo.", "Bola no gramado, ou o aniversariante com a camisa do time."],
+        "aniversario":   ["Bem-vindos à festa! 🎂🎈", "Bolo com velinhas acesas e balões coloridos."],
+        "copa":          ["Bem-vindos, torcida! 🇧🇷 Bora vestir verde e amarelo.", "Bandeira do Brasil com a camisa da Seleção."],
+        "piscina":       ["Bem-vindos à pool party! 🏖️💦", "Boia colorida na piscina com água bem azul."],
+        "super-heroi":   ["Bem-vindos à liga dos heróis! 🦸 Missão: festa!", "O aniversariante de capa de herói, ou os símbolos dos heróis juntos."],
+        "branca-de-neve": ["Bem-vindos ao reino encantado! 🍎👑", "Maçã vermelha com fundo azul e amarelo (cores da Branca de Neve)."],
+        "jardim":        ["Bem-vindos ao nosso jardim encantado! 🌷🦋", "Flores e borboletas em tons de rosa."],
+        "polaroid":      ["Bem-vindos! Aqui guardamos as melhores memórias. 📸", "Montagem de fotos em estilo polaroid com o aniversariante."],
+        "dinossauro":    ["Bem-vindos ao Parque Jurássico do Heitor! 🦖🌿 A expedição começa aqui.", "O Heitor com um dinossauro de pelúcia no meio de folhagens, ou um ovo de dinossauro rachando com o nome dele."],
+        "vingadores":    ["Atenção, heróis: vocês foram convocados! 🦸‍♂️ Bem-vindos ao QG dos Vingadores.", "O Heitor com o escudo do Capitão América, ou os símbolos dos Vingadores sobre fundo vermelho."],
+        "super-mario":   ["Bem-vindos ao Reino do Cogumelo! 🍄⭐ Este grupo é a fase 1 da festa.", "O Heitor de boné vermelho com M, ou o bloco ? com moedas e cogumelo sobre fundo azul."],
+        "patrulha-canina": ["Patrulha, a postos! 🐶🐾 Bem-vindos à base da missão.", "O Heitor com o distintivo da Patrulha Canina, ou patinhas e ossinhos sobre fundo azul."],
+        "hot-wheels":    ["Motores ligados! 🏎️🔥 Bem-vindos à pista do Heitor.", "O Heitor com carrinhos Hot Wheels em volta, ou bandeira quadriculada com chamas laranja."],
+        "batizado":      ["Sejam bem-vindos! 🕊️ Que alegria ter vocês neste momento de fé.", "O Heitor de roupa branca, ou uma pombinha com terço sobre fundo branco e azul claro."],
+        "cruzeiro":      ["Bem-vinda, Nação Azul! 🦊💙 A torcida já está reunida.", "O Heitor com a camisa do Cruzeiro, ou o escudo das 5 estrelas sobre fundo azul."],
+        "cavaleiros-zodiaco": ["Cavaleiros, queimem o cosmo! ⚔️✨ Bem-vindos ao Santuário.", "O Heitor com uma armadura dourada (montagem), ou constelação de Pégaso em dourado e roxo."],
+        "batman":        ["O Bat-sinal foi acionado! 🦇 Bem-vindos à Batcaverna.", "O Heitor de máscara do Batman, ou o Bat-sinal no céu de Gotham."],
+        "toy-story":     ["Ao infinito e além! 🚀🤠 Bem-vindos ao quarto do Andy.", "O Heitor de chapéu de cowboy com Woody e Buzz, ou o céu azul de nuvens do Toy Story."],
+        "toy-story-junina": ["Bem-vindos ao Arraiá do Woody! 🤠🌽 Bota o chapéu de palha.", "O Heitor de chapéu de palha e camisa xadrez, com bandeirinhas atrás."],
+        "star-wars":     ["Que a Força esteja com vocês! 🌌✨ Bem-vindos à nave.", "O Heitor com um sabre de luz, ou Baby Yoda num céu de estrelas."],
+        "dragon-ball":   ["Juntem as 7 esferas! 🐉🟠 Bem-vindos à Corporação Cápsula.", "O Heitor com a faixa do Goku, ou as 7 esferas do dragão em fundo laranja."],
+        "rei-leao":      ["Hakuna Matata! 🦁🌅 Bem-vindos à Pedra do Reino.", "O Heitor erguido como o Simba na Pedra do Reino, com pôr do sol laranja atrás."]
+    };
+    function grupoTema(ev) { return GRUPO_TEMA[ev.tema] || GRUPO_TEMA.padrao; }
+    /* Nome do grupo: emoji do tema + nome no padrão do álbum ("🍄 Heitor 3 Meses — Super Mario"). WhatsApp aceita até 100 letras. */
+    function nomeGrupoWhats(ev) {
+        return (emojiConvite(ev) + " " + nomeAlbumSugerido(ev)).slice(0, 100);
+    }
+    function infoEventoWhats(ev) {
+        return (ev.data ? "📅 " + EV.dataLonga(ev) + (ev.hora ? ", às " + ev.hora : "") + "\n" : "") +
+            (ev.local ? "📍 " + ev.local + (ev.endereco ? " (" + ev.endereco + ")" : "") + "\n" : ev.endereco ? "📍 " + ev.endereco + "\n" : "") +
+            ((ev.local || ev.endereco || ev.mapa) ? "🗺️ Como chegar: " + EV.linkMapa(ev) + "\n" : "");
+    }
+    /* Descrição do grupo (fica fixa para consultar a qualquer hora). WhatsApp aceita até 2048 letras. */
+    function descricaoGrupoWhats(ev) {
+        var tm = window.TEMAS[ev.tema] || window.TEMAS.padrao;
+        return (emojiConvite(ev) + " " + (ev.titulo || "") + "\n" +
+            (tm.frase || "Venha comemorar com a gente! 🎉") + "\n\n" +
+            infoEventoWhats(ev) +
+            "\n✅ Confirme sua presença, veja a previsão do tempo, o mapa e a playlist:\n" + linkEvento(ev) + "\n\n" +
+            "Neste grupo vão os avisos e lembretes da festa e, depois, o link do álbum para todo mundo colocar as fotos. 📸").slice(0, 2048);
+    }
+    /* Mensagem inicial: mandar no grupo assim que todos entrarem */
+    function mensagemGrupoWhats(ev) {
+        var tm = window.TEMAS[ev.tema] || window.TEMAS.padrao;
+        return "Oi, pessoal! " + grupoTema(ev)[0] + "\n\n" +
+            "Criei este grupo para a *" + (ev.titulo || "") + "*. " + (tm.frase || "Venha comemorar com a gente! 🎉") + "\n\n" +
+            infoEventoWhats(ev) +
+            "\n👉 Se ainda não confirmou, toque em *Vou* ou *Não vou* aqui (leva 5 segundos):\n" + linkEvento(ev) + "\n" +
+            "Lá também tem o mapa, a previsão do tempo e a playlist da festa. 🎶\n\n" +
+            "Por aqui eu mando os avisos e os lembretes, e depois da festa o álbum para todo mundo colocar as fotos. 📸\n" +
+            "Tudo isso também fica na descrição do grupo, para consultar a qualquer hora.\n\n" +
+            "Conto com vocês! 💙";
+    }
+
     function previa(tipo, ev, t) {
-        return tipo === "convite" ? textoConviteGeral(ev) : tipo === "lembrete" ? textoLembrete(ev, null, t && t.dia) : tipo === "agradecer" ? textoAgradecer(ev) : tipo === "agradecer1" ? textoAgradecer(ev, { nome: "Fulano" }) : "";
+        return tipo === "convite" ? textoConviteGeral(ev) : tipo === "lembrete" ? textoLembrete(ev, null, t && t.dia) : tipo === "agradecer" ? textoAgradecer(ev) : tipo === "agradecer1" ? textoAgradecer(ev, { nome: "Fulano" }) :
+            tipo === "grupo-nome" ? nomeGrupoWhats(ev) : tipo === "grupo-desc" ? descricaoGrupoWhats(ev) : tipo === "grupo-msg" ? mensagemGrupoWhats(ev) :
+            tipo === "grupo-foto" ? grupoTema(ev)[1] : "";
     }
     /* Mudou um dado do evento dentro de uma tarefa: atualiza os textos prontos na tela */
     /* Nome para criar o álbum no iCloud / Google Fotos, no padrão dos títulos:
@@ -2330,6 +2407,20 @@ body.seq-aberto{ overflow:hidden; }
                     campo("capa", "Foto de capa (opcional)", ev.capa || "", { ph: "Link direto de uma imagem (.jpg, .png)", dica: "Aparece na prévia do WhatsApp." })]) +
                 '<div class="subtitulo-info">Como o convite chega no WhatsApp</div>' + textoPronto("convite") +
                 linkPagina(ev, "Ver página do convite") + '</div>');
+        }
+        else if (/grupo/.test(k) && /whats/.test(k) && !/convite/.test(k)) {
+            var tmG = window.TEMAS[ev.tema] || window.TEMAS.padrao;
+            botao = "👥 Ver nome, descrição e mensagem"; resumo = "Grupo: " + nomeGrupoWhats(ev);
+            partes.push('<p class="nota-info">Tudo pronto de acordo com o tema <b>' + tmG.emoji + " " + esc(tmG.nome) + '</b>. No WhatsApp, abra o grupo e toque no nome dele no topo: lá você troca o <b>nome</b>, a <b>descrição</b> e a <b>foto</b>. Depois mande a <b>mensagem inicial</b> no grupo.</p>' +
+                '<div class="subtitulo-info">1️⃣ Nome do grupo</div>' + textoPronto("grupo-nome").replace("📋 Copiar o texto</button>", "📋 Copiar o nome</button>").replace('data-rot="📋 Copiar o texto"', 'data-rot="📋 Copiar o nome"') + '</div>' +
+                '<div class="subtitulo-info">2️⃣ Descrição do grupo <small>(fica fixa para quem quiser consultar)</small></div>' + textoPronto("grupo-desc").replace("📋 Copiar o texto</button>", "📋 Copiar a descrição</button>").replace('data-rot="📋 Copiar o texto"', 'data-rot="📋 Copiar a descrição"') + '</div>' +
+                '<div class="subtitulo-info">3️⃣ Ideia de foto do grupo</div>' +
+                '<div class="ideias-tema"><b>📷 ' + esc(grupoTema(ev)[1]) + '</b>' +
+                    (ev.capa ? '<div class="foto-grupo-capa"><img src="' + esc(ev.capa) + '" alt="Capa do evento" loading="lazy"><span>Ou use a <b>foto de capa</b> do evento: <a href="' + esc(ev.capa) + '" target="_blank" rel="noopener">abrir a capa</a> e salvar no celular.</span></div>' : '') +
+                '</div>' +
+                '<div class="subtitulo-info">4️⃣ Mensagem inicial <small>(mande no grupo depois que todos entrarem)</small></div>' + textoPronto("grupo-msg").replace("📋 Copiar o texto</button>", "📋 Copiar a mensagem</button>").replace('data-rot="📋 Copiar o texto"', 'data-rot="📋 Copiar a mensagem"') +
+                irAba("convidados", "👥 Abrir Convidados") + '</div>' +
+                '<details class="ver-convite"><summary>💌 Ver o convite (para colar no grupo)</summary>' + textoPronto("convite") + '</div></details>');
         }
         else if (/convite/.test(k) || /grupo/.test(k) && /whats/.test(k)) {
             var comW = lista.filter(function (p) { return numero(p.whats); }), env = comW.filter(function (p) { return p.enviado; }).length, falta = filaEnvio(ev).length;
