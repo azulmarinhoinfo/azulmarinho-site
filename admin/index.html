@@ -305,6 +305,12 @@ body.seq-aberto{ overflow:hidden; }
     display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
 .vistas-tarefas{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; margin:20px 0 4px; }
 .vistas-tarefas .opcoes button{ padding:7px 14px; font-size:14px; }
+.aviso-cel{ border:1px solid #7DD3FC; background:#F0F9FF; border-radius:12px; padding:10px 14px; margin:14px 0 4px; font-size:14px; color:var(--marinho); }
+.aviso-cel .linha{ display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
+.aviso-cel ol{ margin:10px 0 8px 20px; padding:0; line-height:1.6; }
+.aviso-cel code{ display:inline-block; background:#fff; border:1px solid #BAE6FD; border-radius:6px; padding:2px 6px; font-size:13px; word-break:break-all; }
+.aviso-cel .acoes{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:6px; }
+.aviso-cel .st{ font-size:13px; color:var(--texto-claro); }
 .add-tarefa{ display:grid; grid-template-columns:1.6fr 150px 105px 105px 160px auto; gap:8px; align-items:center;
     background:var(--fundo-suave); border:1px solid var(--borda); border-radius:12px; padding:12px; margin-top:14px; }
 .add-tarefa input, .add-tarefa select, .linha-tarefa input[type=text], .linha-tarefa input[type=date], .linha-tarefa input[type=time]{
@@ -805,9 +811,13 @@ body.seq-aberto{ overflow:hidden; }
 
         var pedido = decodeURIComponent(location.hash.slice(1));
         atual = evento(pedido) ? pedido : null;
+        /* O toque no aviso do celular abre /admin/?aba=tarefas#evento */
+        var abaPedida = new URLSearchParams(location.search).get("aba");
+        if (atual && /^(detalhes|fornecedores|compras|convidados|respostas|tarefas)$/.test(abaPedida || "")) aba = abaPedida;
 
         desenhar();
         carregarPiscina();
+        carregarAvisoCel();
         if (novas) mostrarBarra(novas + (novas === 1 ? " convidado respondeu" : " convidados responderam") + " pelo link do convite (já marcado na lista).", false);
         if (primeiraVez) {
             marcarSujo();
@@ -1486,6 +1496,59 @@ body.seq-aberto{ overflow:hidden; }
        sempre os mesmos dela. Cada tarefa da piscina guarda o dia de origem (t.pis); dia e horário não se mudam aqui.
        Vai de 7 dias antes da festa até o dia da festa. Se uma tarefa do evento cair no mesmo horário, ela vai para antes. */
     var PISCINA = null, PISCINA_DIAS_ANTES = 7;
+    /* Aviso no celular (app ntfy) na hora de cada tarefa — functions/api/tarefas/lembrete.js.
+       O site manda sozinho, de 30 em 30 minutos, mesmo com o painel fechado. */
+    var AVISO_CEL = null, avisoCelAberto = false, avisoCelSt = "";
+    function carregarAvisoCel() {
+        fetch("/api/tarefas/lembrete", { credentials: "same-origin", cache: "no-store" })
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (d) { if (d && d.topico) { AVISO_CEL = d; if (atual && evento(atual)) redesenharTarefas(); } })
+            .catch(function () {});
+    }
+    function avisoCelHTML() {
+        if (!AVISO_CEL) return "";
+        var on = AVISO_CEL.avisos, tp = AVISO_CEL.topico;
+        var html = '<div class="aviso-cel" id="aviso-cel"><div class="linha"><span>🔔 <b>Aviso no celular na hora de cada tarefa:</b> ' + (on ? "ligado" : "desligado") + '</span>' +
+            '<button class="b pequeno" data-acao="aviso-cel-abrir">' + (avisoCelAberto ? "Fechar" : "Como receber") + '</button></div>';
+        if (avisoCelAberto) html += '<ol>' +
+                '<li>Instale o app gratuito <b>ntfy</b> no celular (Play Store ou App Store). Não precisa criar conta.</li>' +
+                '<li>No app, toque em <b>+</b> e escreva o tópico <code>' + esc(tp) + '</code> ' +
+                    '<button class="b pequeno" data-acao="aviso-cel-copiar">📋 Copiar</button>. Depois toque em <b>Inscrever</b>.</li>' +
+                '<li>Toque em <b>Mandar aviso de teste</b> aqui embaixo e veja se chegou.</li></ol>' +
+                '<div>Na hora em que cada tarefa começa chega um aviso com o nome da tarefa e do evento. Tarefas do mesmo horário vêm juntas. ' +
+                'Tarefas já concluídas não avisam. As da piscina já têm o aviso da /piscina/ e não repetem aqui. ' +
+                'Mudou o horário? Vale o novo, se mudar com pelo menos 1 hora de antecedência e clicar em Salvar.</div>' +
+                '<div class="acoes"><button class="b cheio pequeno" data-acao="aviso-cel-teste">📲 Mandar aviso de teste</button>' +
+                '<label><input type="checkbox" data-avisocel="ligar"' + (on ? " checked" : "") + '> Avisos ligados</label>' +
+                '<span class="st" role="status">' + esc(avisoCelSt) + '</span></div>';
+        return html + '</div>';
+    }
+    function avisoCelStatus(t) {
+        avisoCelSt = t;
+        var el = document.querySelector("#aviso-cel .st");
+        if (el) el.textContent = t;
+    }
+    async function avisoCelTeste() {
+        avisoCelStatus("Enviando…");
+        var r = await fetch("/api/tarefas/lembrete?teste=1", { method: "POST", credentials: "same-origin" }).catch(function () { return null; });
+        var d = r ? await r.json().catch(function () { return {}; }) : {};
+        if (d.enviado && d.enviado.ok) return avisoCelStatus("Aviso de teste enviado. Confira o celular.");
+        /* o ntfy às vezes recusa o servidor (limite por IP); aí manda direto daqui */
+        if (d.mensagem) {
+            var r2 = await fetch("https://ntfy.sh/", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(d.mensagem) }).catch(function () { return null; });
+            if (r2 && r2.ok) return avisoCelStatus("Aviso de teste enviado. Confira o celular.");
+            return avisoCelStatus("O aviso não saiu (ntfy respondeu " + (r2 ? r2.status : "sem conexão") + "). Tente de novo daqui a pouco.");
+        }
+        avisoCelStatus(d.erro || "O aviso não saiu. Tente de novo.");
+    }
+    async function avisoCelLigar(valor) {
+        avisoCelStatus("Salvando…");
+        var r = await fetch("/api/tarefas/lembrete?config=1", { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ avisos: valor }) }).catch(function () { return null; });
+        var d = r ? await r.json().catch(function () { return {}; }) : {};
+        if (d.ok) { AVISO_CEL.avisos = d.avisos; avisoCelSt = d.avisos ? "Avisos ligados." : "Avisos desligados. Nada vai chegar até ligar de novo."; redesenharTarefas(); }
+        else avisoCelStatus(d.erro || "Não foi possível salvar.");
+    }
+
     function carregarPiscina() {
         var cfg = fetch("/api/piscina/config", { credentials: "same-origin", cache: "no-store" })
             .then(function (r) { return r.ok ? r.json() : {}; }).catch(function () { return {}; });
@@ -1617,7 +1680,8 @@ body.seq-aberto{ overflow:hidden; }
                 '<i style="width:' + (total ? n.atrasada * 100 / total : 0) + '%;background:#F43F5E"></i></div>' +
             '<div class="vistas-tarefas"><span class="opcoes" role="group" aria-label="Como ver as tarefas">' +
                 vista("lista", "📋 Lista") + vista("andamento", "📊 Andamento") + vista("calendario", "📅 Calendário") + '</span>' +
-                '<button class="b pequeno" data-acao="copiar-tarefas">📋 Copiar pendentes</button></div>';
+                '<button class="b pequeno" data-acao="copiar-tarefas">📋 Copiar pendentes</button></div>' +
+            avisoCelHTML();
         if (vistaTarefas === "andamento") return html + andamentoHTML(ev, c, a);
         if (vistaTarefas === "calendario") return html + calendarioHTML(ev, c, a);
         return html + listaTarefasHTML(ev, c, a);
@@ -3303,6 +3367,7 @@ body.seq-aberto{ overflow:hidden; }
     painel.addEventListener("change", function (e) {
         var ev = atual && evento(atual), el = e.target;
         if (!ev) return;
+        if (el.hasAttribute("data-avisocel")) return avisoCelLigar(el.checked);
         /* Tarefa "Confirmar presenças": confirmado já está no grupo do WhatsApp */
         if (el.hasAttribute("data-grp")) {
             var pg = convidados(ev.id)[+el.getAttribute("data-i")];
@@ -3570,6 +3635,21 @@ body.seq-aberto{ overflow:hidden; }
                     alvo.textContent = "Copiado! ✓";
                     setTimeout(function () { alvo.textContent = rotA; }, 1800);
                 });
+                break;
+
+            case "aviso-cel-abrir":
+                avisoCelAberto = !avisoCelAberto;
+                avisoCelSt = "";
+                redesenharTarefas();
+                break;
+            case "aviso-cel-copiar":
+                copiarTexto(AVISO_CEL.topico).then(function () {
+                    alvo.textContent = "Copiado! ✓";
+                    setTimeout(function () { alvo.textContent = "📋 Copiar"; }, 1800);
+                });
+                break;
+            case "aviso-cel-teste":
+                avisoCelTeste();
                 break;
 
             case "copiar-texto":
