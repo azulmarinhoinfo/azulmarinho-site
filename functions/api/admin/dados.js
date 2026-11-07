@@ -11,6 +11,7 @@
      tarefas     cronograma de cada evento: { "id-do-evento": { base: data do evento quando
                  o cronograma foi montado, itens: [ { id, t, g, dia, ini, fim, feito } ] } }
      tarefasPadrao  cronograma padrão guardado pelo organizador (dias antes do evento e horários);
+     tarefasPadraoSabado  o mesmo, para festas no sábado (sem ele, o painel monta um a partir do padrão do domingo);
                  sem ele, o painel usa o padrão que vem no admin/index.html
      fornecedores  fornecedores de cada evento: { "id-do-evento": [ { tipo, nome, whats, obs, valor, pago } ] }
      agendaFornecedores  agenda fixa de fornecedores, que não some quando um evento é excluído: [ { tipo, nome, whats } ]
@@ -106,6 +107,7 @@ export async function onRequestGet(context) {
         respostas: await lerRespostas(p.kv),
         tarefas: await lerJSON(p.kv, "tarefas", {}),
         tarefasPadrao: await lerJSON(p.kv, "tarefasPadrao", null),
+        tarefasPadraoSabado: await lerJSON(p.kv, "tarefasPadraoSabado", null),
         fornecedores: await lerJSON(p.kv, "fornecedores", {}),
         agendaFornecedores: await lerJSON(p.kv, "agendaFornecedores", null),
         versao: (await p.kv.get("versao")) || ""
@@ -119,7 +121,7 @@ export async function onRequestPut(context) {
     var corpo;
     try { corpo = await context.request.json(); } catch (e) { return json({ erro: "Dados inválidos." }, 400); }
 
-    var erro = validar(corpo.eventos, corpo.convidados || {}) || validarTarefas(corpo.tarefas, corpo.tarefasPadrao) || validarFornecedores(corpo.fornecedores) || validarAgenda(corpo.agendaFornecedores);
+    var erro = validar(corpo.eventos, corpo.convidados || {}) || validarTarefas(corpo.tarefas, corpo.tarefasPadrao) || validarTarefas(undefined, corpo.tarefasPadraoSabado) || validarFornecedores(corpo.fornecedores) || validarAgenda(corpo.agendaFornecedores);
     if (erro) return json({ erro: erro }, 400);
 
     var atual = (await p.kv.get("versao")) || "";
@@ -129,6 +131,7 @@ export async function onRequestPut(context) {
 
     var antes = { eventos: await lerJSON(p.kv, "eventos", null), convidados: await lerJSON(p.kv, "convidados", {}),
         tarefas: await lerJSON(p.kv, "tarefas", {}), tarefasPadrao: await lerJSON(p.kv, "tarefasPadrao", null),
+        tarefasPadraoSabado: await lerJSON(p.kv, "tarefasPadraoSabado", null),
         fornecedores: await lerJSON(p.kv, "fornecedores", {}), agendaFornecedores: await lerJSON(p.kv, "agendaFornecedores", null) };
     if (antes.eventos) {
         await p.kv.put("backup:" + new Date().toISOString(), JSON.stringify(antes), { expirationTtl: 60 * 60 * 24 * 90 });
@@ -142,6 +145,11 @@ export async function onRequestPut(context) {
     if (corpo.tarefasPadrao !== undefined) {
         if (corpo.tarefasPadrao) await p.kv.put("tarefasPadrao", JSON.stringify(corpo.tarefasPadrao));
         else await p.kv.delete("tarefasPadrao");
+    }
+    /* Padrão das festas no sábado (painel antigo não manda, então não apaga) */
+    if (corpo.tarefasPadraoSabado !== undefined) {
+        if (corpo.tarefasPadraoSabado) await p.kv.put("tarefasPadraoSabado", JSON.stringify(corpo.tarefasPadraoSabado));
+        else await p.kv.delete("tarefasPadraoSabado");
     }
     /* Painel antigo (sem fornecedores) não apaga os fornecedores */
     if (corpo.fornecedores !== undefined) await p.kv.put("fornecedores", JSON.stringify(corpo.fornecedores));

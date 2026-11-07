@@ -586,7 +586,7 @@ body.seq-aberto{ overflow:hidden; }
     var esc = EV.esc, I = window.ICONES;
     var DO_ARQUIVO = (window.EVENTOS || []).slice();
 
-    var estado = { eventos: [], convidados: {}, tarefas: {}, tarefasPadrao: null, fornecedores: {}, agenda: [], versao: "" };
+    var estado = { eventos: [], convidados: {}, tarefas: {}, tarefasPadrao: null, tarefasPadraoSabado: null, fornecedores: {}, agenda: [], versao: "" };
     var atual = null;          // id do evento aberto
     var aba = "detalhes";
     var sujo = false;
@@ -796,6 +796,7 @@ body.seq-aberto{ overflow:hidden; }
         estado.fornecedores = d.fornecedores && typeof d.fornecedores === "object" ? d.fornecedores : {};
         iniciarAgenda(d.agendaFornecedores);
         estado.tarefasPadrao = Array.isArray(d.tarefasPadrao) ? d.tarefasPadrao : null;
+        estado.tarefasPadraoSabado = Array.isArray(d.tarefasPadraoSabado) ? d.tarefasPadraoSabado : null;
         incluirSelecionarConvidados();
         estado.versao = d.versao || "";
         var novas = aplicarRespostas(d.respostas || {});
@@ -1409,7 +1410,112 @@ body.seq-aberto{ overflow:hidden; }
         }
     }
 
-    function padraoAtual() { return estado.tarefasPadrao || TAREFAS_PADRAO; }
+    /* Dois padrões: o do DOMINGO (o de sempre, vale também para os outros dias) e o do SÁBADO.
+       Enquanto o Farley não guardar um padrão do sábado, ele é montado a partir do padrão do domingo (padraoSabadoSugerido). */
+    function ehSabado(ev) { return !!(ev && /^\d{4}-\d{2}-\d{2}$/.test(ev.data || "") && deISO(ev.data).getDay() === 6); }
+    function padraoDomingo() { return estado.tarefasPadrao || TAREFAS_PADRAO; }
+    function padraoAtual(ev) {
+        if (ehSabado(ev)) return estado.tarefasPadraoSabado || padraoSabadoSugerido(ev);
+        return padraoDomingo();
+    }
+    function guardarPadrao(ev, pd) {
+        if (ehSabado(ev)) estado.tarefasPadraoSabado = pd; else estado.tarefasPadrao = pd;
+    }
+
+    /* Padrão do sábado sugerido, a partir do padrão do domingo:
+       - as tarefas do dia da festa continuam no dia da festa (agora o sábado), nos mesmos horários;
+       - as tarefas da véspera (o sábado de quem faz festa no domingo) vão:
+         primeiro para os horários livres do próprio sábado antes da festa; o que não couber vai para
+         segunda a sexta, depois das 18h (até 22h; se ainda faltar lugar, até 23h30), o mais perto da festa possível;
+       - as outras tarefas não mudam: ficam na mesma data que teriam com a festa no domingo seguinte. */
+    var SABADO_DIA_INI = 7 * 60, SEMANA_INI = 18 * 60, SEMANA_FIM = 22 * 60, SEMANA_FIM_EXTRA = 23 * 60 + 30;
+    function padraoSabadoSugerido(ev) {
+        var h = horasEvento(ev).ini, pd = padraoDomingo();
+        function faixaLinha(x) {
+            var i = typeof x[3] === "number" ? h + x[3] : minutos(x[3]);
+            var f = typeof x[4] === "number" ? i + x[4] : minutos(x[4]);
+            if (i == null) i = 0;
+            if (f == null || f <= i) f = i + 30;
+            return { i: i, f: f };
+        }
+        var ocupado = {}, fica = [], muda = [];
+        function ocupar(d, i, f) { (ocupado[d] = ocupado[d] || []).push([i, f]); }
+        pd.forEach(function (x) {
+            var fx = faixaLinha(x);
+            if (x[2] === -1) { muda.push({ x: x, dur: fx.f - fx.i, i0: fx.i }); return; }
+            /* Fora dos dois últimos dias, a tarefa fica na MESMA DATA que teria numa festa no domingo seguinte
+               (ex.: "cortar grama uma semana antes" continua no mesmo dia). */
+            var y = x.slice();
+            if (y[2] !== 0) y[2] = y[2] + 1;
+            fica.push(y);
+            ocupar(y[2], fx.i, fx.f);
+        });
+        /* Horário livre mais tarde, dentro de [ini, fim], em que cabe dur minutos (ou null) */
+        function lugar(d, ini, fim, dur) {
+            var oc = (ocupado[d] || []), f = fim;
+            while (f - dur >= ini) {
+                var i = f - dur, bate = oc.filter(function (o) { return o[0] < f && o[1] > i; });
+                if (!bate.length) return i;
+                f = Math.min.apply(null, bate.map(function (o) { return o[0]; }));
+            }
+            return null;
+        }
+        function antes(a, b) { return a.d < b.d || (a.d === b.d && a.i < b.i); }
+        /* Cada tarefa que muda vai para o horário livre mais perto da festa: primeiro o próprio sábado antes da festa,
+           depois sexta, quinta... até segunda, depois das 18h e até as 22h; se não couber, até as 23h30.
+           As compras escolhem primeiro; depois, a tarefa que era mais tarde. "Pagar X" nunca fica depois de "Buscar X". */
+        /* Compras (refri, carne...) escolhem antes, para ficarem o mais perto possível da festa */
+        function prioridade(m) { return m.x[0] === "Compras" ? 0 : 1; }
+        muda.sort(function (a, b) { return prioridade(a) - prioridade(b) || b.i0 - a.i0; });
+        var semana = [-1, -2, -3, -4, -5], janelas = [[0, SABADO_DIA_INI, h]];
+        semana.forEach(function (d) { janelas.push([d, SEMANA_INI, SEMANA_FIM]); });
+        semana.forEach(function (d) { janelas.push([d, SEMANA_INI, SEMANA_FIM_EXTRA]); });
+        semana.forEach(function (d) { janelas.push([d, SEMANA_INI, 24 * 60 - 1]); });
+        /* Tarefas que vão logo depois de outra (ex.: guardar a carne logo depois de comprar) */
+        var LOGO_DEPOIS = [[/guardar a carne/, /comprar carne/]];
+        function regraDepois(m) { return LOGO_DEPOIS.filter(function (r) { return r[0].test(chaveNome(m.x[1])); })[0]; }
+        function lugarCedo(d, ini, fim, dur) {
+            var oc = (ocupado[d] || []), i = ini;
+            while (i + dur <= fim) {
+                var f = i + dur, bate = oc.filter(function (o) { return o[0] < f && o[1] > i; });
+                if (!bate.length) return i;
+                i = Math.max.apply(null, bate.map(function (o) { return o[1]; }));
+            }
+            return null;
+        }
+        var colocadas = {}, depois = muda.filter(function (m) {
+            var r = regraDepois(m);
+            return r && muda.some(function (o) { return o !== m && r[1].test(chaveNome(o.x[1])); });
+        });
+        muda = muda.filter(function (m) { return depois.indexOf(m) < 0; });
+        function colocar(m) {
+            ocupar(m.d, m.i, m.i + m.dur);
+            colocadas[chaveNome(m.x[1])] = m;
+            fica.push([m.x[0], m.x[1], m.d, hhmm(m.i), hhmm(m.i + m.dur)]);
+            depois.forEach(function (n) {
+                if (n.i != null || !regraDepois(n)[1].test(chaveNome(m.x[1]))) return;
+                var i = lugarCedo(m.d, m.i + m.dur, m.d === 0 ? h : 24 * 60 - 1, n.dur);
+                if (i == null) i = m.i + m.dur;
+                n.d = m.d; n.i = i;
+                colocar(n);
+            });
+        }
+        muda.forEach(function (m) {
+            var pg = /^pagar\s+(.+)$/.exec(chaveNome(m.x[1])), busca = pg && colocadas["buscar " + pg[1]];
+            for (var k = 0; k < janelas.length; k++) {
+                var j = janelas[k], fim = j[2];
+                if (busca) {
+                    if (j[0] > busca.d) continue;
+                    if (j[0] === busca.d) fim = Math.min(fim, busca.i);
+                }
+                var i = lugar(j[0], j[1], fim, m.dur);
+                if (i != null) { m.d = j[0]; m.i = i; break; }
+            }
+            if (m.i == null) { m.d = -1; m.i = m.i0; }       // sem lugar livre: fica na sexta, no mesmo horário (o Farley ajusta)
+            colocar(m);
+        });
+        return fica;
+    }
 
     /* Tarefa que só pode ser feita depois de outra: [tarefa, a que vem antes]. Enquanto a de antes não estiver feita,
        a tarefa fica trancada (some da faixa das abas e não mostra o botão de enviar). */
@@ -1442,8 +1548,8 @@ body.seq-aberto{ overflow:hidden; }
 
     /* Uma tarefa do evento no padrão: cada tarefa lembra de qual tarefa do padrão nasceu (t.p, o nome dela no padrão),
        mesmo que o nome, o dia ou o horário tenham mudado neste evento. */
-    function indicePadrao(t) {
-        var pd = padraoAtual(), chaves = [t.p, t.t].filter(Boolean).map(chaveNome);
+    function indicePadrao(ev, t) {
+        var pd = padraoAtual(ev), chaves = [t.p, t.t].filter(Boolean).map(chaveNome);
         for (var j = 0; j < chaves.length; j++) {
             for (var i = 0; i < pd.length; i++) if (chaveNome(pd[i][1]) === chaves[j]) return i;
         }
@@ -1460,9 +1566,9 @@ body.seq-aberto{ overflow:hidden; }
         return [t.g || "Outras", String(t.t).trim(), d, ini, fim];
     }
     function situacaoPadrao(ev, t) {      // "fora" (não está no padrão), "diferente" ou "igual"
-        var i = indicePadrao(t);
+        var i = indicePadrao(ev, t);
         if (i < 0) return "fora";
-        var antiga = padraoAtual()[i];
+        var antiga = padraoAtual(ev)[i];
         return JSON.stringify(linhaPadrao(ev, t, antiga)) === JSON.stringify(antiga) ? "igual" : "diferente";
     }
     function botaoPadrao(ev, t) {
@@ -1473,7 +1579,7 @@ body.seq-aberto{ overflow:hidden; }
     }
     function montarTarefas(ev) {
         var h = horasEvento(ev).ini;
-        return padraoAtual().map(function (x) {
+        return padraoAtual(ev).map(function (x) {
             var ini = typeof x[3] === "number" ? hhmm(h + x[3]) : x[3];
             var fim = typeof x[4] === "number" ? hhmm(minutos(ini) + x[4]) : x[4];
             return { id: "t" + novoCodigo().slice(0, 8), g: x[0], t: x[1], p: x[1], dia: somarDias(ev.data, x[2]), ini: ini, fim: fim };
@@ -1499,6 +1605,7 @@ body.seq-aberto{ overflow:hidden; }
         if (!c || !Array.isArray(c.itens) || !/^\d{4}-\d{2}-\d{2}$/.test(ev.data || "") || !/^\d{4}-\d{2}-\d{2}$/.test(c.base || "")) return;
         var dd = difDias(ev.data, c.base);
         if (!dd) return;
+        var trocouPadrao = (deISO(c.base).getDay() === 6) !== ehSabado(ev);
         var n = 0;
         c.itens.forEach(function (t) {
             if (t.pis || !/^\d{4}-\d{2}-\d{2}$/.test(t.dia || "")) return;
@@ -1507,7 +1614,9 @@ body.seq-aberto{ overflow:hidden; }
         c.base = ev.data; calRef = null;
         marcarSujo();
         if (n) mostrarBarra("📅 Mudei também " + plural(n, "tarefa", "tarefas") + " " + Math.abs(dd) + (Math.abs(dd) === 1 ? " dia" : " dias") +
-            (dd > 0 ? " para frente" : " para trás") + ", cada uma com a mesma distância da festa. Clique em Salvar.", false);
+            (dd > 0 ? " para frente" : " para trás") + ", cada uma com a mesma distância da festa." +
+            (trocouPadrao ? " A festa agora é " + (ehSabado(ev) ? "no SÁBADO" : "fora do sábado") + ": para usar o padrão " + (ehSabado(ev) ? "do sábado" : "do domingo") +
+                ", vá em Tarefas e clique em \"↺ Recomeçar este evento do padrão\"." : "") + " Clique em Salvar.", false);
     }
 
     /* ---------------- Piscina: a rotina de limpeza entra nas tarefas da semana da festa ----------------
@@ -1770,12 +1879,16 @@ body.seq-aberto{ overflow:hidden; }
                     '</li>';
                 }).join("") + '</ul></div>';
         }).join("");
+        var sab = ehSabado(ev), meu = sab ? estado.tarefasPadraoSabado : estado.tarefasPadrao;
         html += '<div class="padrao-t"><p><b>Cronograma padrão</b>: todo evento novo já começa com as tarefas padrão, nos dias e horários certos em relação à data da festa. ' +
-                (estado.tarefasPadrao ? 'Você está usando o <b>seu padrão</b> (' + estado.tarefasPadrao.length + ' tarefas).' : 'Agora está o padrão sugerido (' + TAREFAS_PADRAO.length + ' tarefas).') + '</p><div>' +
-                '<button class="b pequeno" data-acao="tarefas-guardar-padrao">⭐ Usar esta lista como padrão</button>' +
+                'São <b>dois padrões</b>: um para festa no <b>domingo</b> e outro para festa no <b>sábado</b>. ' +
+                (sab ? 'Este evento é no <b>sábado</b>, então usa o <b>padrão do sábado</b>' + (meu ? ' (o seu, ' + meu.length + ' tarefas).' :
+                        ' sugerido: montado do padrão do domingo, só os dois últimos dias mudam: as tarefas do dia da festa ficam no sábado e as que eram de sábado vão para os horários livres do sábado ou de segunda a sexta depois das 18h. As outras ficam nas mesmas datas de uma festa no domingo.')
+                     : 'Este evento usa o <b>padrão do domingo</b>' + (meu ? ' (o seu, ' + meu.length + ' tarefas).' : ' (o sugerido, ' + TAREFAS_PADRAO.length + ' tarefas).')) + '</p><div>' +
+                '<button class="b pequeno" data-acao="tarefas-guardar-padrao">⭐ Usar esta lista como padrão do ' + (sab ? 'sábado' : 'domingo') + '</button>' +
                 '<button class="b pequeno" data-acao="tarefas-completar">➕ Trazer as tarefas do padrão que faltam</button>' +
                 '<button class="b pequeno" data-acao="tarefas-recomecar">↺ Recomeçar este evento do padrão</button>' +
-                (estado.tarefasPadrao ? '<button class="b pequeno perigo" data-acao="tarefas-padrao-original">Voltar ao padrão sugerido</button>' : "") +
+                (meu ? '<button class="b pequeno perigo" data-acao="tarefas-padrao-original">Voltar ao padrão sugerido do ' + (sab ? 'sábado' : 'domingo') + '</button>' : "") +
             '</div></div>';
         return html;
     }
@@ -3802,18 +3915,18 @@ body.seq-aberto{ overflow:hidden; }
                 /* Leva só esta tarefa para o padrão (nome, grupo, dia e horário), sem mexer nas outras */
                 var tp = tarefa(ev, alvo.getAttribute("data-id"));
                 if (!tp || !String(tp.t || "").trim()) break;
-                var ip = indicePadrao(tp), sp = situacaoPadrao(ev, tp);
+                var ip = indicePadrao(ev, tp), sp = situacaoPadrao(ev, tp);
                 if (sp === "igual") { mostrarBarra("\"" + tp.t + "\" já está assim no padrão.", false); break; }
-                var pdN = padraoAtual().map(function (x) { return x.slice(); });
+                var pdN = padraoAtual(ev).map(function (x) { return x.slice(); });
                 var nova = linhaPadrao(ev, tp, ip >= 0 ? pdN[ip] : null);
                 if (ip >= 0) pdN[ip] = nova; else pdN.push(nova);
-                estado.tarefasPadrao = pdN;
+                guardarPadrao(ev, pdN);
                 tp.p = nova[1];
                 var dN = nova[2];
                 marcarSujo(); redesenharTarefas();
                 mostrarBarra((ip >= 0 ? "Atualizei no padrão: " : "Coloquei no padrão: ") + "\"" + nova[1] + "\" (" +
                     (dN === 0 ? "no dia da festa" : dN < 0 ? (dN === -1 ? "na véspera" : -dN + " dias antes") : (dN === 1 ? "1 dia depois" : dN + " dias depois")) +
-                    (tp.ini ? ", " + tp.ini + (tp.fim ? " às " + tp.fim : "") : "") + "). Os próximos eventos já vêm assim. Clique em Salvar.", false);
+                    (tp.ini ? ", " + tp.ini + (tp.fim ? " às " + tp.fim : "") : "") + ")" + (ehSabado(ev) ? " no padrão do SÁBADO. Os próximos eventos de sábado" : ". Os próximos eventos") + " já vêm assim. Clique em Salvar.", false);
                 break;
             }
             case "tarefa-remover":
@@ -3843,17 +3956,17 @@ body.seq-aberto{ overflow:hidden; }
                 break;
 
             case "tarefas-guardar-padrao":
-                if (!confirm("Usar as tarefas deste evento como padrão para os próximos eventos?\n\nOs dias ficam contados a partir da data da festa (ex.: 3 dias antes). Os eventos que já têm cronograma não mudam.\n\nIsso só vale depois de Salvar.")) break;
-                estado.tarefasPadrao = cronograma(ev).itens.filter(function (t) { return !t.pis; }).sort(ordemTarefa).map(function (t) {
+                if (!confirm("Usar as tarefas deste evento como padrão para os próximos eventos " + (ehSabado(ev) ? "de SÁBADO" : "de DOMINGO") + "?\n\nOs dias ficam contados a partir da data da festa (ex.: 3 dias antes). Os eventos que já têm cronograma não mudam.\n\nIsso só vale depois de Salvar.")) break;
+                guardarPadrao(ev, cronograma(ev).itens.filter(function (t) { return !t.pis; }).sort(ordemTarefa).map(function (t) {
                     return [t.g || "Outras", t.t, difDias(t.dia, ev.data), t.ini || "", t.fim || ""];
-                });
+                }));
                 marcarSujo(); redesenharTarefas();
-                mostrarBarra("Pronto: esta lista vai ser o padrão dos próximos eventos. Clique em Salvar.", false);
+                mostrarBarra("Pronto: esta lista vai ser o padrão dos próximos eventos " + (ehSabado(ev) ? "de sábado" : "de domingo") + ". Clique em Salvar.", false);
                 break;
 
             case "tarefas-padrao-original":
-                if (!confirm("Voltar a usar o padrão sugerido para os próximos eventos?\n\nIsso só vale depois de Salvar.")) break;
-                estado.tarefasPadrao = null;
+                if (!confirm("Voltar a usar o padrão sugerido para os próximos eventos " + (ehSabado(ev) ? "de SÁBADO" : "de DOMINGO") + "?\n\nIsso só vale depois de Salvar.")) break;
+                guardarPadrao(ev, null);
                 marcarSujo(); redesenharTarefas();
                 break;
 
@@ -4012,7 +4125,7 @@ body.seq-aberto{ overflow:hidden; }
         fetch("/api/admin/dados", {
             method: "PUT", credentials: "same-origin",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ eventos: eventos, convidados: conv, tarefas: tarefas, tarefasPadrao: estado.tarefasPadrao, fornecedores: forn, agendaFornecedores: agenda, versao: estado.versao })
+            body: JSON.stringify({ eventos: eventos, convidados: conv, tarefas: tarefas, tarefasPadrao: estado.tarefasPadrao, tarefasPadraoSabado: estado.tarefasPadraoSabado, fornecedores: forn, agendaFornecedores: agenda, versao: estado.versao })
         })
         .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { d._status = r.status; return d; }); })
         .then(function (d) {
