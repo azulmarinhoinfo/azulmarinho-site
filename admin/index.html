@@ -1424,10 +1424,10 @@ body.seq-aberto{ overflow:hidden; }
 
     /* Padrão do sábado sugerido, a partir do padrão do domingo:
        - as tarefas do dia da festa continuam no dia da festa (agora o sábado), nos mesmos horários;
-       - as tarefas da véspera que eram de dia (antes das 18h, no sábado de quem faz festa no domingo) vão:
+       - as tarefas da véspera (o sábado de quem faz festa no domingo) vão:
          primeiro para os horários livres do próprio sábado antes da festa; o que não couber vai para
          segunda a sexta, depois das 18h (até 22h; se ainda faltar lugar, até 23h30), o mais perto da festa possível;
-       - as outras tarefas ficam como estão (mesma distância da festa). */
+       - as outras tarefas não mudam: ficam na mesma data que teriam com a festa no domingo seguinte. */
     var SABADO_DIA_INI = 7 * 60, SEMANA_INI = 18 * 60, SEMANA_FIM = 22 * 60, SEMANA_FIM_EXTRA = 23 * 60 + 30;
     function padraoSabadoSugerido(ev) {
         var h = horasEvento(ev).ini, pd = padraoDomingo();
@@ -1442,9 +1442,13 @@ body.seq-aberto{ overflow:hidden; }
         function ocupar(d, i, f) { (ocupado[d] = ocupado[d] || []).push([i, f]); }
         pd.forEach(function (x) {
             var fx = faixaLinha(x);
-            if (x[2] === -1 && fx.i < SEMANA_INI) { muda.push({ x: x, dur: fx.f - fx.i, i0: fx.i }); return; }
-            fica.push(x.slice());
-            ocupar(x[2], fx.i, fx.f);
+            if (x[2] === -1) { muda.push({ x: x, dur: fx.f - fx.i, i0: fx.i }); return; }
+            /* Fora dos dois últimos dias, a tarefa fica na MESMA DATA que teria numa festa no domingo seguinte
+               (ex.: "cortar grama uma semana antes" continua no mesmo dia). */
+            var y = x.slice();
+            if (y[2] !== 0) y[2] = y[2] + 1;
+            fica.push(y);
+            ocupar(y[2], fx.i, fx.f);
         });
         /* Horário livre mais tarde, dentro de [ini, fim], em que cabe dur minutos (ou null) */
         function lugar(d, ini, fim, dur) {
@@ -1879,7 +1883,7 @@ body.seq-aberto{ overflow:hidden; }
         html += '<div class="padrao-t"><p><b>Cronograma padrão</b>: todo evento novo já começa com as tarefas padrão, nos dias e horários certos em relação à data da festa. ' +
                 'São <b>dois padrões</b>: um para festa no <b>domingo</b> e outro para festa no <b>sábado</b>. ' +
                 (sab ? 'Este evento é no <b>sábado</b>, então usa o <b>padrão do sábado</b>' + (meu ? ' (o seu, ' + meu.length + ' tarefas).' :
-                        ' sugerido: montado do padrão do domingo, com as tarefas do dia da festa no sábado e as tarefas que eram de sábado nos horários livres do sábado ou de segunda a sexta depois das 18h.')
+                        ' sugerido: montado do padrão do domingo, só os dois últimos dias mudam: as tarefas do dia da festa ficam no sábado e as que eram de sábado vão para os horários livres do sábado ou de segunda a sexta depois das 18h. As outras ficam nas mesmas datas de uma festa no domingo.')
                      : 'Este evento usa o <b>padrão do domingo</b>' + (meu ? ' (o seu, ' + meu.length + ' tarefas).' : ' (o sugerido, ' + TAREFAS_PADRAO.length + ' tarefas).')) + '</p><div>' +
                 '<button class="b pequeno" data-acao="tarefas-guardar-padrao">⭐ Usar esta lista como padrão do ' + (sab ? 'sábado' : 'domingo') + '</button>' +
                 '<button class="b pequeno" data-acao="tarefas-completar">➕ Trazer as tarefas do padrão que faltam</button>' +
