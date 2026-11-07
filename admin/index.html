@@ -438,6 +438,8 @@ body.seq-aberto{ overflow:hidden; }
 .capa-ini{ border-top:1px solid rgba(0,173,239,.3); padding-top:12px; }
 .capa-ini input{ width:100%; }
 .inicio-novo select{ font-size:16px; }
+.pergunta-ini[hidden]{ display:none; }
+.pergunta-ini select{ font:inherit; font-size:14px; padding:5px 10px; border:1.5px solid var(--borda); border-radius:999px; background:var(--branco); color:var(--texto); }
 .pergunta-ini{ display:flex; flex-wrap:wrap; gap:8px 12px; align-items:center; }
 .pergunta-ini .q{ font-weight:600; flex:0 1 auto; min-width:200px; }
 .pergunta-ini .opcoes button{ padding:8px 16px; font-size:15px; }
@@ -2219,7 +2221,7 @@ body.seq-aberto{ overflow:hidden; }
         if (domingoDepoisDo20(n) < hoje) n++;
         var feitos = ant.map(function (e) { return mesesDoTitulo(e.titulo); });
         while (nasc !== null && feitos.indexOf(n - nasc) >= 0) n++;
-        return { data: domingoDepoisDo20(n), meses: nasc === null ? null : n - nasc, ultimo: ant[ant.length - 1] || null };
+        return { data: domingoDepoisDo20(n), meses: nasc === null ? null : n - nasc, ultimo: ant[ant.length - 1] || null, nasc: nasc };
     }
     /* Título no padrão do último mesversário (ex.: "Heitor 2 Meses — Vingadores" -> "Heitor 3 Meses — Super Mario") */
     function tituloMesversario(ultimo, meses, chave) {
@@ -2284,16 +2286,18 @@ body.seq-aberto{ overflow:hidden; }
         /* Local, mapa, coordenadas, playlist e álbuns: iguais aos do último mesversário (vale para qualquer evento novo) */
         var ant = mesversariosAnteriores(ev), modelo = ant.length ? ant.sort(function (a, b) { return (a.data || "").localeCompare(b.data || ""); })[ant.length - 1] : null;
         f.cidade = "Santana do Paraíso";
+        /* Meses: o que a pessoa escolheu em "Quantos meses?" ou, sem escolha, o próximo mesversário que ainda não tem evento */
+        var meses = ini.mesv ? (ini.meses || info.meses) : null;
         if (ini.mesv) {
-            f.titulo = tituloMesversario(info.ultimo, info.meses, ev.tema);
-            f.data = info.data;
+            f.titulo = tituloMesversario(info.ultimo, meses, ev.tema);
+            f.data = ini.meses && info.nasc !== null ? domingoDepoisDo20(info.nasc + ini.meses) : info.data;
         } else {
             f.titulo = ev.tema === "padrao" ? "" : (window.TEMAS[ev.tema].grupo === "infantil" ? "Festa " : "") + nomeCurtoTema(ev.tema);
         }
         if (ini.alm !== null) f.hora = ini.alm ? "13:00" : "15:00";
         if (modelo) ["local", "endereco", "mapa", "lat", "lon", "playlist", "album", "albumGoogle"].forEach(function (k) { if (modelo[k] !== undefined && modelo[k] !== "") f[k] = modelo[k]; });
         /* Título escrito à mão manda na idade da descrição */
-        var mesesDesc = (mx.titulo && mesesDoTitulo(ev.titulo)) || (info && info.meses);
+        var mesesDesc = (mx.titulo && mesesDoTitulo(ev.titulo)) || meses;
         if (ev.tema !== "padrao" || ini.mesv) f.descricao = descricaoNovo(ev, ini, mesesDesc);
         Object.keys(f).forEach(function (k) {
             if (mx[k]) return;
@@ -2327,6 +2331,13 @@ body.seq-aberto{ overflow:hidden; }
         }
         var h2 = painel.querySelector(".editor-topo h2");
         if (h2) h2.textContent = ev.titulo || "Novo evento";
+        var pm = document.getElementById("ini-meses");
+        if (pm) {
+            pm.hidden = !ini.mesv;
+            var sm = pm.querySelector("select");
+            if (sm && meses) sm.value = String(meses);
+        }
+        conferirEvento(ev);
         var r = document.getElementById("resumo-ini");
         if (r) r.innerHTML = resumoNovo(ev);
         marcarSujo();
@@ -2342,6 +2353,13 @@ body.seq-aberto{ overflow:hidden; }
         if (ini.alm === false) l.push("🎂 Sem almoço, às 15h: sem churrasco em Compras e nas Tarefas");
         return l.length ? "✅ Preenchido. " + l.join(" • ") + ". Confira abaixo e mude o que quiser." : "✅ Preenchido. Confira abaixo e mude o que quiser.";
     }
+    /* "Quantos meses?" (só para mesversário): já vem com a sugestão; mudar refaz título, data, descrição e link */
+    function perguntaMesesHTML(ev) {
+        var ini = ev._ini, info = proximoMesversario(ev), m = ini.meses || info.meses || "", ops = "";
+        for (var i = 1; i <= 24; i++) ops += '<option value="' + i + '"' + (i === +m ? " selected" : "") + '>' + textoIdade(i) + (i === info.meses ? " (próximo da lista)" : "") + '</option>';
+        return '<div class="pergunta-ini" id="ini-meses"' + (ini.mesv ? "" : " hidden") + '><span class="q">🎈 Quantos meses o ' + ANIVERSARIANTE + ' vai fazer?</span>' +
+            '<select data-ini-meses aria-label="Quantos meses">' + (m ? "" : '<option value="">Escolha</option>') + ops + '</select></div>';
+    }
     function inicioNovoHTML(ev, seletor) {
         var ini = ev._ini;
         function sn(k, sim, nao) {
@@ -2351,6 +2369,7 @@ body.seq-aberto{ overflow:hidden; }
         }
         return '<div class="inicio-novo"><h3>✨ Comece por aqui</h3>' + seletor +
             '<div class="pergunta-ini' + (ini.mesv === null ? " falta" : "") + '"><span class="q">🎂 É mesversário do ' + ANIVERSARIANTE + '?</span>' + sn("mesv", "Sim", "Não") + '</div>' +
+            perguntaMesesHTML(ev) +
             '<div class="pergunta-ini' + (ini.alm === null ? " falta" : "") + '"><span class="q">🍖 Tem almoço?</span>' + sn("alm", "Sim, 13h 🍖", "Não, 15h") + '</div>' +
             '<p class="resumo-ini" id="resumo-ini">' + resumoNovo(ev) + '</p>' +
             nomeAlbumHTML(ev) +
@@ -3552,6 +3571,13 @@ body.seq-aberto{ overflow:hidden; }
     });
 
     /* Título: guarda como estava ao entrar no campo; ao sair, a descrição troca o título antigo pelo novo */
+    /* Evento novo: trocou "Quantos meses?" -> título, data, descrição e link daquele mês */
+    painel.addEventListener("change", function (e) {
+        var ev = atual && evento(atual);
+        if (!ev || !ev._ini || !e.target.hasAttribute || !e.target.hasAttribute("data-ini-meses")) return;
+        ev._ini.meses = +e.target.value || null;
+        preencherNovo(ev);
+    });
     painel.addEventListener("focusin", function (e) {
         var ev = atual && evento(atual);
         if (ev && e.target.getAttribute && e.target.getAttribute("data-c") === "titulo") tituloAoEntrar = ev.titulo;
