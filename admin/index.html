@@ -1491,6 +1491,25 @@ body.seq-aberto{ overflow:hidden; }
     }
     function tarefa(ev, id) { return cronograma(ev).itens.filter(function (t) { return t.id === id; })[0]; }
 
+    /* Mudou a data do evento: as tarefas vão junto, cada uma mantendo a mesma distância da festa
+       (ex.: "3 dias antes" continua 3 dias antes). As da Piscina não mudam aqui: elas seguem a agenda
+       da página da Piscina e são refeitas para a semana nova pelo sincronizarPiscina. */
+    function moverTarefasComAData(ev) {
+        var c = estado.tarefas[ev.id];
+        if (!c || !Array.isArray(c.itens) || !/^\d{4}-\d{2}-\d{2}$/.test(ev.data || "") || !/^\d{4}-\d{2}-\d{2}$/.test(c.base || "")) return;
+        var dd = difDias(ev.data, c.base);
+        if (!dd) return;
+        var n = 0;
+        c.itens.forEach(function (t) {
+            if (t.pis || !/^\d{4}-\d{2}-\d{2}$/.test(t.dia || "")) return;
+            t.dia = somarDias(t.dia, dd); n++;
+        });
+        c.base = ev.data; calRef = null;
+        marcarSujo();
+        if (n) mostrarBarra("📅 Mudei também " + plural(n, "tarefa", "tarefas") + " " + Math.abs(dd) + (Math.abs(dd) === 1 ? " dia" : " dias") +
+            (dd > 0 ? " para frente" : " para trás") + ", cada uma com a mesma distância da festa. Clique em Salvar.", false);
+    }
+
     /* ---------------- Piscina: a rotina de limpeza entra nas tarefas da semana da festa ----------------
        A agenda vem da página da Piscina (piscina/agenda.js + a Semana 1 escolhida lá), então os dias e horários são
        sempre os mesmos dela. Cada tarefa da piscina guarda o dia de origem (t.pis); dia e horário não se mudam aqui.
@@ -3403,7 +3422,10 @@ body.seq-aberto{ overflow:hidden; }
         if (aba === "fornecedores" && el.getAttribute("data-fo") === "pago") { var yp = window.scrollY; desenhar(); window.scrollTo(0, yp); return; }
         if (el.hasAttribute("data-fo") && /^(nome|whats|tipo)$/.test(el.getAttribute("data-fo"))) guardarNaAgenda(fornecedores(ev.id)[+el.getAttribute("data-i")]);
         if (el.hasAttribute("data-fo") && el.getAttribute("data-fo") === "tipo") { var yf = window.scrollY; desenhar(); window.scrollTo(0, yf); return; }
-        if (aba === "tarefas" && el.getAttribute("data-c") === "data") { redesenharTarefas(); return; }
+        if (el.getAttribute("data-c") === "data") {
+            moverTarefasComAData(ev);
+            if (aba === "tarefas") { redesenharTarefas(); return; }
+        }
         if (el.hasAttribute("data-item-compra")) {
             marcarItemCompra(ev, el.getAttribute("data-item-compra"), el.checked);
             var yc = window.scrollY;
@@ -3810,11 +3832,9 @@ body.seq-aberto{ overflow:hidden; }
                 break;
 
             case "tarefas-mover":
-                var cm = cronograma(ev), dd = difDias(ev.data, cm.base);
-                cm.itens.forEach(function (t) { t.dia = somarDias(t.dia, dd); });
-                cm.base = ev.data; calRef = null;
-                marcarSujo(); redesenharTarefas();
-                mostrarBarra("Tarefas movidas " + Math.abs(dd) + (Math.abs(dd) === 1 ? " dia" : " dias") + (dd > 0 ? " para frente" : " para trás") + ". Clique em Salvar.", false);
+                cronograma(ev);
+                moverTarefasComAData(ev);
+                redesenharTarefas();
                 break;
 
             case "tarefas-manter":
