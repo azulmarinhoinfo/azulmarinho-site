@@ -68,6 +68,9 @@ body{ background:var(--fundo-suave); }
 .b.pequeno{ padding:5px 12px; font-size:13px; }
 
 /* Nome sugerido do álbum (iCloud / Google Fotos) */
+.aviso-conferir{ margin:0 0 14px; padding:10px 14px; border:1.5px solid #F59E0B; background:#FFFBEB; color:#78350F; border-radius:12px; font-size:14px; }
+.aviso-conferir ul{ margin:6px 0 0; padding-left:20px; }
+.aviso-conferir[hidden]{ display:none; }
 .nome-album-sug{ display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px 12px;
     background:#EEF8FD; border:1px solid #BEE6F7; border-radius:12px; padding:10px 14px; margin:6px 0 14px; font-size:14px; }
 
@@ -882,7 +885,7 @@ body.seq-aberto{ overflow:hidden; }
                 '<p style="color:var(--texto-claro)">Depois de mexer, clique em <b>Salvar alterações</b> na barra de baixo. O site atualiza em até 1 minuto.</p></div>';
         }
         var qtd = convidados(ev.id).length;
-        return '<div class="editor-topo"><h2>' + esc(ev.titulo || "Novo evento") + '</h2><div class="acoes">' + acoesTopoHTML(ev) + '</div></div>' +
+        return '<div class="editor-topo"><h2>' + esc(ev.titulo || "Novo evento") + '</h2><div class="acoes">' + acoesTopoHTML(ev) + '</div></div>' + avisoConferirHTML(ev) +
             '<div class="abas"><button data-aba="detalhes" class="' + (aba === "detalhes" ? "ativa" : "") + '">Detalhes</button>' +
                 '<button data-aba="fornecedores" class="' + (aba === "fornecedores" ? "ativa" : "") + '">Fornecedores' + (fornecedores(ev.id).length ? " (" + fornecedores(ev.id).length + ")" : "") + '</button>' +
                 '<button data-aba="compras" class="' + (aba === "compras" ? "ativa" : "") + '">Compras</button>' +
@@ -2228,6 +2231,44 @@ body.seq-aberto{ overflow:hidden; }
         }
         return ANIVERSARIANTE + (idade ? " " + idade : "") + " — " + tema;
     }
+    /* Mudou o título: a descrição acompanha.
+       - "completando 4 meses" passa a ter a idade que está no título ("Heitor 3 Meses" -> "completando 3 meses");
+       - se a descrição repete o título antigo, troca pelo novo. */
+    function descricaoSegueTitulo(ev, antigo) {
+        var d = String(ev.descricao || ""), novo = String(ev.titulo || "").trim(), n = mesesDoTitulo(novo);
+        if (!d) return;
+        var r = d;
+        antigo = String(antigo || "").trim();   /* título de quando a pessoa entrou no campo (só ao sair dele) */
+        if (antigo && novo && antigo !== novo && r.indexOf(antigo) >= 0) r = r.split(antigo).join(novo);
+        if (n) r = r.replace(/(complet(?:ando|ar|ou|a)\s+)(\d+\s+(?:m[eê]s(?:es)?|anos?))\b/gi, function (x, ini) { return ini + textoIdade(n); });
+        if (r === d) return;
+        ev.descricao = r;
+        document.querySelectorAll('[data-c="descricao"], #c-descricao').forEach(function (el) { if (el.value !== r) el.value = r; });
+    }
+    var tituloAoEntrar = null;
+    /* Conferência: título, descrição e tema contando a mesma história (evita mandar mensagem com informação errada) */
+    function problemasEvento(ev) {
+        var p = [], tit = String(ev.titulo || ""), d = String(ev.descricao || ""), n = mesesDoTitulo(tit);
+        var m = /complet(?:ando|ar|ou|a)\s+(\d+\s+(?:m[eê]s(?:es)?|anos?))\b/i.exec(d);
+        if (n && m && mesesDoTitulo(m[1]) !== n) p.push("O título diz <b>" + esc(textoIdade(n)) + "</b>, mas a descrição diz <b>" + esc(m[1]) + "</b>.");
+        var kt = chaveNome(tit), atualNome = chaveNome(nomeCurtoTema(ev.tema));
+        Object.keys(window.TEMAS).forEach(function (k) {
+            if (k === ev.tema || window.TEMAS[k].grupo !== "infantil") return;
+            var nm = chaveNome(nomeCurtoTema(k));
+            if (nm.length >= 5 && kt.indexOf(nm) >= 0 && atualNome.indexOf(nm) < 0)
+                p.push("O título fala de <b>" + esc(nomeCurtoTema(k)) + "</b>, mas o tema escolhido é <b>" + esc(nomeCurtoTema(ev.tema)) + "</b> (cores, convite, grupo e ideias seguem o tema).");
+        });
+        return p;
+    }
+    function avisoConferirHTML(ev) {
+        var p = problemasEvento(ev);
+        return '<div id="aviso-conferir" class="aviso-conferir"' + (p.length ? "" : " hidden") + '>⚠️ <b>Confira antes de enviar mensagens:</b><ul>' +
+            p.map(function (x) { return "<li>" + x + "</li>"; }).join("") + '</ul></div>';
+    }
+    function conferirEvento(ev) {
+        var el = document.getElementById("aviso-conferir");
+        if (el) el.outerHTML = avisoConferirHTML(ev);
+    }
     function descricaoNovo(ev, ini, meses) {
         var partes = [];
         if (ini.mesv) partes.push("Nosso pequeno " + ANIVERSARIANTE + (meses ? " está completando " + textoIdade(meses) : " está fazendo mais um mesversário") + "! 👶🏻💙");
@@ -2251,7 +2292,9 @@ body.seq-aberto{ overflow:hidden; }
         }
         if (ini.alm !== null) f.hora = ini.alm ? "13:00" : "15:00";
         if (modelo) ["local", "endereco", "mapa", "lat", "lon", "playlist", "album", "albumGoogle"].forEach(function (k) { if (modelo[k] !== undefined && modelo[k] !== "") f[k] = modelo[k]; });
-        if (ev.tema !== "padrao" || ini.mesv) f.descricao = descricaoNovo(ev, ini, info && info.meses);
+        /* Título escrito à mão manda na idade da descrição */
+        var mesesDesc = (mx.titulo && mesesDoTitulo(ev.titulo)) || (info && info.meses);
+        if (ev.tema !== "padrao" || ini.mesv) f.descricao = descricaoNovo(ev, ini, mesesDesc);
         Object.keys(f).forEach(function (k) {
             if (mx[k]) return;
             ev[k] = f[k];
@@ -3478,8 +3521,9 @@ body.seq-aberto{ overflow:hidden; }
         }
         var v = el.type === "checkbox" ? el.checked : el.value;
         if (c === "lat" || c === "lon") v = v === "" || isNaN(+v) ? "" : +v;
-        var temaAntigo = ev.tema;
+        var temaAntigo = ev.tema, tituloAntigo = ev.titulo;
         ev[c] = v;
+        if (c === "titulo") descricaoSegueTitulo(ev, null);
         if (ev._ini && c !== "tema") ev._ini.mexeu[c] = true;   // a pessoa escreveu: não preencho mais este campo
         if (c === "capa") { var cpr = document.getElementById("capa-previa"); if (cpr) cpr.innerHTML = previaCapa(/^(https?:\/\/|\/)\S+$/.test(v.trim()) ? v.trim() : ""); }
         /* Trocou o tema na lista: descrição e ideias do tema novo */
@@ -3504,11 +3548,22 @@ body.seq-aberto{ overflow:hidden; }
         marcarSujo();
         atualizarPrevias(ev);
         if (c === "titulo" || c === "data" || c === "rascunho" || c === "tema" || c === "emoji") { atualizarLista(); amostra(); }
+        if (c === "titulo" || c === "descricao" || c === "tema") conferirEvento(ev);
     });
 
+    /* Título: guarda como estava ao entrar no campo; ao sair, a descrição troca o título antigo pelo novo */
+    painel.addEventListener("focusin", function (e) {
+        var ev = atual && evento(atual);
+        if (ev && e.target.getAttribute && e.target.getAttribute("data-c") === "titulo") tituloAoEntrar = ev.titulo;
+    });
     painel.addEventListener("change", function (e) {
         var ev = atual && evento(atual), el = e.target;
         if (!ev) return;
+        if (el.getAttribute("data-c") === "titulo" && tituloAoEntrar !== null) {
+            descricaoSegueTitulo(ev, tituloAoEntrar);
+            tituloAoEntrar = ev.titulo;
+            conferirEvento(ev);
+        }
         if (el.hasAttribute("data-avisocel")) return avisoCelLigar(el.checked);
         /* Tarefa "Confirmar presenças": confirmado já está no grupo do WhatsApp */
         if (el.hasAttribute("data-grp")) {
