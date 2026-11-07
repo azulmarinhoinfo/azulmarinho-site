@@ -68,6 +68,9 @@ body{ background:var(--fundo-suave); }
 .b.pequeno{ padding:5px 12px; font-size:13px; }
 
 /* Nome sugerido do álbum (iCloud / Google Fotos) */
+.aviso-conferir{ margin:0 0 14px; padding:10px 14px; border:1.5px solid #F59E0B; background:#FFFBEB; color:#78350F; border-radius:12px; font-size:14px; }
+.aviso-conferir ul{ margin:6px 0 0; padding-left:20px; }
+.aviso-conferir[hidden]{ display:none; }
 .nome-album-sug{ display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px 12px;
     background:#EEF8FD; border:1px solid #BEE6F7; border-radius:12px; padding:10px 14px; margin:6px 0 14px; font-size:14px; }
 
@@ -435,6 +438,8 @@ body.seq-aberto{ overflow:hidden; }
 .capa-ini{ border-top:1px solid rgba(0,173,239,.3); padding-top:12px; }
 .capa-ini input{ width:100%; }
 .inicio-novo select{ font-size:16px; }
+.pergunta-ini[hidden]{ display:none; }
+.pergunta-ini select{ font:inherit; font-size:14px; padding:5px 10px; border:1.5px solid var(--borda); border-radius:999px; background:var(--branco); color:var(--texto); }
 .pergunta-ini{ display:flex; flex-wrap:wrap; gap:8px 12px; align-items:center; }
 .pergunta-ini .q{ font-weight:600; flex:0 1 auto; min-width:200px; }
 .pergunta-ini .opcoes button{ padding:8px 16px; font-size:15px; }
@@ -882,7 +887,7 @@ body.seq-aberto{ overflow:hidden; }
                 '<p style="color:var(--texto-claro)">Depois de mexer, clique em <b>Salvar alterações</b> na barra de baixo. O site atualiza em até 1 minuto.</p></div>';
         }
         var qtd = convidados(ev.id).length;
-        return '<div class="editor-topo"><h2>' + esc(ev.titulo || "Novo evento") + '</h2><div class="acoes">' + acoesTopoHTML(ev) + '</div></div>' +
+        return '<div class="editor-topo"><h2>' + esc(ev.titulo || "Novo evento") + '</h2><div class="acoes">' + acoesTopoHTML(ev) + '</div></div>' + avisoConferirHTML(ev) +
             '<div class="abas"><button data-aba="detalhes" class="' + (aba === "detalhes" ? "ativa" : "") + '">Detalhes</button>' +
                 '<button data-aba="fornecedores" class="' + (aba === "fornecedores" ? "ativa" : "") + '">Fornecedores' + (fornecedores(ev.id).length ? " (" + fornecedores(ev.id).length + ")" : "") + '</button>' +
                 '<button data-aba="compras" class="' + (aba === "compras" ? "ativa" : "") + '">Compras</button>' +
@@ -2216,7 +2221,7 @@ body.seq-aberto{ overflow:hidden; }
         if (domingoDepoisDo20(n) < hoje) n++;
         var feitos = ant.map(function (e) { return mesesDoTitulo(e.titulo); });
         while (nasc !== null && feitos.indexOf(n - nasc) >= 0) n++;
-        return { data: domingoDepoisDo20(n), meses: nasc === null ? null : n - nasc, ultimo: ant[ant.length - 1] || null };
+        return { data: domingoDepoisDo20(n), meses: nasc === null ? null : n - nasc, ultimo: ant[ant.length - 1] || null, nasc: nasc };
     }
     /* Título no padrão do último mesversário (ex.: "Heitor 2 Meses — Vingadores" -> "Heitor 3 Meses — Super Mario") */
     function tituloMesversario(ultimo, meses, chave) {
@@ -2227,6 +2232,44 @@ body.seq-aberto{ overflow:hidden; }
             if (reIdade.test(t) && tAnt && t.indexOf(tAnt) >= 0) return t.replace(reIdade, idade).replace(tAnt, tema);
         }
         return ANIVERSARIANTE + (idade ? " " + idade : "") + " — " + tema;
+    }
+    /* Mudou o título: a descrição acompanha.
+       - "completando 4 meses" passa a ter a idade que está no título ("Heitor 3 Meses" -> "completando 3 meses");
+       - se a descrição repete o título antigo, troca pelo novo. */
+    function descricaoSegueTitulo(ev, antigo) {
+        var d = String(ev.descricao || ""), novo = String(ev.titulo || "").trim(), n = mesesDoTitulo(novo);
+        if (!d) return;
+        var r = d;
+        antigo = String(antigo || "").trim();   /* título de quando a pessoa entrou no campo (só ao sair dele) */
+        if (antigo && novo && antigo !== novo && r.indexOf(antigo) >= 0) r = r.split(antigo).join(novo);
+        if (n) r = r.replace(/(complet(?:ando|ar|ou|a)\s+)(\d+\s+(?:m[eê]s(?:es)?|anos?))\b/gi, function (x, ini) { return ini + textoIdade(n); });
+        if (r === d) return;
+        ev.descricao = r;
+        document.querySelectorAll('[data-c="descricao"], #c-descricao').forEach(function (el) { if (el.value !== r) el.value = r; });
+    }
+    var tituloAoEntrar = null;
+    /* Conferência: título, descrição e tema contando a mesma história (evita mandar mensagem com informação errada) */
+    function problemasEvento(ev) {
+        var p = [], tit = String(ev.titulo || ""), d = String(ev.descricao || ""), n = mesesDoTitulo(tit);
+        var m = /complet(?:ando|ar|ou|a)\s+(\d+\s+(?:m[eê]s(?:es)?|anos?))\b/i.exec(d);
+        if (n && m && mesesDoTitulo(m[1]) !== n) p.push("O título diz <b>" + esc(textoIdade(n)) + "</b>, mas a descrição diz <b>" + esc(m[1]) + "</b>.");
+        var kt = chaveNome(tit), atualNome = chaveNome(nomeCurtoTema(ev.tema));
+        Object.keys(window.TEMAS).forEach(function (k) {
+            if (k === ev.tema || window.TEMAS[k].grupo !== "infantil") return;
+            var nm = chaveNome(nomeCurtoTema(k));
+            if (nm.length >= 5 && kt.indexOf(nm) >= 0 && atualNome.indexOf(nm) < 0)
+                p.push("O título fala de <b>" + esc(nomeCurtoTema(k)) + "</b>, mas o tema escolhido é <b>" + esc(nomeCurtoTema(ev.tema)) + "</b> (cores, convite, grupo e ideias seguem o tema).");
+        });
+        return p;
+    }
+    function avisoConferirHTML(ev) {
+        var p = problemasEvento(ev);
+        return '<div id="aviso-conferir" class="aviso-conferir"' + (p.length ? "" : " hidden") + '>⚠️ <b>Confira antes de enviar mensagens:</b><ul>' +
+            p.map(function (x) { return "<li>" + x + "</li>"; }).join("") + '</ul></div>';
+    }
+    function conferirEvento(ev) {
+        var el = document.getElementById("aviso-conferir");
+        if (el) el.outerHTML = avisoConferirHTML(ev);
     }
     function descricaoNovo(ev, ini, meses) {
         var partes = [];
@@ -2243,15 +2286,19 @@ body.seq-aberto{ overflow:hidden; }
         /* Local, mapa, coordenadas, playlist e álbuns: iguais aos do último mesversário (vale para qualquer evento novo) */
         var ant = mesversariosAnteriores(ev), modelo = ant.length ? ant.sort(function (a, b) { return (a.data || "").localeCompare(b.data || ""); })[ant.length - 1] : null;
         f.cidade = "Santana do Paraíso";
+        /* Meses: o que a pessoa escolheu em "Quantos meses?" ou, sem escolha, o próximo mesversário que ainda não tem evento */
+        var meses = ini.mesv ? (ini.meses || info.meses) : null;
         if (ini.mesv) {
-            f.titulo = tituloMesversario(info.ultimo, info.meses, ev.tema);
-            f.data = info.data;
+            f.titulo = tituloMesversario(info.ultimo, meses, ev.tema);
+            f.data = ini.meses && info.nasc !== null ? domingoDepoisDo20(info.nasc + ini.meses) : info.data;
         } else {
             f.titulo = ev.tema === "padrao" ? "" : (window.TEMAS[ev.tema].grupo === "infantil" ? "Festa " : "") + nomeCurtoTema(ev.tema);
         }
         if (ini.alm !== null) f.hora = ini.alm ? "13:00" : "15:00";
         if (modelo) ["local", "endereco", "mapa", "lat", "lon", "playlist", "album", "albumGoogle"].forEach(function (k) { if (modelo[k] !== undefined && modelo[k] !== "") f[k] = modelo[k]; });
-        if (ev.tema !== "padrao" || ini.mesv) f.descricao = descricaoNovo(ev, ini, info && info.meses);
+        /* Título escrito à mão manda na idade da descrição */
+        var mesesDesc = (mx.titulo && mesesDoTitulo(ev.titulo)) || meses;
+        if (ev.tema !== "padrao" || ini.mesv) f.descricao = descricaoNovo(ev, ini, mesesDesc);
         Object.keys(f).forEach(function (k) {
             if (mx[k]) return;
             ev[k] = f[k];
@@ -2284,6 +2331,13 @@ body.seq-aberto{ overflow:hidden; }
         }
         var h2 = painel.querySelector(".editor-topo h2");
         if (h2) h2.textContent = ev.titulo || "Novo evento";
+        var pm = document.getElementById("ini-meses");
+        if (pm) {
+            pm.hidden = !ini.mesv;
+            var sm = pm.querySelector("select");
+            if (sm && meses) sm.value = String(meses);
+        }
+        conferirEvento(ev);
         var r = document.getElementById("resumo-ini");
         if (r) r.innerHTML = resumoNovo(ev);
         marcarSujo();
@@ -2299,6 +2353,13 @@ body.seq-aberto{ overflow:hidden; }
         if (ini.alm === false) l.push("🎂 Sem almoço, às 15h: sem churrasco em Compras e nas Tarefas");
         return l.length ? "✅ Preenchido. " + l.join(" • ") + ". Confira abaixo e mude o que quiser." : "✅ Preenchido. Confira abaixo e mude o que quiser.";
     }
+    /* "Quantos meses?" (só para mesversário): já vem com a sugestão; mudar refaz título, data, descrição e link */
+    function perguntaMesesHTML(ev) {
+        var ini = ev._ini, info = proximoMesversario(ev), m = ini.meses || info.meses || "", ops = "";
+        for (var i = 1; i <= 24; i++) ops += '<option value="' + i + '"' + (i === +m ? " selected" : "") + '>' + textoIdade(i) + (i === info.meses ? " (próximo da lista)" : "") + '</option>';
+        return '<div class="pergunta-ini" id="ini-meses"' + (ini.mesv ? "" : " hidden") + '><span class="q">🎈 Quantos meses o ' + ANIVERSARIANTE + ' vai fazer?</span>' +
+            '<select data-ini-meses aria-label="Quantos meses">' + (m ? "" : '<option value="">Escolha</option>') + ops + '</select></div>';
+    }
     function inicioNovoHTML(ev, seletor) {
         var ini = ev._ini;
         function sn(k, sim, nao) {
@@ -2308,6 +2369,7 @@ body.seq-aberto{ overflow:hidden; }
         }
         return '<div class="inicio-novo"><h3>✨ Comece por aqui</h3>' + seletor +
             '<div class="pergunta-ini' + (ini.mesv === null ? " falta" : "") + '"><span class="q">🎂 É mesversário do ' + ANIVERSARIANTE + '?</span>' + sn("mesv", "Sim", "Não") + '</div>' +
+            perguntaMesesHTML(ev) +
             '<div class="pergunta-ini' + (ini.alm === null ? " falta" : "") + '"><span class="q">🍖 Tem almoço?</span>' + sn("alm", "Sim, 13h 🍖", "Não, 15h") + '</div>' +
             '<p class="resumo-ini" id="resumo-ini">' + resumoNovo(ev) + '</p>' +
             nomeAlbumHTML(ev) +
@@ -3478,8 +3540,9 @@ body.seq-aberto{ overflow:hidden; }
         }
         var v = el.type === "checkbox" ? el.checked : el.value;
         if (c === "lat" || c === "lon") v = v === "" || isNaN(+v) ? "" : +v;
-        var temaAntigo = ev.tema;
+        var temaAntigo = ev.tema, tituloAntigo = ev.titulo;
         ev[c] = v;
+        if (c === "titulo") descricaoSegueTitulo(ev, null);
         if (ev._ini && c !== "tema") ev._ini.mexeu[c] = true;   // a pessoa escreveu: não preencho mais este campo
         if (c === "capa") { var cpr = document.getElementById("capa-previa"); if (cpr) cpr.innerHTML = previaCapa(/^(https?:\/\/|\/)\S+$/.test(v.trim()) ? v.trim() : ""); }
         /* Trocou o tema na lista: descrição e ideias do tema novo */
@@ -3504,11 +3567,29 @@ body.seq-aberto{ overflow:hidden; }
         marcarSujo();
         atualizarPrevias(ev);
         if (c === "titulo" || c === "data" || c === "rascunho" || c === "tema" || c === "emoji") { atualizarLista(); amostra(); }
+        if (c === "titulo" || c === "descricao" || c === "tema") conferirEvento(ev);
     });
 
+    /* Título: guarda como estava ao entrar no campo; ao sair, a descrição troca o título antigo pelo novo */
+    /* Evento novo: trocou "Quantos meses?" -> título, data, descrição e link daquele mês */
+    painel.addEventListener("change", function (e) {
+        var ev = atual && evento(atual);
+        if (!ev || !ev._ini || !e.target.hasAttribute || !e.target.hasAttribute("data-ini-meses")) return;
+        ev._ini.meses = +e.target.value || null;
+        preencherNovo(ev);
+    });
+    painel.addEventListener("focusin", function (e) {
+        var ev = atual && evento(atual);
+        if (ev && e.target.getAttribute && e.target.getAttribute("data-c") === "titulo") tituloAoEntrar = ev.titulo;
+    });
     painel.addEventListener("change", function (e) {
         var ev = atual && evento(atual), el = e.target;
         if (!ev) return;
+        if (el.getAttribute("data-c") === "titulo" && tituloAoEntrar !== null) {
+            descricaoSegueTitulo(ev, tituloAoEntrar);
+            tituloAoEntrar = ev.titulo;
+            conferirEvento(ev);
+        }
         if (el.hasAttribute("data-avisocel")) return avisoCelLigar(el.checked);
         /* Tarefa "Confirmar presenças": confirmado já está no grupo do WhatsApp */
         if (el.hasAttribute("data-grp")) {
