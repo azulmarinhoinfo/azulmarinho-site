@@ -20,7 +20,7 @@ export var DIAS = {
     ] },
     1: { nome: "Segunda à noite", curto: "Aspirar", hora: "23:00", minutos: 60, tarefas: [
         "Aspirar o fundo",
-        "Retrolavagem e enxágue",
+        "Retrolavagem: LAVAR e FILTRAR AO ESGOTO",
         "Medir cloro e pH e corrigir o pH se precisar"
     ] },
     3: { nome: "Quarta à noite", curto: "Cloro (opcional)", opcional: true, hora: "23:00", minutos: 15, tarefas: [
