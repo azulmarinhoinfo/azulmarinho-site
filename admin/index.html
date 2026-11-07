@@ -2411,9 +2411,14 @@ body.seq-aberto{ overflow:hidden; }
         "rei-leao":      ["Hakuna Matata! 🦁🌅 Bem-vindos à Pedra do Reino.", "O Heitor erguido como o Simba na Pedra do Reino, com pôr do sol laranja atrás."]
     };
     function grupoTema(ev) { return GRUPO_TEMA[ev.tema] || GRUPO_TEMA.padrao; }
-    /* Nome do grupo: emoji do tema + nome no padrão do álbum ("🍄 Heitor 3 Meses — Super Mario"). WhatsApp aceita até 100 letras. */
+    /* Emoji do tema na frente do título, só se o título já não começar com emoji (evita "🍄 🍄 ...") */
+    function comEmoji(ev, texto) {
+        texto = String(texto || "").trim();
+        return /^\p{Extended_Pictographic}/u.test(texto) ? texto : emojiConvite(ev) + " " + texto;
+    }
+    /* Nome do grupo: emoji do tema + título do evento ("🍄 Heitor 3 Meses — Super Mario"). WhatsApp aceita até 100 letras. */
     function nomeGrupoWhats(ev) {
-        return (emojiConvite(ev) + " " + nomeAlbumSugerido(ev)).slice(0, 100);
+        return comEmoji(ev, nomeAlbumSugerido(ev)).slice(0, 100);
     }
     function infoEventoWhats(ev) {
         return (ev.data ? "📅 " + EV.dataLonga(ev) + (ev.hora ? ", às " + ev.hora : "") + "\n" : "") +
@@ -2424,7 +2429,7 @@ body.seq-aberto{ overflow:hidden; }
     /* Descrição do grupo (fica fixa para consultar a qualquer hora). WhatsApp aceita até 2048 letras. */
     function descricaoGrupoWhats(ev) {
         var tm = window.TEMAS[ev.tema] || window.TEMAS.padrao;
-        return (emojiConvite(ev) + " " + (ev.titulo || "") + "\n" +
+        return (comEmoji(ev, ev.titulo) + "\n" +
             (tm.frase || "Venha comemorar com a gente! 🎉") + "\n\n" +
             infoEventoWhats(ev) +
             "\n✅ Confirme sua presença, veja a previsão do tempo, o mapa e a playlist:\n" + linkEvento(ev) + "\n\n" +
@@ -2449,15 +2454,10 @@ body.seq-aberto{ overflow:hidden; }
             tipo === "grupo-foto" ? grupoTema(ev)[1] : "";
     }
     /* Mudou um dado do evento dentro de uma tarefa: atualiza os textos prontos na tela */
-    /* Nome para criar o álbum no iCloud / Google Fotos, no padrão dos títulos:
-       mesversário → "Heitor 3 Meses — Super Mario" (sempre com o nome do tema escolhido);
-       outros eventos → o próprio título. */
+    /* Nome para criar o álbum no iCloud / Google Fotos e para o grupo do WhatsApp:
+       sempre o título do evento como está agora (mudou o título, muda aqui também). */
     function nomeAlbumSugerido(ev) {
-        var titulo = String(ev.titulo || "").trim();
-        var m = /^(.*?\d+\s+m[eê]s(?:es)?)\b/i.exec(titulo);
-        var tm = window.TEMAS[ev.tema];
-        if (m && tm && ev.tema !== "padrao") return m[1].trim() + " — " + tm.nome.replace(/\s*\(.*\)\s*$/, "");
-        return titulo || "Álbum do evento";
+        return String(ev.titulo || "").trim() || "Álbum do evento";
     }
     function nomeAlbumHTML(ev) {
         return '<div class="nome-album-sug"><span>📸 Nome para o álbum no iCloud e no Google Fotos: <b data-nome-album>' + esc(nomeAlbumSugerido(ev)) + '</b></span>' +
