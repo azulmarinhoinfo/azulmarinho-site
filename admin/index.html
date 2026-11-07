@@ -434,6 +434,7 @@ body.seq-aberto{ overflow:hidden; }
 .botao-foto{ cursor:pointer; white-space:nowrap; }
 .capa-previa{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:8px; }
 .capa-previa:empty{ display:none; }
+.ajuda-busca{ flex:1 1 100%; display:flex; flex-direction:column; gap:4px; font-size:14px; line-height:1.45; padding:10px 12px; border-radius:10px; background:rgba(0,173,239,.08); border:1px solid rgba(0,173,239,.35); }
 .capa-previa img{ max-width:220px; max-height:140px; border-radius:10px; border:1px solid var(--borda); object-fit:cover; }
 .capa-ini{ border-top:1px solid rgba(0,173,239,.3); padding-top:12px; }
 .capa-ini input{ width:100%; }
@@ -2995,9 +2996,59 @@ body.seq-aberto{ overflow:hidden; }
     function campoCapa(ev) {
         return '<div class="campo"><label for="c-capa">Foto de capa (opcional)</label>' +
             '<div class="capa-linha"><label class="b cheio pequeno botao-foto">📷 Escolher da fototeca<input type="file" id="capa-arquivo" accept="image/*" hidden></label>' +
+                '<button type="button" class="b cheio pequeno botao-foto" data-acao="capa-pesquisar">🔎 Pesquisar na internet</button>' +
                 '<input type="text" data-c="capa" id="c-capa" value="' + esc(ev.capa || "") + '" placeholder="ou cole o link de uma imagem"></div>' +
             '<div class="capa-previa" id="capa-previa">' + previaCapa(ev.capa) + '</div>' +
-            '<span class="dica">Escolha uma foto do celular ou do computador, ou cole o link direto da imagem (https://..., termina em .jpg, .png ou .webp). Aparece no cartão do evento e na prévia do WhatsApp. Sem capa, aparece o emoji do tema.</span></div>';
+            '<span class="dica">Escolha uma foto do celular ou do computador, pesquise uma imagem na internet, ou cole o link da imagem. Aparece no cartão do evento e na prévia do WhatsApp. Sem capa, aparece o emoji do tema.</span></div>';
+    }
+    /* Pesquisar na internet: abre o Google Imagens já com o tema (ou o título) do evento */
+    function buscaCapa(ev) {
+        var t = window.TEMAS[ev.tema], q;
+        if (t && ev.tema !== "padrao") q = t.nome + (t.grupo === "infantil" ? " festa infantil" : "");
+        else q = String(ev.titulo || "").trim() || "festa de aniversário";
+        return "https://www.google.com/search?tbm=isch&udm=2&q=" + encodeURIComponent(q);
+    }
+    function ajudaPesquisa() {
+        return '<div class="ajuda-busca"><b>🔎 Achou a imagem? Escolha um jeito:</b>' +
+            '<span><b>No computador:</b> clique com o botão direito na imagem → <b>Copiar endereço da imagem</b> (ou <b>Copiar imagem</b>) e cole no campo acima.</span>' +
+            '<span><b>No Android:</b> toque na imagem, segure o dedo nela → <b>Copiar endereço da imagem</b> e cole no campo acima.</span>' +
+            '<span><b>No iPhone:</b> toque na imagem, segure o dedo nela → <b>Salvar em Fotos</b>, volte aqui e toque em <b>📷 Escolher da fototeca</b>.</span>' +
+            '<span>O painel guarda uma cópia da imagem no site, então ela não some se o outro site apagar.</span></div>';
+    }
+    /* Link colado: o Google às vezes copia um link "imgres?imgurl=..." — tiro só a imagem de dentro */
+    function linkDaImagem(v) {
+        v = String(v || "").trim();
+        var m = v.match(/[?&]imgurl=([^&]+)/);
+        if (/^https?:\/\/(www\.)?google\./.test(v) && m) { try { return decodeURIComponent(m[1]); } catch (e) {} }
+        return v;
+    }
+    function dataParaBlob(d) {
+        var p = d.split(","), tipo = (p[0].match(/^data:([^;,]+)/) || [])[1] || "image/jpeg", bin = atob(p[1] || ""), b = new Uint8Array(bin.length);
+        for (var i = 0; i < bin.length; i++) b[i] = bin.charCodeAt(i);
+        return new Blob([b], { type: tipo });
+    }
+    /* Imagem da internet: o site busca a imagem e o painel guarda uma cópia, igual à fototeca */
+    var capaUltimoLink = "";
+    function capaDoLink(ev, v) {
+        v = linkDaImagem(v);
+        if (!v || v === capaUltimoLink) return;   // o mesmo link não é buscado duas vezes (colar + sair do campo)
+        capaUltimoLink = v;
+        if (/^data:image\//.test(v)) { try { enviarCapa(ev, dataParaBlob(v)); } catch (e) {} return; }
+        if (!/^https?:\/\//.test(v) || v.indexOf(location.origin + "/") === 0) return;
+        var pv = document.getElementById("capa-previa");
+        if (pv) pv.innerHTML = '<span class="nota-info">⏳ Trazendo a imagem para o site...</span>';
+        fetch("/api/admin/capa-link?url=" + encodeURIComponent(v), { credentials: "same-origin" }).then(function (r) {
+            if (!r.ok) return r.json().catch(function () { return {}; }).then(function (d) { throw new Error(d.erro || "Erro " + r.status); });
+            return r.blob();
+        }).then(function (b) {
+            enviarCapa(ev, b);
+        }).catch(function (e) {
+            /* Não deu para copiar: fica o link direto mesmo (como era antes) */
+            ev.capa = v;
+            var ci = document.getElementById("c-capa"); if (ci) ci.value = v;
+            if (pv) pv.innerHTML = '<span class="nota-info">⚠️ Não consegui guardar uma cópia' + (e && e.message ? " (" + esc(e.message) + ")" : "") + '. Ficou o link direto. Se a foto não aparecer abaixo, tente outra imagem.</span>' + previaCapa(v);
+            marcarSujo(); atualizarPrevias(ev); atualizarLista();
+        });
     }
     function previaCapa(c) {
         return c ? '<img src="' + esc(EV.img(c)) + '" alt="Foto de capa"><button type="button" class="b pequeno perigo" data-acao="capa-tirar">Tirar a foto</button>' : "";
@@ -3010,7 +3061,15 @@ body.seq-aberto{ overflow:hidden; }
                 var w = im.naturalWidth, h = im.naturalHeight, k = Math.min(1, max / Math.max(w, h));
                 var c = document.createElement("canvas"); c.width = Math.round(w * k); c.height = Math.round(h * k);
                 c.getContext("2d").drawImage(im, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
-                c.toBlob(function (b) { b ? ok(b) : falhou(new Error("blob")); }, "image/jpeg", q);
+                var png = arquivo.type === "image/png";   // PNG sem fundo continua sem fundo
+                c.toBlob(function (b) {
+                    if (b && png && b.size > 4.5 * 1024 * 1024) {   // PNG grande demais: vira JPEG com fundo branco
+                        var c2 = document.createElement("canvas"); c2.width = c.width; c2.height = c.height;
+                        var g = c2.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, c2.width, c2.height); g.drawImage(c, 0, 0);
+                        return c2.toBlob(function (b2) { b2 ? ok(b2) : falhou(new Error("blob")); }, "image/jpeg", q);
+                    }
+                    b ? ok(b) : falhou(new Error("blob"));
+                }, png ? "image/png" : "image/jpeg", q);
             };
             im.onerror = function () { URL.revokeObjectURL(url); falhou(new Error("img")); };
             im.src = url;
@@ -3020,7 +3079,7 @@ body.seq-aberto{ overflow:hidden; }
         var pv = document.getElementById("capa-previa");
         if (pv) pv.innerHTML = '<span class="nota-info">⏳ Enviando a foto...</span>';
         reduzirFoto(arquivo, 1600, 0.85).then(function (blob) {
-            return fetch("/api/admin/capa", { method: "POST", credentials: "same-origin", headers: { "Content-Type": "image/jpeg" }, body: blob });
+            return fetch("/api/admin/capa", { method: "POST", credentials: "same-origin", headers: { "Content-Type": blob.type || "image/jpeg" }, body: blob });
         }).then(function (r) {
             return r.json().catch(function () { return {}; }).then(function (d) { if (!r.ok || !d.caminho) throw new Error(d.erro || "Erro " + r.status); return d; });
         }).then(function (d) {
@@ -3449,6 +3508,17 @@ body.seq-aberto{ overflow:hidden; }
         atualizarResumo(ev);
     }
 
+    /* Colar na Foto de capa: imagem copiada vai direto; link é buscado na hora */
+    painel.addEventListener("paste", function (e) {
+        var el = e.target, ev = atual && evento(atual);
+        if (!ev || !el || el.id !== "c-capa") return;
+        var cd = e.clipboardData, arq = null;
+        if (cd && cd.items) for (var i = 0; i < cd.items.length; i++) {
+            if (cd.items[i].kind === "file" && /^image\//.test(cd.items[i].type)) { arq = cd.items[i].getAsFile(); break; }
+        }
+        if (arq) { e.preventDefault(); enviarCapa(ev, arq); return; }
+        setTimeout(function () { capaDoLink(ev, el.value); }, 0);
+    });
     painel.addEventListener("input", function (e) {
         var ev = atual && evento(atual);
         if (!ev) return;
@@ -3600,6 +3670,7 @@ body.seq-aberto{ overflow:hidden; }
             salvar(String(pg.nome).trim().split(" ")[0] + (el.checked ? " está no grupo ✓" : " fora do grupo"));
             return;
         }
+        if (el.getAttribute("data-c") === "capa") { capaDoLink(ev, el.value); return; }
         if (el.id === "capa-arquivo") {
             if (el.files && el.files[0]) enviarCapa(ev, el.files[0]);
             el.value = "";
@@ -3792,6 +3863,12 @@ body.seq-aberto{ overflow:hidden; }
                 abrir(novo.id);
                 preencherNovo(novo);
                 document.getElementById("c-tema").focus();
+                break;
+
+            case "capa-pesquisar":
+                window.open(buscaCapa(ev), "_blank", "noopener");
+                var cpz = document.getElementById("capa-previa");
+                if (cpz && !cpz.querySelector(".ajuda-busca")) cpz.insertAdjacentHTML("afterbegin", ajudaPesquisa());
                 break;
 
             case "capa-tirar":
