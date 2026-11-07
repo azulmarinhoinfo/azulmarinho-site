@@ -657,6 +657,11 @@ body.seq-aberto{ overflow:hidden; }
         for (var i = 0; i < a.length; i++) t += letras[a[i] % letras.length];
         return t;
     }
+    /* Festa com almoço = churrasco americano: cada convidado traz carne e bebida para partilhar.
+       Vale sempre que "Almoço" estiver marcado em Compras ("Vai ter na festa"). */
+    var FRASE_CHURRASCO = "🍖 Vai ter almoço com *churrasco americano*: cada um traz a sua carne e a sua bebida para a gente partilhar!";
+    function temAlmoco(ev) { return !!(ev && ev.id && itensCompras(ev).almoco); }
+    function linhaChurrasco(ev) { return temAlmoco(ev) ? FRASE_CHURRASCO + "\n" : ""; }
     function textoConvite(ev, p) {
         var nome = p.nome;
         var link = window.AZUL.site + "/eventos/evento?id=" + encodeURIComponent(ev.id) + (p.c ? "&c=" + p.c : "");
@@ -664,11 +669,13 @@ body.seq-aberto{ overflow:hidden; }
             "Você está convidado(a) para *" + ev.titulo + "*.\n\n" +
             "📅 " + EV.dataLonga(ev) + (ev.hora ? ", às " + ev.hora : "") + "\n" +
             (ev.local ? "📍 " + ev.local + (ev.endereco ? " (" + ev.endereco + ")" : "") + "\n" : "") +
+            linhaChurrasco(ev) +
             "\n👉 *Confirme sua presença* (é só tocar em Vou ou Não vou) e veja mapa, previsão do tempo e playlist:\n" + link + "\n\nConto com você!";
         return "Olá, " + String(nome).trim().split(" ")[0] + "! " + emojiConvite(ev) + "\n" +
             "Você está convidado(a) para *" + ev.titulo + "*.\n\n" +
             "📅 " + EV.dataLonga(ev) + (ev.hora ? ", às " + ev.hora : "") + "\n" +
             (ev.local ? "📍 " + ev.local + (ev.endereco ? " (" + ev.endereco + ")" : "") + "\n" : "") +
+            linhaChurrasco(ev) +
             "\nTodos os detalhes, mapa, previsão do tempo e playlist:\n" + link + "\n\nConto com você!";
     }
 
@@ -2225,7 +2232,7 @@ body.seq-aberto{ overflow:hidden; }
         var partes = [];
         if (ini.mesv) partes.push("Nosso pequeno " + ANIVERSARIANTE + (meses ? " está completando " + textoIdade(meses) : " está fazendo mais um mesversário") + "! 👶🏻💙");
         partes.push(fraseTema(ev.tema));
-        if (ini.alm) partes.push("Vai ter almoço com churrasco, então venha com fome! 🍖 Começamos às 13h.");
+        if (ini.alm) partes.push("Vai ter almoço com churrasco americano: cada um traz a sua carne e a sua bebida para a gente partilhar! 🍖 Começamos às 13h.");
         else if (ini.alm === false) partes.push((ini.mesv || (window.TEMAS[ev.tema] || {}).grupo === "infantil" ? "Vai ter bolo, salgadinhos e muita alegria." : "Vai ser uma tarde de muita alegria.") + " Começamos às 15h. 🎉");
         return partes.join("\n\n");
     }
@@ -2328,6 +2335,7 @@ body.seq-aberto{ overflow:hidden; }
         return "Olá! " + emojiConvite(ev) + "\nVocês estão convidados para *" + (ev.titulo || "") + "*.\n\n" +
             "📅 " + EV.dataLonga(ev) + (ev.hora ? ", às " + ev.hora : "") + "\n" +
             (ev.local ? "📍 " + ev.local + (ev.endereco ? " (" + ev.endereco + ")" : "") + "\n" : "") +
+            linhaChurrasco(ev) +
             "\nTodos os detalhes, mapa, previsão do tempo e playlist:\n" + linkEvento(ev) + "\n\nConto com vocês!";
     }
     function quandoFesta(ev, dia) {
@@ -2339,6 +2347,7 @@ body.seq-aberto{ overflow:hidden; }
             "Passando para lembrar: " + quandoFesta(ev, dia) + " é *" + ev.titulo + "*" + (ev.hora ? ", às " + ev.hora : "") + ".\n\n" +
             (ev.local ? "📍 " + ev.local + (ev.endereco ? " (" + ev.endereco + ")" : "") + "\n" : "") +
             ((ev.local || ev.endereco || ev.mapa) ? "🗺️ Como chegar: " + EV.linkMapa(ev) + "\n" : "") +
+            (temAlmoco(ev) ? "🍖 Não esqueça: o almoço é *churrasco americano*, traga a sua carne e a sua bebida para partilhar!\n" : "") +
             "\nTodos os detalhes e a previsão do tempo:\n" + linkEvento(ev, p) + "\n\nTe espero lá! 🎉";
     }
     function textoCobranca(ev, p) {
@@ -2409,7 +2418,8 @@ body.seq-aberto{ overflow:hidden; }
     function infoEventoWhats(ev) {
         return (ev.data ? "📅 " + EV.dataLonga(ev) + (ev.hora ? ", às " + ev.hora : "") + "\n" : "") +
             (ev.local ? "📍 " + ev.local + (ev.endereco ? " (" + ev.endereco + ")" : "") + "\n" : ev.endereco ? "📍 " + ev.endereco + "\n" : "") +
-            ((ev.local || ev.endereco || ev.mapa) ? "🗺️ Como chegar: " + EV.linkMapa(ev) + "\n" : "");
+            ((ev.local || ev.endereco || ev.mapa) ? "🗺️ Como chegar: " + EV.linkMapa(ev) + "\n" : "") +
+            linhaChurrasco(ev);
     }
     /* Descrição do grupo (fica fixa para consultar a qualquer hora). WhatsApp aceita até 2048 letras. */
     function descricaoGrupoWhats(ev) {
