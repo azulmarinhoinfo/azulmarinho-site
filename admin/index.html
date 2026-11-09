@@ -485,6 +485,10 @@ body.seq-aberto{ overflow:hidden; }
 .mini-totais span{ border-radius:999px; padding:5px 12px; font-size:14px; border:1.5px solid var(--borda); }
 .mini-totais .v{ background:#F0FDF4; border-color:#86EFAC; } .mini-totais .x{ background:#FFF1F2; border-color:#FDA4AF; } .mini-totais .s{ background:#FFFBEB; border-color:#FCD34D; }
 .ver-convite{ margin-top:10px; }
+.editar-convite{ margin-top:12px; border:1.5px dashed var(--borda); border-radius:12px; padding:10px 12px; background:#fff; }
+.editar-convite summary{ cursor:pointer; color:var(--ciano-escuro); font-weight:600; }
+.editar-convite summary small{ color:#B45309; font-weight:500; }
+.editar-convite textarea{ width:100%; box-sizing:border-box; min-height:260px; margin-top:6px; font:15px/1.45 "Ubuntu",sans-serif; border:1.5px solid var(--borda); border-radius:10px; padding:10px 12px; resize:vertical; }
 .ver-convite summary{ cursor:pointer; color:var(--ciano-escuro); font-weight:500; margin-bottom:8px; }
 .tema-linha{ display:flex; gap:8px; flex-wrap:wrap; }
 .tema-linha input{ flex:1 1 240px; font:inherit; font-size:16px; border:1.5px solid var(--borda); border-radius:10px; padding:9px 12px; }
@@ -668,21 +672,65 @@ body.seq-aberto{ overflow:hidden; }
     var FRASE_CHURRASCO = "🍖 Vai ter almoço com *churrasco americano*: cada um traz a sua carne e a sua bebida para a gente partilhar!";
     function temAlmoco(ev) { return !!(ev && ev.id && itensCompras(ev).almoco); }
     function linhaChurrasco(ev) { return temAlmoco(ev) ? FRASE_CHURRASCO + "\n" : ""; }
+    /* Festa simples: o convite e a descrição só falam de bolo, salgados e doces quando estão marcados em Compras ("Vai ter na festa") */
+    function fraseFesta(ev) {
+        var tem = itensCompras(ev), it = [];
+        if (tem.bolo) it.push("bolo");
+        if (tem.salgados) it.push("salgados");
+        if (tem.doces) it.push("doces");
+        var lista = it.length > 1 ? it.slice(0, -1).join(", ") + " e " + it[it.length - 1] : it[0];
+        return "Vai ser uma festa simples" + (lista ? ", com " + lista : "") + ", feita com muito carinho.";
+    }
+    function linhaFesta(ev) {
+        if (!ev || !ev.id) return "";
+        return (itensCompras(ev).bolo ? "🎂 " : "🎈 ") + fraseFesta(ev) + "\n";
+    }
+    /* Frase automática dentro da descrição (a antiga, que sempre falava em salgadinhos, e a nova) */
+    var RE_FRASE_FESTA = /Vai ter bolo, salgadinhos e muita alegria\.|Vai ser uma festa simples[^.\n]*\./;
+    function descricaoSegueItens(ev) {
+        var d = String(ev.descricao || "");
+        if (!RE_FRASE_FESTA.test(d)) return false;
+        var r = d.replace(RE_FRASE_FESTA, fraseFesta(ev));
+        if (r === d) return false;
+        ev.descricao = r;
+        document.querySelectorAll('[data-c="descricao"]').forEach(function (el) { if (el.value !== r) el.value = r; });
+        return true;
+    }
+    /* Convite automático, com o nome e o link de quem vai receber */
+    function conviteAuto(ev, nome, link, comCodigo) {
+        return "Olá, " + nome + "! " + emojiConvite(ev) + "\n" +
+            "Você está convidado(a) para *" + ev.titulo + "*.\n\n" +
+            "📅 " + EV.dataLonga(ev) + (ev.hora ? ", às " + ev.hora : "") + "\n" +
+            (ev.local ? "📍 " + ev.local + (ev.endereco ? " (" + ev.endereco + ")" : "") + "\n" : "") +
+            linhaFesta(ev) +
+            linhaChurrasco(ev) +
+            (comCodigo ? "\n👉 *Confirme sua presença* (é só tocar em Vou ou Não vou) e veja mapa, previsão do tempo e playlist:\n"
+                : "\nTodos os detalhes, mapa, previsão do tempo e playlist:\n") + link + "\n\nConto com você!";
+    }
+    /* Convite editado à mão (campo conviteTexto): [nome] vira o primeiro nome e [link] o link de confirmação de cada um.
+       Sem [link] no texto, o link entra no final (sem ele a pessoa não consegue confirmar). */
+    function conviteEditado(ev, nome, link) {
+        var t = String(ev.conviteTexto).split("[nome]").join(nome);
+        return t.indexOf("[link]") >= 0 ? t.split("[link]").join(link) : t.replace(/\s+$/, "") + "\n\n👉 Confirme sua presença aqui:\n" + link;
+    }
+    /* Texto que aparece no "Editar o convite" quando ele ainda não foi mudado */
+    function modeloConvite(ev) {
+        return conviteAuto(ev, "[nome]", "[link]", true);
+    }
     function textoConvite(ev, p) {
-        var nome = p.nome;
+        var nome = String(p.nome).trim().split(" ")[0];
         var link = window.AZUL.site + "/eventos/evento?id=" + encodeURIComponent(ev.id) + (p.c ? "&c=" + p.c : "");
-        if (p.c) return "Olá, " + String(nome).trim().split(" ")[0] + "! " + emojiConvite(ev) + "\n" +
-            "Você está convidado(a) para *" + ev.titulo + "*.\n\n" +
-            "📅 " + EV.dataLonga(ev) + (ev.hora ? ", às " + ev.hora : "") + "\n" +
-            (ev.local ? "📍 " + ev.local + (ev.endereco ? " (" + ev.endereco + ")" : "") + "\n" : "") +
-            linhaChurrasco(ev) +
-            "\n👉 *Confirme sua presença* (é só tocar em Vou ou Não vou) e veja mapa, previsão do tempo e playlist:\n" + link + "\n\nConto com você!";
-        return "Olá, " + String(nome).trim().split(" ")[0] + "! " + emojiConvite(ev) + "\n" +
-            "Você está convidado(a) para *" + ev.titulo + "*.\n\n" +
-            "📅 " + EV.dataLonga(ev) + (ev.hora ? ", às " + ev.hora : "") + "\n" +
-            (ev.local ? "📍 " + ev.local + (ev.endereco ? " (" + ev.endereco + ")" : "") + "\n" : "") +
-            linhaChurrasco(ev) +
-            "\nTodos os detalhes, mapa, previsão do tempo e playlist:\n" + link + "\n\nConto com você!";
+        if (String(ev.conviteTexto || "").trim()) return conviteEditado(ev, nome, link);
+        return conviteAuto(ev, nome, link, !!p.c);
+    }
+    /* Caixa "Editar o convite" (tarefas do convite e aba Detalhes) */
+    function editorConviteHTML(ev) {
+        var mudou = !!String(ev.conviteTexto || "").trim();
+        return '<details class="editar-convite"' + (mudou ? " open" : "") + '><summary>✏️ Editar o convite' + (mudou ? " <small>(texto mudado por você)</small>" : "") + '</summary>' +
+            '<p class="nota-info">Mude o texto como quiser. Onde estiver <b>[nome]</b> entra o primeiro nome de cada convidado, e onde estiver <b>[link]</b> entra o link para ele tocar em <b>Vou</b> ou <b>Não vou</b>. Depois toque em <b>Salvar alterações</b>.</p>' +
+            '<textarea data-c="conviteTexto" rows="13" aria-label="Texto do convite">' + esc(mudou ? ev.conviteTexto : modeloConvite(ev)) + '</textarea>' +
+            '<p class="nota-info">⚠️ Depois de mudar o texto, mudar a data, o local ou o que vai ter na festa <b>não muda mais o convite sozinho</b>. Para voltar ao texto automático, toque no botão abaixo.</p>' +
+            '<div class="acoes-info"><button class="b pequeno" data-acao="convite-auto">↩️ Voltar ao texto automático</button></div></details>';
     }
 
     function marcarSujo() {
@@ -2276,8 +2324,8 @@ body.seq-aberto{ overflow:hidden; }
         var partes = [];
         if (ini.mesv) partes.push("Nosso pequeno " + ANIVERSARIANTE + (meses ? " está completando " + textoIdade(meses) : " está fazendo mais um mesversário") + "! 👶🏻💙");
         partes.push(fraseTema(ev.tema));
-        if (ini.alm) partes.push("Vai ter almoço com churrasco americano: cada um traz a sua carne e a sua bebida para a gente partilhar! 🍖 Começamos às 13h.");
-        else if (ini.alm === false) partes.push((ini.mesv || (window.TEMAS[ev.tema] || {}).grupo === "infantil" ? "Vai ter bolo, salgadinhos e muita alegria." : "Vai ser uma tarde de muita alegria.") + " Começamos às 15h. 🎉");
+        if (ini.alm) partes.push(fraseFesta(ev) + "\n\nVai ter almoço com churrasco americano: cada um traz a sua carne e a sua bebida para a gente partilhar! 🍖 Começamos às 13h.");
+        else if (ini.alm === false) partes.push(fraseFesta(ev) + " Começamos às 15h. 🎉");
         return partes.join("\n\n");
     }
     function preencherNovo(ev) {
@@ -2395,9 +2443,11 @@ body.seq-aberto{ overflow:hidden; }
     function primeiroNome(p) { return String(p.nome || "").trim().split(" ")[0]; }
     /* Convite para o grupo de WhatsApp ou para copiar (sem nome e sem link pessoal) */
     function textoConviteGeral(ev) {
+        if (String(ev.conviteTexto || "").trim()) return conviteEditado(ev, "pessoal", linkEvento(ev));
         return "Olá! " + emojiConvite(ev) + "\nVocês estão convidados para *" + (ev.titulo || "") + "*.\n\n" +
             "📅 " + EV.dataLonga(ev) + (ev.hora ? ", às " + ev.hora : "") + "\n" +
             (ev.local ? "📍 " + ev.local + (ev.endereco ? " (" + ev.endereco + ")" : "") + "\n" : "") +
+            linhaFesta(ev) +
             linhaChurrasco(ev) +
             "\nTodos os detalhes, mapa, previsão do tempo e playlist:\n" + linkEvento(ev) + "\n\nConto com vocês!";
     }
@@ -2532,6 +2582,14 @@ body.seq-aberto{ overflow:hidden; }
 
     function atualizarPrevias(ev) {
         atualizarNomeAlbum(ev);
+        if (!String(ev.conviteTexto || "").trim()) painel.querySelectorAll('[data-c="conviteTexto"]').forEach(function (el) {
+            if (el !== document.activeElement) el.value = modeloConvite(ev);
+        });
+        /* Botões "Enviar convite" de cada convidado levam o texto como está agora */
+        painel.querySelectorAll('a.convite[data-zap="enviado"][data-i]').forEach(function (el) {
+            var p = convidados(ev.id)[+el.getAttribute("data-i")];
+            if (p && numero(p.whats)) el.href = "https://wa.me/" + numero(p.whats) + "?text=" + encodeURIComponent(textoConvite(ev, p));
+        });
         painel.querySelectorAll("[data-previa]").forEach(function (el) {
             var t = tarefa(ev, el.getAttribute("data-tid"));
             var txt = previa(el.getAttribute("data-previa"), ev, t);
@@ -2677,7 +2735,7 @@ body.seq-aberto{ overflow:hidden; }
                     campo("descricao", "Descrição (aparece na página do convite)", ev.descricao || "", { tipo: "area", ph: "Conte sobre o evento." }),
                     campo("capa", "Foto de capa (opcional)", ev.capa || "", { ph: "Link direto de uma imagem (.jpg, .png)", dica: "Aparece na prévia do WhatsApp." })]) +
                 '<div class="subtitulo-info">Como o convite chega no WhatsApp</div>' + textoPronto("convite") +
-                linkPagina(ev, "Ver página do convite") + '</div>');
+                linkPagina(ev, "Ver página do convite") + '</div>' + editorConviteHTML(ev));
         }
         else if (/grupo/.test(k) && /whats/.test(k) && !/convite/.test(k)) {
             var tmG = window.TEMAS[ev.tema] || window.TEMAS.padrao;
@@ -2702,7 +2760,7 @@ body.seq-aberto{ overflow:hidden; }
                     : '<p class="nota-info">Cada convidado recebe o convite com o nome e um link só dele para tocar em <b>Vou</b> ou <b>Não vou</b>. Use <b>Enviar em sequência</b> para mandar um por um, ou copie o texto abaixo.</p>') +
                 textoPronto("convite") +
                 (!grupo && falta ? '<button class="b verde pequeno" data-acao="sequencia">' + I.whats + 'Enviar em sequência (' + falta + ')</button>' : "") +
-                irAba("convidados", "👥 Abrir Convidados") + '</div>' +
+                irAba("convidados", "👥 Abrir Convidados") + '</div>' + (grupo ? "" : editorConviteHTML(ev)) +
                 (!grupo && lista.length ? '<div class="subtitulo-info">Convidados (' + env + ' de ' + comW.length + ' já receberam)</div><ul class="pessoas-info">' + lista.map(function (p) {
                     return '<li><span>' + esc(p.nome) + '</span>' + zap(p, textoConvite(ev, p), "Enviar convite", "enviado", !!p.enviado) + '</li>';
                 }).join("") + '</ul>' : ''));
@@ -3116,6 +3174,7 @@ body.seq-aberto{ overflow:hidden; }
             campo("hora", "Horário", ev.hora || "", { cls: "m2", ph: "15:00 ou 15:00 às 21:00" }) +
             campo("id", "Nome curto do link", ev.id, { cls: "m2", dica: "Só letras minúsculas, números e hífen." }) +
             campo("descricao", "Descrição", ev.descricao || "", { tipo: "area", ph: "Conte sobre o evento. Deixe uma linha em branco para começar outro parágrafo." }) +
+            (ev._ini ? "" : '<div class="campo">' + editorConviteHTML(ev) + '</div>') +
 
             '<div class="secao-form">Local</div>' +
             campo("local", "Nome do lugar", ev.local || "", { cls: "m3", ph: "Ex.: Chácara Feliz" }) +
@@ -3610,6 +3669,7 @@ body.seq-aberto{ overflow:hidden; }
         }
         var v = el.type === "checkbox" ? el.checked : el.value;
         if (c === "lat" || c === "lon") v = v === "" || isNaN(+v) ? "" : +v;
+        if (c === "conviteTexto" && v.trim() === modeloConvite(ev).trim()) v = "";
         var temaAntigo = ev.tema, tituloAntigo = ev.titulo;
         ev[c] = v;
         if (c === "titulo") descricaoSegueTitulo(ev, null);
@@ -3703,6 +3763,7 @@ body.seq-aberto{ overflow:hidden; }
         }
         if (el.hasAttribute("data-item-compra")) {
             marcarItemCompra(ev, el.getAttribute("data-item-compra"), el.checked);
+            descricaoSegueItens(ev);
             var yc = window.scrollY;
             desenhar();
             window.scrollTo(0, yc);
@@ -3749,6 +3810,9 @@ body.seq-aberto{ overflow:hidden; }
 
     function abrir(id) {
         atual = id;
+        /* Descrição com a frase antiga ("bolo, salgadinhos...") passa a seguir o que está marcado em Compras */
+        var evA = id && evento(id);
+        if (evA && descricaoSegueItens(evA)) marcarSujo();
         /* Abrir um evento entra no histórico: o "voltar" do celular volta para a lista de eventos */
         if (id && !location.hash) history.pushState(null, "", "#" + encodeURIComponent(id));
         else history.replaceState(null, "", id ? "#" + encodeURIComponent(id) : location.pathname);
@@ -3955,6 +4019,13 @@ body.seq-aberto{ overflow:hidden; }
                 avisoCelTeste();
                 break;
 
+            case "convite-auto":
+                ev.conviteTexto = "";
+                marcarSujo();
+                atualizarPrevias(ev);
+                painel.querySelectorAll('[data-c="conviteTexto"]').forEach(function (el) { el.value = modeloConvite(ev); });
+                painel.querySelectorAll(".editar-convite summary small").forEach(function (el) { el.remove(); });
+                break;
             case "copiar-texto":
                 var txtC = COPIAS[alvo.getAttribute("data-k")], rot = alvo.getAttribute("data-rot") || "📋 Copiar";
                 if (txtC == null) break;
