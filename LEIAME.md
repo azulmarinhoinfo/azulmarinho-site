@@ -78,6 +78,14 @@ No painel você:
   **Pedir confirmação em sequência** (mensagem própria para quem recebeu o convite e não respondeu;
   marca `cobrado` com a data); tarefas de compra mostram as quantidades da aba Compras
   (supermercado do almoço, descartáveis, refri, suco, carne, gelo, carvão, bolo, salgados, cadeiras e mesas) em duas colunas: só confirmados e com quem não respondeu.
+- **✏️ Editar o convite** (tarefas "Enviar o convite" e "Fazer novo convite", e aba Detalhes): o texto
+  vem pronto e pode ser mudado à mão (campo `conviteTexto`). `[nome]` vira o primeiro nome do convidado e
+  `[link]` o link de confirmação dele (sem `[link]`, o link entra no final). "↩️ Voltar ao texto automático"
+  desfaz. Texto mudado à mão não acompanha mais data, local e itens.
+- **frase da festa** (`fraseFesta()`): o convite e a descrição citam só o que está marcado em Compras, no
+  diminutivo. Só bolo: "Vai ser só um bolinho, feito com muito carinho."; com mais itens: "Vai ser uma festa
+  simples, com bolinho, salgadinho e docinho, feita com muito carinho." A frase na descrição troca sozinha
+  ao abrir o evento ou ao marcar/desmarcar em Compras (depois, Salvar alterações).
 - aba **Compras** tem também **🍖 Churrasco** (carne crua 400/250/150 g e carvão 1 kg por kg de carne).
   E **🍬 Doces** (6/5/3 por pessoa, encomenda de 25 em 25) e **🎁 Lembrancinhas** (uma por pessoa + 10%, ou só crianças).
   Também ligadas: topo do bolo (texto com tema), crianças na piscina (lista com idade), TV e som (playlist),
