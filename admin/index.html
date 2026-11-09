@@ -631,7 +631,9 @@ body.seq-aberto{ overflow:hidden; }
             caixa.querySelector("[data-fechar-previa]").onclick = fecharPrevia;
             document.addEventListener("keydown", function (e) { if (e.key === "Escape" && caixa.classList.contains("aberta")) fecharPrevia(); });
         }
-        caixa.querySelector(".previa-nota").textContent = "Assim os convidados vão ver (mesmo sem salvar). É rascunho: fica fora da lista de eventos, só abre pelo link do convite.";
+        caixa.querySelector(".previa-nota").textContent = ev.rascunho
+            ? "Assim os convidados vão ver (mesmo sem salvar). É rascunho: fica fora da lista de eventos, só abre pelo link do convite."
+            : "Assim vai ficar. Os convidados só veem depois de tocar em Salvar alterações.";
         caixa.querySelector("iframe").src = "/eventos/evento?previa=1&id=" + encodeURIComponent(ev.id) + "&t=" + Date.now();
         caixa.classList.add("aberta");
         document.body.style.overflow = "hidden";
@@ -697,6 +699,15 @@ body.seq-aberto{ overflow:hidden; }
         ev.descricao = r;
         document.querySelectorAll('[data-c="descricao"]').forEach(function (el) { if (el.value !== r) el.value = r; });
         return true;
+    }
+    /* Ao abrir o evento: a frase da festa na descrição segue o que está marcado em Compras.
+       Sem outras mudanças pendentes, já salva sozinho (a página dos convidados muda na hora). */
+    function corrigirDescricaoAoAbrir(ev) {
+        if (!ev || ev._novo) return;
+        var pendente = sujo;
+        if (!descricaoSegueItens(ev)) return;
+        if (pendente) marcarSujo();
+        else salvar("Descrição atualizada com o que vai ter na festa ✓");
     }
     /* Convite automático, com o nome e o link de quem vai receber */
     function conviteAuto(ev, nome, link, comCodigo) {
@@ -881,7 +892,7 @@ body.seq-aberto{ overflow:hidden; }
 
         desenhar();
         /* Abriu direto no evento (link com #): descrição com a frase antiga passa a seguir Compras */
-        if (atual && descricaoSegueItens(evento(atual))) marcarSujo();
+        corrigirDescricaoAoAbrir(atual && evento(atual));
         carregarPiscina();
         carregarAvisoCel();
         if (novas) mostrarBarra(novas + (novas === 1 ? " convidado respondeu" : " convidados responderam") + " pelo link do convite (já marcado na lista).", false);
@@ -3815,8 +3826,7 @@ body.seq-aberto{ overflow:hidden; }
     function abrir(id) {
         atual = id;
         /* Descrição com a frase antiga ("bolo, salgadinhos...") passa a seguir o que está marcado em Compras */
-        var evA = id && evento(id);
-        if (evA && descricaoSegueItens(evA)) marcarSujo();
+        corrigirDescricaoAoAbrir(id && evento(id));
         /* Abrir um evento entra no histórico: o "voltar" do celular volta para a lista de eventos */
         if (id && !location.hash) history.pushState(null, "", "#" + encodeURIComponent(id));
         else history.replaceState(null, "", id ? "#" + encodeURIComponent(id) : location.pathname);
@@ -3826,6 +3836,7 @@ body.seq-aberto{ overflow:hidden; }
     window.addEventListener("popstate", function () {
         var pedido = decodeURIComponent(location.hash.slice(1));
         atual = evento(pedido) ? pedido : null;
+        corrigirDescricaoAoAbrir(atual && evento(atual));
         desenhar();
         window.scrollTo(0, 0);
     });
@@ -3840,6 +3851,9 @@ body.seq-aberto{ overflow:hidden; }
     }
 
     painel.addEventListener("click", function (e) {
+        /* "Ver página" com mudanças ainda não salvas: mostra a prévia com o que está na tela */
+        var lp = e.target.closest('a[href^="/eventos/evento?id="]');
+        if (lp && sujo && atual && evento(atual)) { e.preventDefault(); abrirPrevia(evento(atual)); return; }
         var alvo = e.target.closest("[data-abrir],[data-acao],[data-aba],[data-remover],[data-esquecer],[data-campo],[data-filtro],[data-base],.convite");
         if (!alvo) return;
 
