@@ -674,10 +674,12 @@ body.seq-aberto{ overflow:hidden; }
     function linhaChurrasco(ev) { return temAlmoco(ev) ? FRASE_CHURRASCO + "\n" : ""; }
     /* Festa simples: o convite e a descrição só falam de bolo, salgados e doces quando estão marcados em Compras ("Vai ter na festa") */
     function fraseFesta(ev) {
+        /* No diminutivo, fica mais íntimo. Só bolo = "só um bolinho". */
         var tem = itensCompras(ev), it = [];
-        if (tem.bolo) it.push("bolo");
-        if (tem.salgados) it.push("salgados");
-        if (tem.doces) it.push("doces");
+        if (tem.bolo) it.push("bolinho");
+        if (tem.salgados) it.push("salgadinho");
+        if (tem.doces) it.push("docinho");
+        if (it.length === 1 && tem.bolo) return "Vai ser só um bolinho, feito com muito carinho.";
         var lista = it.length > 1 ? it.slice(0, -1).join(", ") + " e " + it[it.length - 1] : it[0];
         return "Vai ser uma festa simples" + (lista ? ", com " + lista : "") + ", feita com muito carinho.";
     }
@@ -686,7 +688,7 @@ body.seq-aberto{ overflow:hidden; }
         return (itensCompras(ev).bolo ? "🎂 " : "🎈 ") + fraseFesta(ev) + "\n";
     }
     /* Frase automática dentro da descrição (a antiga, que sempre falava em salgadinhos, e a nova) */
-    var RE_FRASE_FESTA = /Vai ter bolo, salgadinhos e muita alegria\.|Vai ser uma festa simples[^.\n]*\./;
+    var RE_FRASE_FESTA = /Vai ter bolo, salgadinhos e muita alegria\.|Vai ser uma festa simples[^.\n]*\.|Vai ser só um bolinho[^.\n]*\./;
     function descricaoSegueItens(ev) {
         var d = String(ev.descricao || "");
         if (!RE_FRASE_FESTA.test(d)) return false;
@@ -878,6 +880,8 @@ body.seq-aberto{ overflow:hidden; }
         if (atual && /^(detalhes|fornecedores|compras|convidados|respostas|tarefas)$/.test(abaPedida || "")) aba = abaPedida;
 
         desenhar();
+        /* Abriu direto no evento (link com #): descrição com a frase antiga passa a seguir Compras */
+        if (atual && descricaoSegueItens(evento(atual))) marcarSujo();
         carregarPiscina();
         carregarAvisoCel();
         if (novas) mostrarBarra(novas + (novas === 1 ? " convidado respondeu" : " convidados responderam") + " pelo link do convite (já marcado na lista).", false);
