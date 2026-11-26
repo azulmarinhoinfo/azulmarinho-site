@@ -8,7 +8,7 @@
    Só com o login do painel.
    ========================================================= */
 
-import { conferirAcesso, json } from "../../../lib/acesso.js";
+import { conferirAcesso, soAdmin, json } from "../../../lib/acesso.js";
 
 var MAX = 15 * 1024 * 1024;
 
@@ -16,6 +16,8 @@ export async function onRequestGet(context) {
     var env = context.env, request = context.request;
     var acesso = await conferirAcesso(request, env);
     if (acesso.erro) return json({ erro: acesso.erro }, acesso.status);
+    var proibido = soAdmin(acesso);
+    if (proibido) return json(proibido, proibido.status);
     var link = new URL(request.url).searchParams.get("url") || "", alvo;
     try { alvo = new URL(link); } catch (e) { return json({ erro: "Esse link não é válido." }, 400); }
     if (!/^https?:$/.test(alvo.protocol)) return json({ erro: "Esse link não é válido." }, 400);

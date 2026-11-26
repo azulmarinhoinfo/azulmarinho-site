@@ -5,7 +5,7 @@
    e um "oi" num modelo leve. Não mostra a chave.
    ========================================================= */
 
-import { conferirAcesso, json } from "../../../lib/acesso.js";
+import { conferirAcesso, soAdmin, json } from "../../../lib/acesso.js";
 
 var BASE = "https://generativelanguage.googleapis.com/v1beta/";
 
@@ -35,6 +35,8 @@ export async function onRequestGet(context) {
     var env = context.env;
     var acesso = await conferirAcesso(context.request, env);
     if (acesso.erro) return json({ erro: acesso.erro, codigo: acesso.codigo }, acesso.status);
+    var proibido = soAdmin(acesso);
+    if (proibido) return json(proibido, proibido.status);
     if (!env.GEMINI_API_KEY) return json({ erro: "GEMINI_API_KEY não está configurada." });
     var chave = env.GEMINI_API_KEY;
     var resultados = await Promise.all([

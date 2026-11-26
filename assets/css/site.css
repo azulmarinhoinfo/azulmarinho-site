@@ -265,3 +265,8 @@ h1,h2,h3{
 }
 .link-organizador:hover{ opacity:1; }
 .organizador-fim{ text-align:center; margin-top:34px; color:var(--texto-claro, #5B6785); }
+
+/* Botão "Entrar" do menu (login único: painel de eventos, piscina) */
+.menu .menu-entrar{ background:var(--marinho); color:#fff; border-radius:999px; padding:7px 16px; font-size:14px; font-weight:600; white-space:nowrap; }
+.menu .menu-entrar:hover, .menu .menu-entrar.ativo{ background:var(--ciano); color:var(--marinho); }
+@media (max-width:900px){ .menu .menu-entrar{ border-radius:0; display:block; } }

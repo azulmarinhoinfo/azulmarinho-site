@@ -283,3 +283,28 @@ Mudou o `sw.js`? Troque a `VERSAO` no topo dele para limpar as cópias antigas n
   Cada tarefa avisa uma vez (KV `tarefas:aviso:<evento>:<id>`, guarda dia+hora: mudou o horário, avisa de novo).
 - Tópico padrão no código; variável `NTFY_TOPICO_TAREFAS` no Cloudflare troca. Ligar/desligar e teste: caixa 🔔 na aba Tarefas (KV `tarefas:avisos`).
 - Tarefas da Piscina ficam de fora (a /piscina/ já avisa). O toque abre `/admin/?aba=tarefas#<evento>`.
+
+---
+
+## Login único e acesso de operador(a) (`/entrar/`)
+
+- No menu do site tem o botão **🔑 Entrar**. Usuário e senha; depois de entrar, o aparelho fica
+  liberado por 30 dias para o painel de eventos (`/admin/`) e para a Piscina (`/piscina/`), sem
+  pedir senha de novo. No domínio oficial o login vale também em `eventos.`, `piscina.` e
+  `informatica.azulmarinhoinfo.com.br`. Entrou, o botão mostra o nome (ex.: **👤 Farley**).
+- **Administrador**: usuário `farley` + a senha `ADMIN_SENHA` (o mesmo de antes). Pode tudo.
+  (Para trocar o usuário ou o nome mostrado: `ADMIN_USUARIO` / `ADMIN_NOME` no Cloudflare.)
+- **Operador(a)**: o administrador cadastra no painel, em **👤 Acessos** (no alto, ao lado de Sair).
+  O usuário é o nome em minúsculas e sem acento (Nayane → `nayane`). Fica no KV `usuarios`,
+  só com o resumo da senha. Trocar a senha ou tirar o acesso desconecta a pessoa na hora.
+- O que o operador pode (conferido no servidor, em `lib/operador.js`):
+  - vê tudo (eventos, convidados, compras, tarefas, fornecedores, piscina);
+  - adiciona convidados e tarefas; só muda os convidados e as tarefas que ele mesmo criou;
+  - marca tarefas como feitas (e só desmarca o que ele marcou);
+  - não remove nada, não muda evento, fornecedores, Compras, padrões, capa, piscina, nem as
+    tarefas do administrador/padrão (nome, dia e horário);
+  - tarefa nova não pode cair num dia e horário em que já existe outra tarefa (de qualquer
+    evento): o painel avisa e não deixa, e o servidor recusa também.
+- No painel do administrador aparece quem fez: "✍️ criada por Nayane", "✅ marcada por Nayane",
+  "✍️ Nayane adicionou". Se a Nayane salvar enquanto o painel do administrador está aberto,
+  ao salvar ele junta as novidades dela sozinho (não precisa recarregar).

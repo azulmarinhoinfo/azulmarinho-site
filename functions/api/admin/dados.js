@@ -15,12 +15,18 @@
                  sem ele, o painel usa o padrão que vem no admin/index.html
      fornecedores  fornecedores de cada evento: { "id-do-evento": [ { tipo, nome, whats, obs, valor, pago } ] }
      agendaFornecedores  agenda fixa de fornecedores, que não some quando um evento é excluído: [ { tipo, nome, whats } ]
+     usuarios    quem tem acesso de operador (functions/api/admin/usuarios.js; aqui só os nomes)
+                 Convidado ou tarefa criado por um operador leva "por": <id dele>;
+                 tarefa marcada como feita por ele leva "feitoPor". Regras em lib/operador.js.
+     versaoAdmin a versão da última gravação do administrador (se depois dela só operadores salvaram,
+                 o painel do administrador junta as novidades e salva sem pedir para recarregar)
      versao      marca da última gravação (evita sobrescrever
                  o que foi salvo em outro aparelho)
      backup:...  cópia anterior de cada gravação (guardada por 90 dias)
    ========================================================= */
 
-import { conferirAcesso, json } from "../../../lib/acesso.js";
+import { conferirAcesso, lerUsuarios, nomeAdmin, json } from "../../../lib/acesso.js";
+import { mesclarOperador } from "../../../lib/operador.js";
 
 var ID_OK = /^[a-z0-9][a-z0-9-]{0,79}$/;
 var DATA_OK = /^\d{4}-\d{2}-\d{2}$/;
@@ -99,9 +105,16 @@ async function preparar(context) {
 export async function onRequestGet(context) {
     var p = await preparar(context);
     if (p.resposta) return p.resposta;
+    var pessoas = {};
+    (await lerUsuarios(context.env)).forEach(function (u) { pessoas[u.id] = u.nome; });
     return json({
         email: p.acesso.email,
         modo: p.acesso.modo,
+        papel: p.acesso.papel || "admin",
+        nome: p.acesso.nome || "",
+        uid: p.acesso.uid || "",
+        nomeAdmin: nomeAdmin(context.env),
+        pessoas: pessoas,
         eventos: await lerJSON(p.kv, "eventos", null),
         convidados: await lerJSON(p.kv, "convidados", {}),
         respostas: await lerRespostas(p.kv),
@@ -125,7 +138,13 @@ export async function onRequestPut(context) {
     if (erro) return json({ erro: erro }, 400);
 
     var atual = (await p.kv.get("versao")) || "";
-    if ((corpo.versao || "") !== atual) {
+    var operador = p.acesso.papel === "operador";
+    /* O operador só acrescenta (convidados, tarefas, marcas de feita), comparado com o que está salvo agora:
+       não precisa recarregar quando o administrador salvou antes. */
+    if (!operador && (corpo.versao || "") !== atual) {
+        /* Só um operador salvou depois que o administrador abriu: o painel dele traz as novidades e salva de novo sozinho */
+        var doAdmin = (await p.kv.get("versaoAdmin")) || "";
+        if (doAdmin && corpo.versao === doAdmin) return json({ erro: "Um operador salvou novidades. Juntando...", codigo: "conflito-operador" }, 409);
         return json({ erro: "Os dados foram alterados em outro aparelho. Recarregue a página antes de salvar.", codigo: "conflito" }, 409);
     }
 
@@ -135,6 +154,18 @@ export async function onRequestPut(context) {
         fornecedores: await lerJSON(p.kv, "fornecedores", {}), agendaFornecedores: await lerJSON(p.kv, "agendaFornecedores", null) };
     if (antes.eventos) {
         await p.kv.put("backup:" + new Date().toISOString(), JSON.stringify(antes), { expirationTtl: 60 * 60 * 24 * 90 });
+    }
+
+    /* Operador: só entra o que as regras deixam (lib/operador.js); o resto fica como estava */
+    if (operador) {
+        var m = mesclarOperador(antes, corpo, p.acesso);
+        if (m.erro) return json({ erro: m.erro, codigo: m.codigo || "operador" }, 403);
+        if (!m.mudou) return json({ ok: true, versao: atual, nada: true });
+        var vo = Date.now().toString(36);
+        await p.kv.put("convidados", JSON.stringify(m.convidados));
+        await p.kv.put("tarefas", JSON.stringify(m.tarefas));
+        await p.kv.put("versao", vo);
+        return json({ ok: true, versao: vo, recarregar: true });
     }
 
     var versao = Date.now().toString(36);
@@ -155,5 +186,6 @@ export async function onRequestPut(context) {
     if (corpo.fornecedores !== undefined) await p.kv.put("fornecedores", JSON.stringify(corpo.fornecedores));
     if (corpo.agendaFornecedores !== undefined) await p.kv.put("agendaFornecedores", JSON.stringify(corpo.agendaFornecedores));
     await p.kv.put("versao", versao);
+    await p.kv.put("versaoAdmin", versao);
     return json({ ok: true, versao: versao });
 }

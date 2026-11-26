@@ -9,7 +9,7 @@
    Só com o login do painel.
    ========================================================= */
 
-import { conferirAcesso, json } from "../../../lib/acesso.js";
+import { conferirAcesso, soAdmin, json } from "../../../lib/acesso.js";
 import { lerDiario, gravarDiario, chaveFoto, chaveFoto64, ID_OK } from "../../../lib/piscina.js";
 
 var MODELO_CLAUDE = "claude-sonnet-5-5";
@@ -147,6 +147,8 @@ export async function onRequestPost(context) {
     var env = context.env, request = context.request;
     var acesso = await conferirAcesso(request, env);
     if (acesso.erro) return json({ erro: acesso.erro, codigo: acesso.codigo }, acesso.status);
+    var proibido = soAdmin(acesso);
+    if (proibido) return json(proibido, proibido.status);
     if (!env.DADOS) return json({ erro: "O KV DADOS não está ligado ao projeto." }, 503);
 
     var corpo = {};

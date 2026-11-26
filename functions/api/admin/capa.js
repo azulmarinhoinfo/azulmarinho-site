@@ -5,7 +5,7 @@
    /eventos/capa?f=<código> (functions/eventos/capa.js).
    ========================================================= */
 
-import { conferirAcesso, json } from "../../../lib/acesso.js";
+import { conferirAcesso, soAdmin, json } from "../../../lib/acesso.js";
 
 var MAX = 5 * 1024 * 1024;
 
@@ -13,6 +13,8 @@ export async function onRequestPost(context) {
     var env = context.env, request = context.request;
     var acesso = await conferirAcesso(request, env);
     if (acesso.erro) return json({ erro: acesso.erro }, acesso.status);
+    var proibido = soAdmin(acesso);
+    if (proibido) return json(proibido, proibido.status);
     if (!env.DADOS) return json({ erro: "Falta ligar o armazenamento (KV DADOS)." }, 503);
     var tipo = (request.headers.get("Content-Type") || "").split(";")[0].trim().toLowerCase();
     if (!/^image\/(jpeg|png|webp)$/.test(tipo)) return json({ erro: "Só dá para enviar fotos (JPG, PNG ou WebP)." }, 400);

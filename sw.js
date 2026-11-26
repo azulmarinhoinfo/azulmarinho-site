@@ -21,7 +21,7 @@ self.addEventListener("activate", function (e) {
 
 /* Endereços que nunca são guardados (dados que mudam ou são pessoais) */
 function naoGuardar(url) {
-    return /^\/(api|admin)(\/|$)/.test(url.pathname) ||
+    return /^\/(api|admin|entrar)(\/|$)/.test(url.pathname) ||
         /^\/eventos\/(confirmar|totais|dados)$/.test(url.pathname) ||
         url.searchParams.has("previa") ||
         /^\/sports\/(admin|api|img)(\/|$)/.test(url.pathname);

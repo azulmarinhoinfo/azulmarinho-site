@@ -6,7 +6,7 @@
    Só com o login do painel (a mesma senha do /admin/).
    ========================================================= */
 
-import { conferirAcesso, json } from "../../../lib/acesso.js";
+import { conferirAcesso, soAdmin, json } from "../../../lib/acesso.js";
 import { lerDiario, gravarDiario, chaveFoto, chaveFoto64, apagarFotos, novoId, ID_OK, MAX_REGISTROS } from "../../../lib/piscina.js";
 
 var DATA_OK = /^\d{4}-\d{2}-\d{2}$/;
@@ -21,6 +21,9 @@ export async function onRequest(context) {
     if (!env.DADOS) return json({ erro: "O KV DADOS não está ligado ao projeto." }, 503);
 
     var lista = await lerDiario(env);
+
+    /* Operador só vê o diário; gravar, mudar e apagar é do administrador */
+    if (request.method !== "GET") { var proibido = soAdmin(acesso); if (proibido) return json(proibido, proibido.status); }
 
     if (request.method === "GET") {
         return json({ registros: lista, analise: !!(env.GEMINI_API_KEY || env.ANTHROPIC_API_KEY) });
