@@ -5,9 +5,11 @@
      eventos     lista de eventos (a mesma estrutura de eventos.js)
      convidados  { "id-do-evento": [ { nome, whats, enviado, confirmado, noGrupo (já está no grupo do WhatsApp),
                    naoVai, tipo: "adulto"|"crianca", sexo: "m"|"f", idade,
-                   c: código do link de confirmação, respEm: última resposta já aplicada } ] }
+                   c: código do link de confirmação, respEm: última resposta já aplicada,
+                   respPor: primeiro nome de quem respondeu por ele (alguém da família),
+                   parc: código do esposo(a)/parceiro(a), resp: [ { c: código do responsável, t: "pai"|"mae"|"outro" } ] (na criança) } ] }
      resposta:<evento>:<código>  resposta do convidado pelo link (functions/eventos/confirmar.js),
-                 só nos metadados: { r: "sim"|"nao", em }
+                 só nos metadados: { r: "sim"|"nao", em, por: código de quem respondeu, se foi alguém da família }
      tarefas     cronograma de cada evento: { "id-do-evento": { base: data do evento quando
                  o cronograma foi montado, itens: [ { id, t, g, dia, ini, fim, feito } ] } }
      tarefasPadrao  cronograma padrão guardado pelo organizador (dias antes do evento e horários);

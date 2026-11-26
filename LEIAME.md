@@ -51,6 +51,18 @@ No painel você:
   fica no KV (`resposta:<evento>:<código>`, via `functions/eventos/confirmar.js`) e, ao abrir o
   painel, o convidado já aparece como **Confirmado** ou **Não vai** ("📩 respondeu pelo link").
   Convites enviados antes desta função não têm o link pessoal: reenvie se quiser a confirmação.
+- **família no convite**: em cada convidado, o botão **👨‍👩‍👧 Vincular família** abre uma caixa para
+  ligar a criança ao pai, à mãe ou a outro responsável, e o adulto ao esposo(a)/parceiro(a) e aos filhos
+  (dá para escolher alguém da lista ou cadastrar uma pessoa nova ali mesmo). Campos: `resp` na criança
+  (`[{ c, t: "pai"|"mae"|"outro" }]`) e `parc` no adulto (código do outro, gravado nos dois).
+  A família de alguém = esposo(a) + crianças dele ou do esposo(a). O convite cita os nomes
+  ("O convite também vale para sua esposa Nayane e seus filhos Heitor e Helena") e, no link,
+  a pessoa marca **Vai / Não vai** para cada um. Quem já respondeu aparece respondido para os outros
+  da família ("Nayane já respondeu"); a resposta guarda quem respondeu (`por`) e o painel mostra
+  "📩 respondido por Nayane pelo link". No convite editado à mão, `[família]` marca onde entra a frase
+  (sem ela, a frase entra antes do parágrafo do link). Ao enviar o convite para um adulto, as crianças
+  da família sem WhatsApp ficam marcadas como **Convidado**. Convidados trazidos de outro evento vêm
+  com a família já vinculada, se os parentes também estiverem na lista. Sem família vinculada, nada muda.
 - aba **Respostas** (em cada evento): totais de quem **vai**, **não vai** e **não respondeu**
   (com % e uma tabela por adultos, crianças, homens e mulheres) e as três listas com nomes,
   com filtro Homens/Mulheres e Adultos/Crianças. Só no painel.

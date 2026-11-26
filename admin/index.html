@@ -151,6 +151,19 @@ body{ background:var(--fundo-suave); }
 .marca.grp:has(input:checked){ border-color:#25D366; background:#E7FBEF; color:#075E54; }
 .marca.nao:has(input:checked){ border-color:#E11D48; background:#FFE4E6; color:#881337; }
 .pelo-link{ font-size:12px; color:var(--texto-claro); white-space:nowrap; }
+.fam-botao{ font:inherit; font-size:13px; color:var(--texto-claro); background:var(--branco); border:1.5px dashed var(--borda); border-radius:999px; padding:4px 11px; cursor:pointer; text-align:left; }
+.fam-botao:hover, .fam-botao.aberto{ border-color:var(--ciano); color:var(--marinho); }
+.fam-botao.tem{ border-style:solid; border-color:#A78BFA; background:#F3EEFF; color:#4C1D95; font-weight:500; }
+.fam-caixa{ grid-column:1 / -1; margin:6px 0 4px 38px; padding:14px 16px; border:1.5px solid #A78BFA; border-radius:14px; background:#FAF7FF; display:grid; gap:12px; }
+.fam-sec small{ color:var(--texto-claro); font-weight:400; }
+.fam-chips{ display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+.fam-chip{ display:inline-flex; align-items:center; gap:6px; background:var(--branco); border:1.5px solid #A78BFA; border-radius:999px; padding:4px 6px 4px 12px; font-size:14px; }
+.fam-chip small{ color:#6D28D9; }
+.fam-chip button{ border:0; background:#EDE9FE; color:#4C1D95; width:22px; height:22px; border-radius:50%; cursor:pointer; font-size:15px; line-height:1; }
+.fam-add{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:8px; }
+.fam-add select, .fam-add input{ font:inherit; font-size:14px; padding:7px 10px; border:1.5px solid var(--borda); border-radius:10px; background:var(--branco); max-width:100%; }
+.fam-novo{ display:inline-flex; flex-wrap:wrap; gap:8px; }
+.fam-novo.oculto{ display:none; }
 .opcoes{ display:inline-flex; border:1.5px solid var(--borda); border-radius:999px; overflow:hidden; background:var(--branco); }
 .opcoes button{ border:0; background:none; font:inherit; font-size:13px; color:var(--texto-claro); padding:5px 11px; cursor:pointer; white-space:nowrap; }
 .opcoes button + button{ border-left:1.5px solid var(--borda); }
@@ -558,6 +571,7 @@ body.seq-aberto{ overflow:hidden; }
     .quem{ text-align:left; }
     .linha-conv .convite{ grid-column:2; justify-self:start; }
     .marcas{ grid-column:1 / -1; padding-left:32px; }
+    .fam-caixa{ margin-left:0; }
 }
 </style>
 </head>
@@ -710,37 +724,155 @@ body.seq-aberto{ overflow:hidden; }
         else salvar("Descrição atualizada com o que vai ter na festa ✓");
     }
     /* Convite automático, com o nome e o link de quem vai receber */
-    function conviteAuto(ev, nome, link, comCodigo) {
+    function conviteAuto(ev, nome, link, comCodigo, fam) {
         return "Olá, " + nome + "! " + emojiConvite(ev) + "\n" +
             "Você está convidado(a) para *" + ev.titulo + "*.\n\n" +
             "📅 " + EV.dataLonga(ev) + (ev.hora ? ", às " + ev.hora : "") + "\n" +
             (ev.local ? "📍 " + ev.local + (ev.endereco ? " (" + ev.endereco + ")" : "") + "\n" : "") +
             linhaFesta(ev) +
             linhaChurrasco(ev) +
-            (comCodigo ? "\n👉 *Confirme sua presença* (é só tocar em Vou ou Não vou) e veja mapa, previsão do tempo e playlist:\n"
-                : "\nTodos os detalhes, mapa, previsão do tempo e playlist:\n") + link + "\n\nConto com você!";
+            (fam ? "\n" + fam + "\n" : "") +
+            (comCodigo && fam && fam !== "[família]" ? "\n👉 *Confirme a presença de cada um* (é só tocar em Vai ou Não vai para cada pessoa) e veja mapa, previsão do tempo e playlist:\n" :
+             comCodigo ? "\n👉 *Confirme sua presença* (é só tocar em Vou ou Não vou) e veja mapa, previsão do tempo e playlist:\n"
+                : "\nTodos os detalhes, mapa, previsão do tempo e playlist:\n") + link + "\n\nConto com você" + (fam && fam !== "[família]" ? "s" : "") + "!";
     }
     /* Convite editado à mão (campo conviteTexto): [nome] vira o primeiro nome e [link] o link de confirmação de cada um.
        Sem [link] no texto, o link entra no final (sem ele a pessoa não consegue confirmar). */
-    function conviteEditado(ev, nome, link) {
-        var t = String(ev.conviteTexto).split("[nome]").join(nome);
+    function conviteEditado(ev, nome, link, fam) {
+        var t = comFamilia(String(ev.conviteTexto), fam || "").split("[nome]").join(nome);
         return t.indexOf("[link]") >= 0 ? t.split("[link]").join(link) : t.replace(/\s+$/, "") + "\n\n👉 Confirme sua presença aqui:\n" + link;
     }
     /* Texto que aparece no "Editar o convite" quando ele ainda não foi mudado */
     function modeloConvite(ev) {
-        return conviteAuto(ev, "[nome]", "[link]", true);
+        return conviteAuto(ev, "[nome]", "[link]", true, "[família]");
     }
     function textoConvite(ev, p) {
         var nome = String(p.nome).trim().split(" ")[0];
         var link = window.AZUL.site + "/eventos/evento?id=" + encodeURIComponent(ev.id) + (p.c ? "&c=" + p.c : "");
-        if (String(ev.conviteTexto || "").trim()) return conviteEditado(ev, nome, link);
-        return conviteAuto(ev, nome, link, !!p.c);
+        var fam = p.c ? familiaDe(convidados(ev.id), p) : [];
+        if (String(ev.conviteTexto || "").trim()) return conviteEditado(ev, nome, link, fraseFamilia(fam));
+        return conviteAuto(ev, nome, link, !!p.c, fraseFamilia(fam, true));
+    }
+
+    /* ---------------- Família: crianças com responsáveis e esposo(a)/parceiro(a) ----------------
+       Na criança: resp = [ { c: código do responsável, t: "pai" | "mae" | "outro" } ]
+       No adulto:  parc = código do esposo(a)/parceiro(a) (gravado nos dois)
+       A família de alguém = esposo(a) + as crianças dele ou do esposo(a).
+       O convite cita a família e, no link, a pessoa confirma cada um (functions/eventos/confirmar.js usa a mesma regra). */
+    function porCodigo(lista, c) { return c ? lista.filter(function (x) { return x && x.c === c; })[0] || null : null; }
+    function parceiroDe(lista, p) {
+        return porCodigo(lista, p.parc) || (p.c ? lista.filter(function (x) { return x && x.parc === p.c; })[0] : null) || null;
+    }
+    function relParceiro(x) { return x.sexo === "f" ? "esposa" : x.sexo === "m" ? "esposo" : "parceiro(a)"; }
+    function familiaDe(lista, p) {
+        var fora = {}, saida = [];
+        if (!p || !p.c) return saida;
+        fora[p.c] = true;
+        function add(x, rel, tipo) { if (!x || !x.c || fora[x.c] || !String(x.nome || "").trim()) return; fora[x.c] = true; saida.push({ p: x, rel: rel, tipo: tipo }); }
+        var parc = parceiroDe(lista, p);
+        if (parc) add(parc, relParceiro(parc), "parc");
+        var pais = {};
+        pais[p.c] = true;
+        if (parc) pais[parc.c] = true;
+        lista.forEach(function (x) {
+            if (!x || !Array.isArray(x.resp)) return;
+            var r = x.resp.filter(function (v) { return v && pais[v.c]; });
+            if (!r.length) return;
+            var filho = r.some(function (v) { return v.t === "pai" || v.t === "mae"; });
+            add(x, !filho ? "criança" : x.sexo === "f" ? "filha" : x.sexo === "m" ? "filho" : "filho(a)", filho ? "filho" : "crianca");
+        });
+        return saida;
+    }
+    function juntarNomes(n) { return n.length > 1 ? n.slice(0, -1).join(", ") + " e " + n[n.length - 1] : n[0] || ""; }
+    /* "💙 O convite também vale para sua esposa Nayane e seus filhos Heitor e Helena. ..." */
+    function fraseFamilia(fam, curta) {
+        if (!fam.length) return "";
+        var partes = [];
+        fam.filter(function (f) { return f.tipo === "parc"; }).forEach(function (f) {
+            partes.push((f.rel === "esposa" ? "sua esposa " : f.rel === "esposo" ? "seu esposo " : "seu(sua) parceiro(a) ") + primeiroNome(f.p));
+        });
+        var filhos = fam.filter(function (f) { return f.tipo === "filho"; }), outras = fam.filter(function (f) { return f.tipo === "crianca"; });
+        if (filhos.length) {
+            var nf = filhos.map(function (f) { return primeiroNome(f.p); });
+            var todasF = filhos.every(function (f) { return f.p.sexo === "f"; }), todosM = filhos.every(function (f) { return f.p.sexo === "m"; });
+            partes.push((filhos.length === 1 ? (todasF ? "sua filha " : todosM ? "seu filho " : "seu(sua) filho(a) ") : (todasF ? "suas filhas " : "seus filhos ")) + juntarNomes(nf));
+        }
+        if (outras.length) partes.push(juntarNomes(outras.map(function (f) { return primeiroNome(f.p); })));
+        var um = fam.length === 1;
+        if (curta) return "💙 O convite também vale para " + juntarNomes(partes) + ".";
+        return "💙 O convite também vale para " + juntarNomes(partes) + ". No link, confirme a sua presença e a " + (um ? "de " + (fam[0].tipo === "parc" ? (fam[0].rel === "esposa" ? "dela" : fam[0].rel === "esposo" ? "dele" : "dele(a)") : primeiroNome(fam[0].p)) : "de cada um") + ".";
+    }
+    /* Convite editado à mão: [família] vira a frase da família (ou some, se a pessoa não tem família vinculada).
+       Sem [família] no texto, a frase entra sozinha antes do parágrafo do link. */
+    function comFamilia(t, fam) {
+        var re = /\n?[ \t]*\[fam[ií]lia\][ \t]*(?=\n|$)/g;
+        if (/\[fam[ií]lia\]/.test(t)) return t.replace(re, fam ? "\n" + fam : "").replace(/\[fam[ií]lia\]/g, fam);
+        if (!fam) return t;
+        var i = t.indexOf("[link]");
+        if (i < 0) return t.replace(/\s+$/, "") + "\n\n" + fam;
+        var j = t.lastIndexOf("\n\n", i);
+        return j < 0 ? fam + "\n\n" + t : t.slice(0, j) + "\n\n" + fam + t.slice(j);
+    }
+    function garantirCodigo(p) { if (p && !p.c) { p.c = novoCodigo(); p._codigoNovo = true; } return p; }
+    /* Responsáveis de uma criança (quem está na lista) */
+    function responsaveisDe(lista, x) {
+        return (Array.isArray(x.resp) ? x.resp : []).map(function (v) { var r = porCodigo(lista, v.c); return r ? { p: r, t: v.t } : null; }).filter(Boolean);
+    }
+    var NOME_RESP = { pai: "pai", mae: "mãe", outro: "outro responsável" };
+    function vincularResp(crianca, adulto, t) {
+        garantirCodigo(crianca); garantirCodigo(adulto);
+        crianca.resp = (Array.isArray(crianca.resp) ? crianca.resp : []).filter(function (v) { return v && v.c !== adulto.c; });
+        crianca.resp.push({ c: adulto.c, t: t });
+        if (!crianca.tipo) crianca.tipo = "crianca";
+        if (!adulto.tipo) adulto.tipo = "adulto";
+        if (!adulto.sexo && (t === "pai" || t === "mae")) adulto.sexo = t === "pai" ? "m" : "f";
+    }
+    function vincularParceiro(lista, a, b) {
+        garantirCodigo(a); garantirCodigo(b);
+        [a, b].forEach(function (x) { var o = parceiroDe(lista, x); if (o && o !== a && o !== b) delete o.parc; });
+        a.parc = b.c; b.parc = a.c;
+        if (!a.tipo) a.tipo = "adulto";
+        if (!b.tipo) b.tipo = "adulto";
+    }
+    /* Tira todos os vínculos com alguém (ao remover da lista) */
+    function soltarFamilia(lista, p) {
+        if (!p || !p.c) return;
+        lista.forEach(function (x) {
+            if (x.parc === p.c) delete x.parc;
+            if (Array.isArray(x.resp)) { x.resp = x.resp.filter(function (v) { return v && v.c !== p.c; }); if (!x.resp.length) delete x.resp; }
+        });
+    }
+    /* Ao mandar o convite para um adulto, as crianças da família sem WhatsApp ficam marcadas como Convidado */
+    function marcarFamiliaConvidada(ev, p) {
+        familiaDe(convidados(ev.id), p).forEach(function (f) { if (!numero(f.p.whats)) f.p.enviado = true; });
+    }
+    /* Convidados de outros eventos trazem a família junto (pelo nome), se os parentes também estão nesta lista */
+    function religarPorNome(ev) {
+        var lista = convidados(ev.id), aqui = {}, feitos = 0;
+        lista.forEach(function (p) { var k = chaveNome(p.nome); if (k && !aqui[k]) aqui[k] = p; });
+        var ordem = estado.eventos.slice().sort(function (a, b) { return (b.data || "").localeCompare(a.data || ""); });
+        ordem.forEach(function (outro) {
+            if (outro.id === ev.id) return;
+            var lo = estado.convidados[outro.id] || [];
+            lo.forEach(function (x) {
+                var eu = aqui[chaveNome(x.nome)];
+                if (!eu) return;
+                var po = porCodigo(lo, x.parc), par = po && aqui[chaveNome(po.nome)];
+                if (par && par !== eu && !parceiroDe(lista, eu) && !parceiroDe(lista, par)) { vincularParceiro(lista, eu, par); feitos++; }
+                responsaveisDe(lo, x).forEach(function (r) {
+                    var ra = aqui[chaveNome(r.p.nome)];
+                    if (!ra || ra === eu || (eu.resp || []).some(function (v) { return v.c === ra.c; })) return;
+                    vincularResp(eu, ra, r.t); feitos++;
+                });
+            });
+        });
+        return feitos;
     }
     /* Caixa "Editar o convite" (tarefas do convite e aba Detalhes) */
     function editorConviteHTML(ev) {
         var mudou = !!String(ev.conviteTexto || "").trim();
         return '<details class="editar-convite"' + (mudou ? " open" : "") + '><summary>✏️ Editar o convite' + (mudou ? " <small>(texto mudado por você)</small>" : "") + '</summary>' +
-            '<p class="nota-info">Mude o texto como quiser. Onde estiver <b>[nome]</b> entra o primeiro nome de cada convidado, e onde estiver <b>[link]</b> entra o link para ele tocar em <b>Vou</b> ou <b>Não vou</b>. Depois toque em <b>Salvar alterações</b>.</p>' +
+            '<p class="nota-info">Mude o texto como quiser. Onde estiver <b>[nome]</b> entra o primeiro nome de cada convidado, e onde estiver <b>[link]</b> entra o link para ele tocar em <b>Vou</b> ou <b>Não vou</b>. Onde estiver <b>[família]</b> entram o esposo(a) e os filhos vinculados (para quem não tem família vinculada, essa linha some). Depois toque em <b>Salvar alterações</b>.</p>' +
             '<textarea data-c="conviteTexto" rows="13" aria-label="Texto do convite">' + esc(mudou ? ev.conviteTexto : modeloConvite(ev)) + '</textarea>' +
             '<p class="nota-info">⚠️ Depois de mudar o texto, mudar a data, o local ou o que vai ter na festa <b>não muda mais o convite sozinho</b>. Para voltar ao texto automático, toque no botão abaixo.</p>' +
             '<div class="acoes-info"><button class="b pequeno" data-acao="convite-auto">↩️ Voltar ao texto automático</button></div></details>';
@@ -853,6 +985,8 @@ body.seq-aberto{ overflow:hidden; }
                 var r = p.c && respostas[id][p.c];
                 if (!r || !r.em || p.respEm === r.em) return;
                 p.respEm = r.em; p.enviado = true;
+                var quem = r.por && (estado.convidados[id] || []).filter(function (q) { return q.c === r.por; })[0];
+                if (quem) p.respPor = primeiroNome(quem); else delete p.respPor;
                 if (r.r === "sim") { p.confirmado = true; delete p.naoVai; }
                 else { p.naoVai = true; delete p.confirmado; }
                 novas++;
@@ -3300,7 +3434,9 @@ body.seq-aberto{ overflow:hidden; }
         if (selec) return '<div class="seq-inicio parado"><span><b>👥 Primeiro: selecionar os convidados</b><small>Monte a lista de quem vai ser convidado (abaixo). ' +
                 'Quando terminar, marque a tarefa <b>Selecionar os convidados</b> lá em cima: aí aparecem o <b>Enviar o convite</b> e o <b>Enviar em sequência</b>.</small></span></div>' +
             convidadosLista(ev, lista, enviados, opcao);
-        var faltam = filaEnvio(ev).length, semWhats = lista.filter(function (p) { return !p.enviado && String(p.nome || "").trim() && !numero(p.whats); }).length;
+        var cobertos = {};   // sem WhatsApp, mas vão no convite de alguém da família
+        lista.forEach(function (p) { if (numero(p.whats)) familiaDe(lista, p).forEach(function (f) { cobertos[f.p.c] = true; }); });
+        var faltam = filaEnvio(ev).length, semWhats = lista.filter(function (p) { return !p.enviado && String(p.nome || "").trim() && !numero(p.whats) && !cobertos[p.c]; }).length;
         return (faltam
                 ? '<div class="seq-inicio"><span><b>' + faltam + (faltam === 1 ? ' convidado ainda sem convite' : ' convidados ainda sem convite') + '</b>' +
                     '<small>Abre o WhatsApp de um por um, com o convite pronto. Você só toca em Enviar.' +
@@ -3320,6 +3456,99 @@ body.seq-aberto{ overflow:hidden; }
                     '<button class="b verde" data-acao="sequencia-cobrar">' + I.whats + 'Pedir confirmação</button></div>' : "";
             })() + convidadosLista(ev, lista, enviados, opcao);
     }
+    /* ---- Família na aba Convidados: botão em cada convidado e a caixa para vincular ---- */
+    var famAberta = null;   // código do convidado com a caixa "Família" aberta
+    function famBotao(lista, p, i) {
+        if (!String(p.nome || "").trim()) return "";
+        var nomes;
+        if (p.tipo === "crianca") nomes = responsaveisDe(lista, p).map(function (r) { return primeiroNome(r.p) + " (" + NOME_RESP[r.t] + ")"; });
+        else nomes = familiaDe(lista, p).map(function (f) { return primeiroNome(f.p) + " (" + f.rel + ")"; });
+        return '<button type="button" class="fam-botao' + (nomes.length ? " tem" : "") + (famAberta === p.c ? " aberto" : "") + '" data-acao="fam-abrir" data-i="' + i + '">👨‍👩‍👧 ' +
+            (nomes.length ? (p.tipo === "crianca" ? "Responsáveis: " : "Família: ") + esc(nomes.join(", ")) : "Vincular família") + '</button>';
+    }
+    function famOpcoes(cands, extra) {
+        return '<option value="">— escolher —</option>' + cands.map(function (x) {
+            return '<option value="' + esc(x.c) + '">' + esc(x.nome) + (x.tipo === "crianca" ? " (criança)" : "") + '</option>';
+        }).join("") + '<option value="novo">➕ ' + extra + '</option>';
+    }
+    function famNovo(i, onde, placeholder, comWhats) {
+        return '<span class="fam-novo oculto" data-fam-novo="' + onde + '">' +
+            '<input data-fam-nome="' + onde + '" placeholder="' + placeholder + '" autocomplete="off">' +
+            (comWhats ? '<input data-fam-whats="' + onde + '" placeholder="WhatsApp com DDD (opcional)" inputmode="tel" autocomplete="off">' : '') + '</span>';
+    }
+    function famCaixa(lista, p, i) {
+        lista.forEach(garantirCodigo);
+        var nome = esc(primeiroNome(p));
+        function chip(rotulo, dados) { return '<span class="fam-chip">' + rotulo + '<button type="button" data-acao="fam-tirar" data-i="' + i + '" ' + dados + ' title="Desvincular" aria-label="Desvincular">×</button></span>'; }
+        var outros = lista.filter(function (x) { return x !== p && String(x.nome || "").trim(); });
+        var h = '<div class="fam-caixa">';
+        if (p.tipo === "crianca") {
+            var resp = responsaveisDe(lista, p);
+            var candR = outros.filter(function (x) { return x.tipo !== "crianca" && !resp.some(function (r) { return r.p === x; }); });
+            h += '<div class="fam-sec"><b>Responsáveis por ' + nome + '</b> <small>(pai, mãe ou outro responsável que recebe o convite por ' + nome + ')</small>' +
+                (resp.length ? '<div class="fam-chips">' + resp.map(function (r) { return chip(esc(r.p.nome) + ' <small>' + NOME_RESP[r.t] + '</small>', 'data-resp="' + esc(r.p.c) + '"'); }).join("") + '</div>' : '<p class="nota-info">Ainda ninguém vinculado.</p>') +
+                '<div class="fam-add"><select data-fam-sel="resp" aria-label="Responsável">' + famOpcoes(candR, "Cadastrar pessoa nova") + '</select>' +
+                '<select data-fam-tipo="resp" aria-label="É o quê da criança"><option value="pai">é o pai</option><option value="mae">é a mãe</option><option value="outro">outro responsável</option></select>' +
+                famNovo(i, "resp", "Nome do responsável", true) +
+                '<button type="button" class="b pequeno cheio" data-acao="fam-vincular" data-k="resp" data-i="' + i + '">Vincular</button></div></div>';
+        } else {
+            var parc = parceiroDe(lista, p);
+            var candP = outros.filter(function (x) { return x.tipo !== "crianca" && !parceiroDe(lista, x); });
+            h += '<div class="fam-sec"><b>💑 Esposo(a) ou parceiro(a) de ' + nome + '</b>' +
+                (parc ? '<div class="fam-chips">' + chip(esc(parc.nome) + ' <small>' + relParceiro(parc) + '</small>', 'data-parc="1"') + '</div>'
+                    : '<div class="fam-add"><select data-fam-sel="parc" aria-label="Esposo(a) ou parceiro(a)">' + famOpcoes(candP, "Cadastrar pessoa nova") + '</select>' +
+                      famNovo(i, "parc", "Nome do esposo(a) ou parceiro(a)", true) +
+                      '<button type="button" class="b pequeno cheio" data-acao="fam-vincular" data-k="parc" data-i="' + i + '">Vincular</button></div>') + '</div>';
+            var meus = lista.filter(function (x) { return (x.resp || []).some(function (v) { return v.c === p.c; }); });
+            var doParc = parc ? lista.filter(function (x) { return meus.indexOf(x) < 0 && (x.resp || []).some(function (v) { return v.c === parc.c; }); }) : [];
+            var candF = outros.filter(function (x) { return x !== parc && meus.indexOf(x) < 0 && x.tipo !== "adulto"; })
+                .sort(function (a, b) { return (a.tipo === "crianca" ? 0 : 1) - (b.tipo === "crianca" ? 0 : 1); });
+            var tPadrao = p.sexo === "f" ? "mae" : p.sexo === "m" ? "pai" : "";
+            h += '<div class="fam-sec"><b>👶 Filhos ou crianças que vão com ' + nome + '</b>' +
+                (meus.length ? '<div class="fam-chips">' + meus.map(function (x) {
+                    var t = (x.resp.filter(function (v) { return v.c === p.c; })[0] || {}).t;
+                    return chip(esc(x.nome) + ' <small>' + nome + ' é ' + NOME_RESP[t] + '</small>', 'data-filho="' + esc(x.c) + '"');
+                }).join("") + '</div>' : '') +
+                (doParc.length ? '<p class="nota-info">Pelo lado de ' + esc(primeiroNome(parc)) + ' também: ' + esc(doParc.map(function (x) { return x.nome; }).join(", ")) + ' (já entram no convite de ' + nome + ').</p>' : '') +
+                (!meus.length && !doParc.length ? '<p class="nota-info">Nenhuma criança vinculada.</p>' : '') +
+                '<div class="fam-add"><select data-fam-sel="filho" aria-label="Criança">' + famOpcoes(candF, "Cadastrar criança nova") + '</select>' +
+                '<select data-fam-tipo="filho" aria-label="' + nome + ' é o quê da criança">' +
+                    '<option value="pai"' + (tPadrao === "pai" ? " selected" : "") + '>' + nome + ' é o pai</option>' +
+                    '<option value="mae"' + (tPadrao === "mae" ? " selected" : "") + '>' + nome + ' é a mãe</option>' +
+                    '<option value="outro">' + nome + ' é outro responsável</option></select>' +
+                famNovo(i, "filho", "Nome da criança", false) +
+                '<button type="button" class="b pequeno cheio" data-acao="fam-vincular" data-k="filho" data-i="' + i + '">Vincular</button></div></div>';
+        }
+        h += '<p class="nota-info">' + (p.tipo === "crianca"
+                ? nome + ' aparece no convite dos responsáveis, e no link deles dá para marcar se ' + nome + ' vai ou não vai. '
+                : 'No convite de ' + nome + ' aparecem os nomes da família, e no link ' + nome + ' confirma cada um (quem não pode ir, marca Não vai). ') +
+            'Se alguém da família já respondeu, aparece respondido para os outros. Depois toque em <b>Salvar alterações</b>.</p>' +
+            '<div class="acoes-info"><button type="button" class="b pequeno" data-acao="fam-abrir" data-i="' + i + '">Fechar</button></div></div>';
+        return h;
+    }
+    function famVincular(ev, i, k) {
+        var lista = convidados(ev.id), p = lista[i];
+        var caixa = painel.querySelector(".fam-caixa");
+        if (!p || !caixa) return;
+        var sel = caixa.querySelector('[data-fam-sel="' + k + '"]'), tipoSel = caixa.querySelector('[data-fam-tipo="' + k + '"]');
+        var outro;
+        if (sel.value === "novo") {
+            var nm = caixa.querySelector('[data-fam-nome="' + k + '"]'), wz = caixa.querySelector('[data-fam-whats="' + k + '"]');
+            if (!String(nm.value || "").trim()) { nm.focus(); return; }
+            outro = { nome: String(nm.value).trim(), whats: wz ? String(wz.value || "").trim() : "" };
+            outro.tipo = k === "filho" ? "crianca" : "adulto";
+            lista.push(outro);
+        } else outro = porCodigo(lista, sel.value);
+        if (!outro) { sel.focus(); return; }
+        var t = tipoSel ? tipoSel.value : "";
+        if (k === "resp") vincularResp(p, outro, t);
+        else if (k === "filho") vincularResp(outro, p, t);
+        else vincularParceiro(lista, p, outro);
+        marcarSujo();
+        var y = window.scrollY; desenhar(); window.scrollTo(0, y);
+        mostrarBarra(String(outro.nome).trim() + " vinculado(a) a " + String(p.nome).trim() + ". Clique em Salvar.", false);
+    }
+
     function convidadosLista(ev, lista, enviados, opcao) {
         return '<div class="add-conv">' +
                 '<input id="novo-nome" placeholder="Nome do convidado" autocomplete="off" list="sugestoes">' +
@@ -3350,8 +3579,9 @@ body.seq-aberto{ overflow:hidden; }
                             '<span class="opcoes" role="group" aria-label="Adulto ou criança">' + opcao(i, "tipo", "adulto", p, "Adulto") + opcao(i, "tipo", "crianca", p, "Criança") + '</span>' +
                             '<span class="opcoes" role="group" aria-label="Sexo">' + opcao(i, "sexo", "m", p, "Masculino") + opcao(i, "sexo", "f", p, "Feminino") + '</span>' +
                             '<label class="idade' + (p.tipo === "crianca" ? " visivel" : "") + '">Idade <input data-i="' + i + '" data-c="idade" value="' + esc(p.idade || "") + '" type="number" min="0" max="17" inputmode="numeric" aria-label="Idade"> anos</label>' +
-                            (p.respEm ? '<span class="pelo-link" title="Respondeu pelo link do convite em ' + esc(new Date(p.respEm).toLocaleString("pt-BR")) + '">📩 respondeu pelo link</span>' : "") +
-                        '</div></li>';
+                            (p.respEm ? '<span class="pelo-link" title="Respondeu pelo link do convite em ' + esc(new Date(p.respEm).toLocaleString("pt-BR")) + '">📩 ' + (p.respPor ? "respondido por " + esc(p.respPor) + " pelo link" : "respondeu pelo link") + '</span>' : "") +
+                            famBotao(lista, p, i) +
+                        '</div>' + (famAberta && famAberta === p.c ? famCaixa(lista, p, i) : "") + '</li>';
                   }).join("") + '</ol>' +
                   '<div class="resumo-conv"><span id="resumo-conv">' + resumoConv(lista) + '</span>' +
                   '<span style="display:flex;gap:8px;flex-wrap:wrap"><button class="b pequeno" data-acao="copiar">Copiar lista</button>' +
@@ -3478,6 +3708,7 @@ body.seq-aberto{ overflow:hidden; }
             }
             p.enviado = true;
             delete p._codigoNovo;
+            marcarFamiliaConvidada(seq.ev, p);
             seq.ultimo = i;
             seq.pos++;
             salvar("Convite de " + String(p.nome).trim().split(" ")[0] + " marcado como enviado ✓");
@@ -3723,6 +3954,15 @@ body.seq-aberto{ overflow:hidden; }
         ev._ini.meses = +e.target.value || null;
         preencherNovo(ev);
     });
+    /* Família: "➕ Cadastrar pessoa nova" mostra o campo do nome */
+    painel.addEventListener("change", function (e) {
+        var el = e.target, k = el && el.getAttribute && el.getAttribute("data-fam-sel");
+        if (!k) return;
+        var box = el.closest(".fam-add"), novo = box && box.querySelector('[data-fam-novo="' + k + '"]');
+        if (!novo) return;
+        novo.classList.toggle("oculto", el.value !== "novo");
+        if (el.value === "novo") novo.querySelector("input").focus();
+    });
     painel.addEventListener("focusin", function (e) {
         var ev = atual && evento(atual);
         if (ev && e.target.getAttribute && e.target.getAttribute("data-c") === "titulo") tituloAoEntrar = ev.titulo;
@@ -3880,7 +4120,7 @@ body.seq-aberto{ overflow:hidden; }
         if (alvo.hasAttribute("data-zap")) {
             var pz = convidados(ev.id)[+alvo.getAttribute("data-i")], cz = alvo.getAttribute("data-zap");
             if (pz) {
-                if (cz === "enviado") { pz.enviado = true; delete pz._codigoNovo; } else pz[cz] = agora().dia;
+                if (cz === "enviado") { pz.enviado = true; delete pz._codigoNovo; marcarFamiliaConvidada(ev, pz); } else pz[cz] = agora().dia;
                 alvo.classList.add("enviado");
                 alvo.innerHTML = I.whats + "✓ Enviado · Enviar de novo";
                 salvar(String(pz.nome).trim().split(" ")[0] + " marcado(a) como enviado ✓");
@@ -3892,7 +4132,8 @@ body.seq-aberto{ overflow:hidden; }
             if (p && (!p.enviado || p._codigoNovo)) {
                 p.enviado = true;
                 delete p._codigoNovo;
-                atualizarLinha(+alvo.getAttribute("data-i"));
+                marcarFamiliaConvidada(ev, p);
+                convidados(ev.id).forEach(function (q, iq) { if (q.enviado) atualizarLinha(iq); });
                 salvar(true);
             }
             return;
@@ -3903,8 +4144,9 @@ body.seq-aberto{ overflow:hidden; }
             var ic = +alvo.getAttribute("data-i"), pc = convidados(ev.id)[ic], campo = alvo.getAttribute("data-campo"), v = alvo.getAttribute("data-v");
             if (pc[campo] === v) delete pc[campo]; else pc[campo] = v;
             if (pc.tipo !== "crianca") delete pc.idade;
-            atualizarLinha(ic);
             marcarSujo();
+            if (campo === "tipo" && famAberta && famAberta === pc.c) { var yc = window.scrollY; desenhar(); window.scrollTo(0, yc); return; }
+            atualizarLinha(ic);
             if (campo === "tipo" && pc.tipo === "crianca") painel.querySelectorAll(".linha-conv")[ic].querySelector(".idade input").focus();
             return;
         }
@@ -3914,6 +4156,7 @@ body.seq-aberto{ overflow:hidden; }
             var nomesEv = ct.eventos.map(function (id) { var o = evento(id); return "• " + (o ? o.titulo : id); }).join("\n");
             if (confirm("Tirar " + ct.nome + " de todos os eventos?\n\n" + nomesEv + "\n\nIsso só vale depois de Salvar.")) {
                 Object.keys(estado.convidados).forEach(function (id) {
+                    estado.convidados[id].forEach(function (p) { if (chaveNome(p.nome) === k) soltarFamilia(estado.convidados[id], p); });
                     estado.convidados[id] = estado.convidados[id].filter(function (p) { return chaveNome(p.nome) !== k; });
                 });
                 marcarSujo(); desenhar();
@@ -3925,7 +4168,7 @@ body.seq-aberto{ overflow:hidden; }
         if (alvo.hasAttribute("data-remover")) {
             var i = +alvo.getAttribute("data-remover"), lista = convidados(ev.id);
             if (confirm("Remover " + lista[i].nome + " da lista?")) {
-                lista.splice(i, 1); marcarSujo(); desenhar();
+                soltarFamilia(lista, lista[i]); lista.splice(i, 1); marcarSujo(); desenhar();
             }
             return;
         }
@@ -4093,9 +4336,31 @@ body.seq-aberto{ overflow:hidden; }
                 if (lf[ir] && confirm("Remover " + (lf[ir].nome || "este fornecedor") + "?")) { lf.splice(ir, 1); marcarSujo(); desenhar(); }
                 break;
 
+            case "fam-abrir":
+                var pa = convidados(ev.id)[+alvo.getAttribute("data-i")];
+                if (pa) { garantirCodigo(pa); famAberta = famAberta === pa.c ? null : pa.c; }
+                var yf = window.scrollY; desenhar(); window.scrollTo(0, yf);
+                break;
+
+            case "fam-vincular":
+                famVincular(ev, +alvo.getAttribute("data-i"), alvo.getAttribute("data-k"));
+                break;
+
+            case "fam-tirar":
+                var lt = convidados(ev.id), pt = lt[+alvo.getAttribute("data-i")];
+                if (!pt) break;
+                if (alvo.hasAttribute("data-parc")) { var op = parceiroDe(lt, pt); delete pt.parc; if (op && op.parc === pt.c) delete op.parc; }
+                var rc = alvo.getAttribute("data-resp"), fc = alvo.getAttribute("data-filho");
+                function semVinc(cr, c) { if (cr && Array.isArray(cr.resp)) { cr.resp = cr.resp.filter(function (v) { return v.c !== c; }); if (!cr.resp.length) delete cr.resp; } }
+                if (rc) semVinc(pt, rc);
+                if (fc) semVinc(porCodigo(lt, fc), pt.c);
+                marcarSujo();
+                var yt = window.scrollY; desenhar(); window.scrollTo(0, yt);
+                break;
+
             case "add-conv":
                 var n = document.getElementById("novo-nome"), w = document.getElementById("novo-whats");
-                if (adicionar(n.value, w.value)) { marcarSujo(); desenhar(); document.getElementById("novo-nome").focus(); }
+                if (adicionar(n.value, w.value)) { religarPorNome(ev); marcarSujo(); desenhar(); document.getElementById("novo-nome").focus(); }
                 else n.focus();
                 break;
 
@@ -4114,7 +4379,11 @@ body.seq-aberto{ overflow:hidden; }
                     var c = CONTATOS_ABERTOS[+cb.getAttribute("data-contato")];
                     if (c && adicionar(c.nome, c.whats, c)) qtdC++;
                 });
-                if (qtdC) { marcarSujo(); desenhar(); mostrarBarra(qtdC + (qtdC === 1 ? " convidado adicionado" : " convidados adicionados") + ". Clique em Salvar.", false); }
+                if (qtdC) {
+                    var nf = religarPorNome(ev);
+                    marcarSujo(); desenhar();
+                    mostrarBarra(qtdC + (qtdC === 1 ? " convidado adicionado" : " convidados adicionados") + (nf ? " (a família já veio vinculada, como no outro evento)" : "") + ". Clique em Salvar.", false);
+                }
                 break;
 
             case "add-varios":
@@ -4345,7 +4614,17 @@ body.seq-aberto{ overflow:hidden; }
                     if (p.sexo === "m" || p.sexo === "f") o.sexo = p.sexo;
                     var id = parseInt(p.idade, 10);
                     if (o.tipo === "crianca" && id >= 0 && id < 18) o.idade = id;
+                    /* Família: esposo(a)/parceiro(a) e responsáveis (só códigos de quem está na lista) */
+                    if (p.parc) o.parc = p.parc;
+                    if (Array.isArray(p.resp)) o.resp = p.resp.filter(function (v) { return v && v.c && /^(pai|mae|outro)$/.test(v.t); }).map(function (v) { return { c: v.c, t: v.t }; });
+                    if (p.respPor && p.respEm) o.respPor = String(p.respPor);
                     return o; });
+            var codigos = {};
+            l.forEach(function (o) { if (o.c) codigos[o.c] = true; });
+            l.forEach(function (o) {
+                if (o.parc && (!codigos[o.parc] || o.parc === o.c)) delete o.parc;
+                if (o.resp) { o.resp = o.resp.filter(function (v) { return codigos[v.c] && v.c !== o.c; }); if (!o.resp.length) delete o.resp; }
+            });
             if (l.length) conv[ev.id] = l;
         });
         var eventos = estado.eventos.map(function (ev) { var o = copia(ev); delete o._novo; delete o._ini; return limpo(o); });
