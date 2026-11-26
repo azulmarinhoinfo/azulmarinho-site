@@ -18,7 +18,7 @@
    porque a piscina já tem o aviso dela (functions/api/piscina/lembrete.js).
    ========================================================= */
 
-import { conferirAcesso, json } from "../../../lib/acesso.js";
+import { conferirAcesso, soAdmin, json } from "../../../lib/acesso.js";
 
 /* Tópico do app ntfy (funciona como senha: não divulgar). NTFY_TOPICO_TAREFAS no Cloudflare troca. */
 var TOPICO_PADRAO = "azulmarinho-tarefas-ulllgdi6h5ao";
@@ -163,6 +163,8 @@ export async function onRequest(context) {
     if (request.method !== "POST") return json({ erro: "Método não permitido." }, 405);
 
     if (url.searchParams.get("config")) {
+        var proibido = soAdmin(acesso);
+        if (proibido) return json(proibido, proibido.status);
         var corpo = {};
         try { corpo = await request.json(); } catch (e) {}
         var nova = { avisos: corpo.avisos !== false };

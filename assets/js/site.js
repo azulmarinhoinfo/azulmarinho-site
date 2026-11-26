@@ -75,6 +75,7 @@ window.ICONES = {
                       '<li>' + selo(base + "/eventos/", I.festa, "Eventos", seloAtivo("eventos")) + '</li>' +
                       '<li>' + selo(base + "/piscina/", I.onda, "Piscina", seloAtivo("piscina")) + '</li>') +
                     '<li>' + linkSports + '</li>' +
+                    (cliente ? "" : '<li><a href="/entrar/" class="menu-entrar" id="menu-entrar"' + ativo("entrar") + '>🔑 Entrar</a></li>') +
                 '</ul>' +
             '</div></header>');
 
@@ -90,6 +91,15 @@ window.ICONES = {
                 botao.setAttribute("aria-expanded", "false");
             }
         });
+    }
+
+    /* Botão "Entrar" do menu: se este aparelho já entrou, mostra o nome (o login vale para todo o site) */
+    var be = document.getElementById("menu-entrar");
+    if (be && window.fetch) {
+        fetch("/api/admin/eu", { credentials: "same-origin", cache: "no-store" })
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (d) { if (d && d.logado) { be.textContent = "👤 " + (d.nome || "Minha área"); be.title = "Você entrou" + (d.papel === "operador" ? " (operador)" : " (administrador)"); } })
+            .catch(function () {});
     }
 
     var rodape = document.getElementById("rodape");

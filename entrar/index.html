@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Entrar | Azul Marinho</title>
+<meta name="theme-color" content="#0F1F47">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Ubuntu:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/site.css">
+<style>
+body{ background:var(--fundo-suave); }
+.area{ padding:48px 0 70px; }
+.cartao{ max-width:440px; margin:0 auto; background:#fff; border:1px solid var(--borda); border-radius:18px; padding:30px 26px; box-shadow:0 10px 30px rgba(15,31,71,.08); }
+.cartao h1{ font-size:26px; margin:0 0 6px; color:var(--marinho); }
+.cartao p{ color:var(--texto-claro); margin:0 0 18px; }
+.cartao label{ display:block; font-weight:600; color:var(--marinho); margin:12px 0 6px; }
+.cartao input{ width:100%; font:inherit; font-size:17px; border:1.5px solid var(--borda); border-radius:10px; padding:12px 14px; box-sizing:border-box; }
+.cartao input:focus{ outline:none; border-color:var(--ciano); box-shadow:0 0 0 3px rgba(0,173,239,.18); }
+.cartao .b{ width:100%; margin-top:18px; justify-content:center; }
+.msg{ min-height:1.4em; color:#BE123C; margin:12px 0 0; }
+.portas{ display:grid; gap:10px; margin:18px 0 6px; }
+.porta{ display:flex; gap:12px; align-items:center; text-decoration:none; border:1.5px solid var(--borda); border-radius:12px; padding:14px 16px; color:var(--marinho); font-weight:600; }
+.porta:hover{ border-color:var(--ciano); }
+.porta span{ font-size:24px; }
+.porta small{ display:block; font-weight:400; color:var(--texto-claro); }
+.selo-papel{ display:inline-block; background:#E0F2FE; color:#0369A1; border-radius:999px; padding:3px 12px; font-size:13px; font-weight:600; }
+.sair{ background:none; border:0; color:#BE123C; font:inherit; text-decoration:underline; cursor:pointer; margin-top:14px; padding:0; }
+</style>
+</head>
+<body data-pagina="entrar" data-sem-whats>
+
+<div id="topo"></div>
+
+<main class="area"><div class="wrap">
+    <section class="cartao" id="cartao"><p>Carregando…</p></section>
+</div></main>
+
+<div id="rodape"></div>
+
+<script src="/assets/js/site.js"></script>
+<script>
+/* Login único do site: entrou aqui, vale para o painel de eventos (/admin/) e a piscina (/piscina/)
+   neste aparelho por 30 dias. Administrador = usuário "farley" + ADMIN_SENHA; operadores são
+   cadastrados pelo administrador no painel (👤 Acessos). */
+(function () {
+    var caixa = document.getElementById("cartao");
+    var volta = new URLSearchParams(location.search).get("volta") || "";
+    if (!/^\/[a-z0-9\/._-]*$/i.test(volta)) volta = "";
+    function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+
+    function formulario() {
+        caixa.innerHTML = '<h1>🔑 Entrar</h1><p>Área da equipe Azul Marinho. Entrando aqui, você já fica com acesso ao painel de eventos e à piscina neste aparelho (por 30 dias).</p>' +
+            '<form id="f"><label for="u">Usuário</label><input id="u" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="ex.: farley" required>' +
+            '<label for="s">Senha</label><input id="s" type="password" autocomplete="current-password" required>' +
+            '<button class="b cheio" type="submit">Entrar</button><p class="msg" id="m" role="status"></p></form>';
+        document.getElementById("u").focus();
+        document.getElementById("f").addEventListener("submit", function (e) {
+            e.preventDefault();
+            var m = document.getElementById("m"), b = e.target.querySelector("button");
+            b.disabled = true; m.textContent = "Conferindo…";
+            fetch("/api/admin/login", { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ usuario: document.getElementById("u").value, senha: document.getElementById("s").value }) })
+                .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { d._ok = r.ok; return d; }); })
+                .then(function (d) {
+                    if (d._ok) { if (volta) location.href = volta; else location.reload(); return; }
+                    m.textContent = d.erro || "Não deu certo. Tente de novo."; b.disabled = false;
+                })
+                .catch(function () { m.textContent = "Sem internet? Tente de novo."; b.disabled = false; });
+        });
+    }
+
+    function logado(d) {
+        var op = d.papel === "operador";
+        caixa.innerHTML = '<h1>👋 Olá, ' + esc(d.nome || "") + '</h1>' +
+            '<p><span class="selo-papel">' + (op ? "Operador(a)" : "Administrador: acesso total") + '</span></p>' +
+            '<p>' + (op ? "Você vê tudo. Nos eventos você pode adicionar convidados e tarefas e marcar tarefas como feitas." :
+                "Você pode tudo: eventos, convidados, tarefas, piscina e os acessos da equipe.") + '</p>' +
+            '<div class="portas">' +
+                '<a class="porta" href="/admin/"><span>🎉</span><div>Painel de eventos<small>Convidados, compras, tarefas</small></div></a>' +
+                '<a class="porta" href="/piscina/"><span>🌊</span><div>Piscina<small>Rotina e diário</small></div></a>' +
+                (op ? "" : '<a class="porta" href="/admin/#acessos"><span>👤</span><div>Acessos da equipe<small>Cadastrar a Nayane, trocar senha</small></div></a>') +
+            '</div><button class="sair" id="sair">Sair deste aparelho</button>';
+        document.getElementById("sair").addEventListener("click", function () {
+            fetch("/api/admin/sair", { method: "POST", credentials: "same-origin" }).then(function () { location.reload(); }, function () { location.reload(); });
+        });
+    }
+
+    fetch("/api/admin/eu", { credentials: "same-origin", cache: "no-store" })
+        .then(function (r) { return r.ok ? r.json() : {}; })
+        .then(function (d) { if (d.logado) { if (volta) location.href = volta; else logado(d); } else formulario(); })
+        .catch(formulario);
+})();
+</script>
+</body>
+</html>

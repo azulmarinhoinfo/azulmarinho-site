@@ -4,7 +4,7 @@
      POST  com o login do painel: grava { inicioSemana1, quarta, avisos }
    ========================================================= */
 
-import { conferirAcesso, json } from "../../../lib/acesso.js";
+import { conferirAcesso, soAdmin, json } from "../../../lib/acesso.js";
 import { lerConfig, CHAVE_CONFIG, topico } from "../../../lib/piscina.js";
 
 var DATA_OK = /^\d{4}-\d{2}-\d{2}$/;
@@ -24,6 +24,8 @@ export async function onRequest(context) {
 
     if (request.method === "POST") {
         if (!logado) return json({ erro: acesso.erro, codigo: acesso.codigo }, acesso.status);
+        var proibido = soAdmin(acesso);
+        if (proibido) return json(proibido, proibido.status);
         var corpo = {};
         try { corpo = await request.json(); } catch (e) {}
         var inicio = String(corpo.inicioSemana1 || "");

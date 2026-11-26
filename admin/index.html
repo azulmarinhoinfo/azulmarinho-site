@@ -559,6 +559,20 @@ body.seq-aberto{ overflow:hidden; }
     .linha-conv .convite{ grid-column:2; justify-self:start; }
     .marcas{ grid-column:1 / -1; padding-left:32px; }
 }
+.faixa-operador{ grid-column:1 / -1; background:#E0F2FE; color:#0C4A6E; border:1px solid #BAE6FD; border-radius:12px; padding:12px 16px; font-size:15px; }
+body.operador [data-op-trava]{ opacity:.55; cursor:not-allowed; }
+body.operador a.convite.op-trava{ opacity:.55; cursor:not-allowed; }
+body.operador .remover, body.operador .esquecer, body.operador [data-acao="excluir"], body.operador [data-acao="duplicar"], body.operador [data-acao="novo"],
+body.operador .padrao-t, body.operador [data-acao="sequencia"], body.operador [data-acao="sequencia-cobrar"], body.operador [data-acao="sequencia-agradecer"]{ display:none !important; }
+.selo-por{ color:#0369A1; font-weight:500; }
+.acessos .regras-op{ margin:6px 0 18px; padding-left:4px; list-style:none; line-height:1.9; }
+.lista-acessos{ list-style:none; padding:0; margin:0 0 10px; }
+.lista-acessos li{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding:12px 0; border-bottom:1px solid var(--borda); }
+.lista-acessos li > span{ flex:1; min-width:180px; display:flex; flex-direction:column; }
+.lista-acessos small{ color:var(--texto-claro); }
+.caixa.acessos{ padding:26px 28px; }
+.add-acesso{ display:flex; gap:10px; flex-wrap:wrap; }
+.add-acesso input{ flex:1; min-width:180px; font:inherit; border:1.5px solid var(--borda); border-radius:10px; padding:10px 12px; }
 </style>
 </head>
 
@@ -601,6 +615,12 @@ body.seq-aberto{ overflow:hidden; }
     var aba = "detalhes";
     var sujo = false;
     var painel = document.getElementById("painel");
+    /* Quem entrou: "admin" (pode tudo) ou "operador" (vê tudo; adiciona convidados e tarefas e marca feitas).
+       As regras valem no servidor (lib/operador.js); aqui o painel só tranca o que ele não pode mexer. */
+    var PAPEL = "admin", EU = { uid: "", nome: "" }, PESSOAS = {}, NOME_ADMIN = "Farley", telaAcessos = false;
+    function ehOperador() { return PAPEL === "operador"; }
+    function minha(x) { return !!(x && EU.uid && x.por === EU.uid); }
+    function nomePor(id) { return PESSOAS[id] || id; }
 
     /* ---------------- Utilidades ---------------- */
 
@@ -779,12 +799,13 @@ body.seq-aberto{ overflow:hidden; }
 
     function telaSenha(erro) {
         painel.innerHTML = '<form class="caixa aviso entrar" id="form-senha" style="grid-column:1 / -1">' +
-            '<h2>🔒 Entrar no painel</h2><p>Digite a senha do organizador.</p>' +
+            '<h2>🔒 Entrar no painel</h2><p>Digite o seu usuário e a sua senha. Depois de entrar, vale para todo o site (eventos, piscina) neste aparelho por 30 dias.</p>' +
+            '<input type="text" id="usuario" autocomplete="username" autocapitalize="none" placeholder="Usuário (ex.: farley)" required>' +
             '<input type="password" id="senha" autocomplete="current-password" placeholder="Senha" required>' +
             '<button class="b cheio" type="submit">Entrar</button>' +
             '<p class="erro-senha" id="erro-senha">' + esc(erro || "") + '</p></form>';
-        var f = document.getElementById("form-senha"), campo = document.getElementById("senha");
-        campo.focus();
+        var f = document.getElementById("form-senha"), campo = document.getElementById("senha"), campoU = document.getElementById("usuario");
+        campoU.focus();
         f.addEventListener("submit", function (e) {
             e.preventDefault();
             var botao = f.querySelector("button");
@@ -792,11 +813,11 @@ body.seq-aberto{ overflow:hidden; }
             fetch("/api/admin/login", {
                 method: "POST", credentials: "same-origin",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ senha: campo.value })
+                body: JSON.stringify({ usuario: campoU.value, senha: campo.value })
             })
             .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { d._status = r.status; return d; }); })
             .then(function (d) {
-                if (d._status === 200) return carregar();
+                if (d._status === 200) return location.reload();
                 document.getElementById("erro-senha").textContent = d.erro || "Não consegui entrar.";
                 campo.select();
             })
@@ -873,13 +894,21 @@ body.seq-aberto{ overflow:hidden; }
         estado.tarefasPadraoSabado = Array.isArray(d.tarefasPadraoSabado) ? d.tarefasPadraoSabado : null;
         incluirSelecionarConvidados();
         estado.versao = d.versao || "";
-        var novas = aplicarRespostas(d.respostas || {});
+        PAPEL = d.papel === "operador" ? "operador" : "admin";
+        EU = { uid: d.uid || "", nome: d.nome || "" };
+        PESSOAS = d.pessoas || {};
+        NOME_ADMIN = d.nomeAdmin || "Farley";
+        document.body.classList.toggle("operador", ehOperador());
+        var novas = ehOperador() ? 0 : aplicarRespostas(d.respostas || {});
         window.EVENTOS = estado.eventos;
 
         var quem = document.getElementById("quem");
         if (d.modo === "senha") {
-            quem.innerHTML = '<a href="#" id="sair">Sair do painel</a>';
+            quem.innerHTML = 'Entrou como <b>' + esc(ehOperador() ? EU.nome : NOME_ADMIN) + '</b> (' + (ehOperador() ? "operador(a)" : "administrador") + ')<br>' +
+                (ehOperador() ? "" : '<a href="#" id="acessos">👤 Acessos</a> · ') + '<a href="#" id="sair">Sair</a>';
             document.getElementById("sair").addEventListener("click", sair);
+            var ba = document.getElementById("acessos");
+            if (ba) ba.addEventListener("click", function (e) { e.preventDefault(); abrirAcessos(); });
         } else if (d.email) {
             quem.innerHTML = 'Entrou como <b>' + esc(d.email) + '</b><br><a href="/cdn-cgi/access/logout">Sair</a>';
         }
@@ -895,6 +924,7 @@ body.seq-aberto{ overflow:hidden; }
         corrigirDescricaoAoAbrir(atual && evento(atual));
         carregarPiscina();
         carregarAvisoCel();
+        if (pedido === "acessos" && !ehOperador()) abrirAcessos();
         if (novas) mostrarBarra(novas + (novas === 1 ? " convidado respondeu" : " convidados responderam") + " pelo link do convite (já marcado na lista).", false);
         if (primeiraVez) {
             marcarSujo();
@@ -910,7 +940,11 @@ body.seq-aberto{ overflow:hidden; }
         var aberto = !!(atual && evento(atual));
         painel.classList.toggle("so-lista", !aberto);
         painel.classList.toggle("com-evento", aberto);
-        painel.innerHTML = aberto
+        if (telaAcessos && !ehOperador()) { painel.classList.remove("com-evento"); painel.classList.add("so-lista"); painel.innerHTML = acessosHTML(); return; }
+        var faixaOp = ehOperador() ? '<div class="faixa-operador">👀 Você entrou como <b>' + esc(EU.nome) + '</b>, com acesso de <b>operador(a)</b>. ' +
+            'Você vê tudo. Nos eventos você pode: <b>adicionar convidados</b>, <b>adicionar tarefas</b> (em horário livre) e <b>marcar tarefas como feitas</b>. ' +
+            'Só muda o que você mesma criou. O que aparece apagado (cinza) ou com 🔒 só o ' + esc(NOME_ADMIN) + ' muda.</div>' : "";
+        painel.innerHTML = faixaOp + (aberto
             ? '<div class="voltar-lista"><button class="b pequeno" data-acao="voltar-lista">← Escolher outro evento</button></div>' +
               '<section class="caixa" id="editor">' + editorHTML() + '</section>'
             : '<h2 class="titulo-lista">Escolha um evento</h2>' +
@@ -918,8 +952,9 @@ body.seq-aberto{ overflow:hidden; }
                 '<div class="topo-lista"><button class="b cheio largo" data-acao="novo">＋ Novo evento</button></div>' +
                 '<div class="itens">' + listaHTML() + '</div>' +
               '</aside>' +
-              '<p class="nota-lista">Toque em um evento para ver os detalhes, os convidados, as compras e as tarefas dele.</p>';
+              '<p class="nota-lista">Toque em um evento para ver os detalhes, os convidados, as compras e as tarefas dele.</p>');
         ligarEditor();
+        travarOperador();
     }
 
     function listaHTML() {
@@ -1665,8 +1700,11 @@ body.seq-aberto{ overflow:hidden; }
         var c = estado.tarefas[ev.id];
         if (!c) {
             c = estado.tarefas[ev.id] = { base: ev.data, itens: montarTarefas(ev) };
-            marcarSujo();
-            mostrarBarra("Montei o cronograma padrão deste evento. Mude o que quiser e clique em Salvar.", false);
+            if (ehOperador()) c._soVer = true;     // operador só vê: quem monta o cronograma é o administrador
+            else {
+                marcarSujo();
+                mostrarBarra("Montei o cronograma padrão deste evento. Mude o que quiser e clique em Salvar.", false);
+            }
         }
         sincronizarPiscina(ev, c);
         return c;
@@ -1809,6 +1847,7 @@ body.seq-aberto{ overflow:hidden; }
         novas.forEach(function (p) { desviarDaPiscina(c, p, movidas); });
         if (!mudou) return;
         c.itens.sort(ordemTarefa);
+        if (ehOperador()) return;
         marcarSujo();
         if (novas.length) mostrarBarra("🏊 Coloquei " + plural(novas.length, "tarefa da piscina", "tarefas da piscina") + " na semana da festa (" +
             diaCurto(novas[0].dia) + (novas.length > 1 ? " a " + diaCurto(novas[novas.length - 1].dia) : "") + ")" +
@@ -1937,9 +1976,11 @@ body.seq-aberto{ overflow:hidden; }
                     return '<li class="linha-tarefa s-' + s + '" data-linha-tarefa="' + t.id + '">' +
                         '<input type="checkbox" class="ok" data-tf="feito" data-id="' + t.id + '"' + (t.feito ? " checked" : "") + ' title="Marcar como feita" aria-label="Feita">' +
                         '<span class="tt-box"><input type="text" data-tf="t" data-id="' + t.id + '" value="' + esc(t.t) + '" aria-label="Tarefa"' + (t.pis ? ' readonly title="Vem da agenda da Piscina"' : '') + '>' +
-                            '<small>' + iconeGrupo(t.g) + " " + esc(t.g || "Outras") + (lg && lg.resumo ? ' · <span class="resumo-t">' + esc(lg.resumo) + '</span>' : '') + '</small>' +
+                            '<small>' + iconeGrupo(t.g) + " " + esc(t.g || "Outras") +
+                                (t.por ? ' · <span class="selo-por">✍️ criada por ' + esc(nomePor(t.por)) + '</span>' : '') +
+                                (t.feito && t.feitoPor ? ' · <span class="selo-por">✅ marcada por ' + esc(nomePor(t.feitoPor)) + '</span>' : '') + (lg && lg.resumo ? ' · <span class="resumo-t">' + esc(lg.resumo) + '</span>' : '') + '</small>' +
                             (lg ? '<button class="ver-info' + (aberta ? ' aberta' : '') + '" data-acao="info-abrir" data-id="' + t.id + '" aria-expanded="' + (aberta ? 'true' : 'false') + '">' + lg.botao + (aberta ? ' ▴' : ' ▾') + '</button>' : '') +
-                            (t.pis ? '<span class="selo-piscina" title="Os dias e horários vêm da página da Piscina">🏊 da agenda da Piscina</span>' : botaoPadrao(ev, t)) + '</span>' +
+                            (t.pis ? '<span class="selo-piscina" title="Os dias e horários vêm da página da Piscina">🏊 da agenda da Piscina</span>' : ehOperador() ? '' : botaoPadrao(ev, t)) + '</span>' +
                         '<span class="quando">' +
                             (antes ? '<span class="selo-t trancada" title="Faça antes: ' + esc(antes.t) + '">🔒 depois de ' + esc(antes.t) + '</span>' : "") +
                             (s === "feita" ? '<span class="selo-t feita">Feita ✓</span>' : s === "atrasada" ? '<span class="selo-t atrasada">Atrasada</span>' : s === "agora" ? '<span class="selo-t agora">Agora</span>' : "") +
@@ -3350,6 +3391,7 @@ body.seq-aberto{ overflow:hidden; }
                             '<span class="opcoes" role="group" aria-label="Adulto ou criança">' + opcao(i, "tipo", "adulto", p, "Adulto") + opcao(i, "tipo", "crianca", p, "Criança") + '</span>' +
                             '<span class="opcoes" role="group" aria-label="Sexo">' + opcao(i, "sexo", "m", p, "Masculino") + opcao(i, "sexo", "f", p, "Feminino") + '</span>' +
                             '<label class="idade' + (p.tipo === "crianca" ? " visivel" : "") + '">Idade <input data-i="' + i + '" data-c="idade" value="' + esc(p.idade || "") + '" type="number" min="0" max="17" inputmode="numeric" aria-label="Idade"> anos</label>' +
+                            (p.por ? '<span class="pelo-link">✍️ ' + esc(nomePor(p.por)) + ' adicionou</span>' : "") +
                             (p.respEm ? '<span class="pelo-link" title="Respondeu pelo link do convite em ' + esc(new Date(p.respEm).toLocaleString("pt-BR")) + '">📩 respondeu pelo link</span>' : "") +
                         '</div></li>';
                   }).join("") + '</ol>' +
@@ -3756,7 +3798,8 @@ body.seq-aberto{ overflow:hidden; }
             var tf = el.getAttribute("data-tf"), tt = tarefa(ev, el.getAttribute("data-id"));
             if (!tt) return;
             if (tf === "feito") {
-                if (el.checked) tt.feito = true; else delete tt.feito;
+                if (el.checked) { tt.feito = true; if (ehOperador()) tt.feitoPor = EU.uid; else delete tt.feitoPor; }
+                else { delete tt.feito; delete tt.feitoPor; }
                 ultimaConcluida = el.checked ? tt.id : null;
                 clearTimeout(timerConcluida);
                 if (el.checked) timerConcluida = setTimeout(function () { ultimaConcluida = null; var fc = painel.querySelector(".faixa-concluida"); if (fc) fc.remove(); }, 8000);
@@ -3764,6 +3807,15 @@ body.seq-aberto{ overflow:hidden; }
                 var li = el.closest && el.closest(".linha-tarefa");
                 if (li && el.checked && filtroTarefas !== "todas" && filtroTarefas !== "concluidas") { li.classList.add("saindo"); return setTimeout(redesenharTarefas, 350); }
                 return redesenharTarefas();
+            }
+            if (tf !== "t" && ehOperador()) {
+                var errT = horarioProblema(tt, ev);
+                if (errT) {
+                    var antesT = tarefaAntesOp[tt.id];
+                    if (antesT) { tt.dia = antesT.dia; tt.ini = antesT.ini; tt.fim = antesT.fim; }
+                    avisoOperador(errT + " Voltei o horário que estava.");
+                    return redesenharTarefas();
+                }
             }
             if (tf !== "t") tarefaMudou = true;
             return;
@@ -3846,6 +3898,7 @@ body.seq-aberto{ overflow:hidden; }
         if (!nome) return false;
         var p = { nome: nome, whats: String(whats || "").trim() };
         if (de) ["tipo", "sexo", "idade"].forEach(function (x) { if (de[x]) p[x] = de[x]; });   // vem junto de outro evento
+        if (ehOperador()) { p.por = EU.uid; p.c = novoCodigo(); }      // o operador só mexe nos convidados que ele mesmo pôs
         convidados(atual).push(p);
         return true;
     }
@@ -4145,7 +4198,7 @@ body.seq-aberto{ overflow:hidden; }
 
             case "tarefa-desfazer":
                 var td = tarefa(ev, alvo.getAttribute("data-id"));
-                if (td) { delete td.feito; marcarSujo(); }
+                if (td) { delete td.feito; delete td.feitoPor; marcarSujo(); }
                 ultimaConcluida = null;
                 redesenharTarefas();
                 break;
@@ -4161,6 +4214,12 @@ body.seq-aberto{ overflow:hidden; }
                 if (!/^\d{4}-\d{2}-\d{2}$/.test(ntDia)) { document.getElementById("nt-dia").focus(); break; }
                 var nova = { id: "t" + novoCodigo().slice(0, 8), t: nt.value.trim(), g: document.getElementById("nt-g").value, dia: ntDia,
                     ini: document.getElementById("nt-ini").value, fim: document.getElementById("nt-fim").value };
+                if (ehOperador()) {
+                    if (cronograma(ev)._soVer) { avisoOperador("As tarefas deste evento ainda não foram montadas pelo " + NOME_ADMIN + ". Peça para ele abrir a aba Tarefas e salvar primeiro."); break; }
+                    var errOp = horarioProblema(nova, ev);
+                    if (errOp) { avisoOperador(errOp); document.getElementById("nt-ini").focus(); break; }
+                    nova.por = EU.uid;
+                }
                 cronograma(ev).itens.push(nova);
                 cronograma(ev).itens.sort(ordemTarefa);
                 marcarSujo();
@@ -4315,9 +4374,195 @@ body.seq-aberto{ overflow:hidden; }
         }
     });
 
+    /* ---------------- Operador(a): o que pode mexer ----------------
+       Tudo que não está liberado aqui fica apagado (cinza) e o clique é barrado.
+       Mesmo se alguém forçar, o servidor confere de novo (lib/operador.js). */
+    var ACOES_LIVRES = /^(voltar-lista|previa|tarefas-vista|tarefas-filtro|ir-tarefa|info-abrir|cal-modo|cal-nav|cal-dia|copiar|copiar-texto|copiar-tarefas|copiar-compras|copiar-nome-album|aviso-cel-abrir|aviso-cel-copiar|aviso-cel-teste|ir-aba|add-conv|add-varios|add-contatos|marcar-visiveis|desmarcar-contatos|tarefa-add)$/;
+    var CAMPOS_LIVRES = /^(nt-titulo|nt-dia|nt-ini|nt-fim|nt-g|novo-nome|novo-whats|varios|busca-contatos|filtro-evento)$/;
+    function permitido(el) {
+        if (!ehOperador()) return true;
+        var ev = atual && evento(atual);
+        if (el.hasAttribute("data-abrir") || el.hasAttribute("data-aba") || el.hasAttribute("data-filtro") || el.hasAttribute("data-base") || el.hasAttribute("data-contato")) return true;
+        if (CAMPOS_LIVRES.test(el.id || "")) return true;
+        var acao = el.getAttribute("data-acao");
+        if (acao === "tarefa-desfazer") { var td = ev && tarefa(ev, el.getAttribute("data-id")); return !!td && (td.feitoPor === EU.uid || minha(td)); }
+        if (acao) return ACOES_LIVRES.test(acao);
+        if (el.hasAttribute("data-tf")) {
+            var t = ev && tarefa(ev, el.getAttribute("data-id"));
+            if (!t) return false;
+            if (el.getAttribute("data-tf") === "feito") return !t.feito || t.feitoPor === EU.uid || minha(t);
+            return minha(t) && !t.pis;
+        }
+        if (el.hasAttribute("data-remover") || el.hasAttribute("data-esquecer")) return false;
+        if (el.hasAttribute("data-i") && (el.hasAttribute("data-c") || el.hasAttribute("data-m") || el.hasAttribute("data-campo") || el.hasAttribute("data-zap") || el.hasAttribute("data-grp") || el.classList.contains("convite"))) {
+            return !!ev && minha(convidados(ev.id)[+el.getAttribute("data-i")]);
+        }
+        if (el.tagName === "A") return !el.classList.contains("convite");
+        if (el.tagName === "SUMMARY") return true;
+        return false;      // qualquer outro botão ou campo: só o administrador
+    }
+    function travarOperador() {
+        if (!ehOperador()) return;
+        painel.querySelectorAll("input, select, textarea, button").forEach(function (el) {
+            if (el.hasAttribute("data-op-trava") || permitido(el)) return;
+            el.disabled = true;
+            el.setAttribute("data-op-trava", "");
+            el.title = "🔒 Só o " + NOME_ADMIN + " muda isto";
+        });
+        painel.querySelectorAll("a.convite").forEach(function (el) { if (!permitido(el)) el.classList.add("op-trava"); });
+    }
+    function avisoOperador(texto) { mostrarBarra(texto, true); document.getElementById("barra").classList.add("visivel"); }
+    /* Clique em algo que não pode: não faz nada e explica */
+    painel.addEventListener("click", function (e) {
+        if (!ehOperador()) return;
+        var alvo = e.target.closest("[data-abrir],[data-acao],[data-aba],[data-remover],[data-esquecer],[data-campo],[data-filtro],[data-base],[data-zap],.convite,button");
+        if (!alvo || permitido(alvo)) return;
+        e.preventDefault(); e.stopImmediatePropagation();
+        avisoOperador("🔒 Isso só o " + NOME_ADMIN + " pode mudar. Você pode adicionar convidados e tarefas e marcar tarefas como feitas.");
+    }, true);
+    new MutationObserver(function () { travarOperador(); }).observe(painel, { childList: true, subtree: true });
+
+    /* Horário ocupado: a tarefa do operador não pode cair no horário de outra tarefa (de qualquer evento) */
+    var tarefaAntesOp = {};
+    painel.addEventListener("focusin", function (e) {
+        var el = e.target, ev = atual && evento(atual);
+        if (!ev || !el.hasAttribute || !el.hasAttribute("data-tf")) return;
+        var t = tarefa(ev, el.getAttribute("data-id"));
+        if (t) tarefaAntesOp[t.id] = { dia: t.dia, ini: t.ini, fim: t.fim };
+    });
+    function horarioProblema(t, ev) {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(t.dia || "")) return "Escolha o dia da tarefa.";
+        if (minutos(t.ini) == null || minutos(t.fim) == null) return "Coloque a hora de começar e a hora de terminar da tarefa.";
+        if (minutos(t.fim) <= minutos(t.ini)) return "A tarefa termina antes de começar. Confira os horários.";
+        var nomes = {};
+        estado.eventos.forEach(function (e) { nomes[e.id] = e.titulo; });
+        var ids = Object.keys(estado.tarefas);
+        for (var i = 0; i < ids.length; i++) {
+            var c = estado.tarefas[ids[i]], itens = c && Array.isArray(c.itens) && !c._soVer ? c.itens : [];
+            for (var j = 0; j < itens.length; j++) {
+                var o = itens[j];
+                if (o === t || o.id === t.id || o.dia !== t.dia || minutos(o.ini) == null) continue;
+                var a = faixa(t), b = faixa(o);
+                if (a.i < b.f && b.i < a.f) return "⛔ Horário ocupado: já existe a tarefa \"" + o.t + "\"" + (ids[i] !== ev.id ? " (evento " + (nomes[ids[i]] || ids[i]) + ")" : "") +
+                    " em " + diaCurto(o.dia) + " das " + o.ini + (o.fim ? " às " + o.fim : "") + ". Escolha outro dia ou horário.";
+            }
+        }
+        return "";
+    }
+
+    /* Operador salvou: o servidor só guardou o que pode; o painel mostra o que ficou salvo */
+    function recarregarOperador() {
+        if (!ehOperador()) return;
+        fetch("/api/admin/dados", { credentials: "same-origin", cache: "no-store" }).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
+            if (!d || sujo) return;
+            estado.eventos = d.eventos || estado.eventos; estado.convidados = d.convidados || {}; estado.tarefas = d.tarefas || {};
+            estado.fornecedores = d.fornecedores || {}; estado.versao = d.versao || "";
+            separarRefriCarne(); incluirSelecionarConvidados();
+            var y = window.scrollY; desenhar(); window.scrollTo(0, y);
+        }).catch(function () {});
+    }
+
+    /* Administrador: um operador salvou depois que o painel abriu. Traz os convidados e tarefas que ele pôs
+       e as marcas de feita dele, sem perder o que o administrador mudou aqui; depois salva de novo. */
+    function juntarOperador() {
+        return fetch("/api/admin/dados", { credentials: "same-origin", cache: "no-store" }).then(function (r) { return r.json(); }).then(function (d) {
+            Object.keys(d.convidados || {}).forEach(function (id) {
+                if (!evento(id)) return;
+                var meus = convidados(id);
+                d.convidados[id].forEach(function (p) {
+                    if (!p.por || !p.c) return;
+                    var i = -1;
+                    meus.forEach(function (x, k) { if (x.c === p.c) i = k; });
+                    if (i < 0) meus.push(p); else meus[i] = p;
+                });
+            });
+            Object.keys(d.tarefas || {}).forEach(function (id) {
+                var c = estado.tarefas[id], s = d.tarefas[id];
+                if (!evento(id) || !s || !Array.isArray(s.itens)) return;
+                if (!c) { estado.tarefas[id] = s; return; }
+                s.itens.forEach(function (t) {
+                    var l = c.itens.filter(function (x) { return x.id === t.id; })[0];
+                    if (t.por) { if (!l) c.itens.push(t); else c.itens[c.itens.indexOf(l)] = t; return; }
+                    if (!l) return;
+                    if (t.feito && t.feitoPor && !l.feito) { l.feito = true; l.feitoPor = t.feitoPor; }
+                    if (!t.feito && l.feito && l.feitoPor && l.feitoPor !== "") { delete l.feito; delete l.feitoPor; }
+                });
+                c.itens.sort(ordemTarefa);
+            });
+            PESSOAS = d.pessoas || PESSOAS;
+            estado.versao = d.versao || "";
+            var y = window.scrollY; desenhar(); window.scrollTo(0, y);
+        });
+    }
+
+    /* ---------------- 👤 Acessos (só o administrador) ---------------- */
+    var ACESSOS = null, acessosMsg = "";
+    function abrirAcessos() {
+        telaAcessos = true; desenhar(); window.scrollTo(0, 0);
+        fetch("/api/admin/usuarios", { credentials: "same-origin", cache: "no-store" }).then(function (r) { return r.json(); })
+            .then(function (d) { ACESSOS = d.usuarios || []; if (telaAcessos) desenhar(); }).catch(function () {});
+    }
+    function acessosHTML() {
+        var lista = ACESSOS === null ? '<p>Carregando…</p>' : !ACESSOS.length ? '<p class="nota-info">Ninguém tem acesso de operador ainda.</p>' :
+            '<ul class="lista-acessos">' + ACESSOS.map(function (u) {
+                return '<li><span><b>' + esc(u.nome) + '</b><small>Usuário: <code>' + esc(u.id) + '</code> · operador(a)</small></span>' +
+                    '<button class="b pequeno" data-acesso-senha="' + esc(u.id) + '" data-nome="' + esc(u.nome) + '">🔑 Trocar a senha</button>' +
+                    '<button class="b pequeno perigo" data-acesso-tirar="' + esc(u.id) + '" data-nome="' + esc(u.nome) + '">Tirar o acesso</button></li>';
+            }).join("") + '</ul>';
+        return '<section class="caixa acessos" style="grid-column:1 / -1">' +
+            '<div class="editor-topo"><h2>👤 Acessos ao site</h2><div class="acoes"><button class="b pequeno" data-acesso-voltar>← Voltar aos eventos</button></div></div>' +
+            '<p>Você (<b>' + esc(NOME_ADMIN) + '</b>) é o <b>administrador</b>: pode tudo. Quem você cadastrar aqui entra como <b>operador(a)</b>:</p>' +
+            '<ul class="regras-op"><li>✅ vê tudo: eventos, convidados, compras, tarefas, fornecedores e a piscina;</li>' +
+                '<li>✅ adiciona convidados e tarefas, e marca tarefas como feitas;</li>' +
+                '<li>✅ só muda ou corrige o que ela mesma criou;</li>' +
+                '<li>⛔ não remove nada, não muda as tarefas do padrão nem as suas (nome, dia e horário);</li>' +
+                '<li>⛔ não consegue criar tarefa em dia e horário que já tem outra tarefa: o site avisa e não deixa.</li></ul>' +
+            '<div class="subtitulo-resp">Pessoas com acesso de operador</div>' + lista +
+            '<div class="subtitulo-resp">Cadastrar uma pessoa</div>' +
+            '<div class="add-acesso"><input id="ac-nome" placeholder="Nome (ex.: Nayane)" autocomplete="off">' +
+                '<input id="ac-senha" type="text" placeholder="Senha dela (pelo menos 6)" autocomplete="off" autocapitalize="none">' +
+                '<button class="b cheio" data-acesso-criar>Cadastrar</button></div>' +
+            '<p class="nota-info">O usuário dela é o nome em letras minúsculas, sem acento (ex.: Nayane → <code>nayane</code>). ' +
+                'Ela entra pelo botão <b>Entrar</b> no menu do site. Trocar a senha ou tirar o acesso desconecta ela na hora, em todos os aparelhos.</p>' +
+            '<p class="erro-senha" id="ac-msg">' + esc(acessosMsg) + '</p></section>';
+    }
+    function salvarAcesso(nome, senha) {
+        acessosMsg = "Salvando…"; desenhar();
+        return fetch("/api/admin/usuarios", { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nome: nome, senha: senha }) })
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+                if (d.erro) { acessosMsg = d.erro; return desenhar(); }
+                ACESSOS = d.usuarios; acessosMsg = "";
+                d.usuarios.forEach(function (u) { PESSOAS[u.id] = u.nome; });
+                desenhar();
+                mostrarBarra(d.novo ? "✅ " + nome + " cadastrada(o) como operador(a)." : "✅ Senha de " + nome + " trocada.", false);
+            })
+            .catch(function () { acessosMsg = "Sem conexão. Tente de novo."; desenhar(); });
+    }
+    painel.addEventListener("click", function (e) {
+        var b = e.target.closest("[data-acesso-voltar],[data-acesso-criar],[data-acesso-senha],[data-acesso-tirar]");
+        if (!b) return;
+        if (b.hasAttribute("data-acesso-voltar")) { telaAcessos = false; acessosMsg = ""; return desenhar(); }
+        if (b.hasAttribute("data-acesso-criar")) {
+            var n = document.getElementById("ac-nome").value.trim(), s = document.getElementById("ac-senha").value;
+            if (!n) return document.getElementById("ac-nome").focus();
+            return salvarAcesso(n, s);
+        }
+        if (b.hasAttribute("data-acesso-senha")) {
+            var nova = prompt("Nova senha de " + b.getAttribute("data-nome") + " (pelo menos 6 letras ou números):");
+            if (nova) salvarAcesso(b.getAttribute("data-nome"), nova);
+            return;
+        }
+        if (b.hasAttribute("data-acesso-tirar")) {
+            if (!confirm("Tirar o acesso de " + b.getAttribute("data-nome") + "? Ela sai do site na hora, em todos os aparelhos.")) return;
+            fetch("/api/admin/usuarios?id=" + encodeURIComponent(b.getAttribute("data-acesso-tirar")), { method: "DELETE", credentials: "same-origin" })
+                .then(function (r) { return r.json(); }).then(function (d) { if (d.usuarios) ACESSOS = d.usuarios; desenhar(); });
+        }
+    });
+
     /* ---------------- Salvar ---------------- */
 
-    var salvando = false, salvarDeNovo = null;
+    var salvando = false, salvarDeNovo = null, silencioso_juntou = false;
     function salvar(silencioso) {
         /* Se já está salvando (ex.: convites em sequência), salva de novo logo depois */
         if (salvando) { if (silencioso) salvarDeNovo = silencioso; return; }
@@ -4341,6 +4586,7 @@ body.seq-aberto{ overflow:hidden; }
                     if (/^\d{4}-\d{2}-\d{2}$/.test(p.cobrado || "")) o.cobrado = p.cobrado;
                     if (/^\d{4}-\d{2}-\d{2}$/.test(p.agradecido || "")) o.agradecido = p.agradecido;
                     if (/^\d{4}-\d{2}-\d{2}$/.test(p.lembrado || "")) o.lembrado = p.lembrado;
+                    if (/^[a-z0-9-]{1,40}$/.test(p.por || "")) o.por = p.por;
                     if (p.tipo === "adulto" || p.tipo === "crianca") o.tipo = p.tipo;
                     if (p.sexo === "m" || p.sexo === "f") o.sexo = p.sexo;
                     var id = parseInt(p.idade, 10);
@@ -4352,9 +4598,9 @@ body.seq-aberto{ overflow:hidden; }
         var tarefas = {};
         estado.eventos.forEach(function (ev) {
             var c = estado.tarefas[ev.id];
-            if (!c) return;
+            if (!c || c._soVer) return;
             tarefas[ev.id] = { base: c.base || ev.data, itens: c.itens.filter(function (t) { return String(t.t || "").trim() && /^\d{4}-\d{2}-\d{2}$/.test(t.dia || ""); })
-                .map(function (t) { var o = { id: t.id, t: String(t.t).trim(), g: t.g || "Outras", dia: t.dia, ini: t.ini || "", fim: t.fim || "" }; if (t.feito) o.feito = true; if (t.p) o.p = String(t.p); if (t.pis) o.pis = String(t.pis); return o; }) };
+                .map(function (t) { var o = { id: t.id, t: String(t.t).trim(), g: t.g || "Outras", dia: t.dia, ini: t.ini || "", fim: t.fim || "" }; if (t.feito) o.feito = true; if (t.feito && t.feitoPor) o.feitoPor = String(t.feitoPor); if (t.por) o.por = String(t.por); if (t.p) o.p = String(t.p); if (t.pis) o.pis = String(t.pis); return o; }) };
             if (c.tem && typeof c.tem === "object") tarefas[ev.id].tem = c.tem;
         });
 
@@ -4386,8 +4632,10 @@ body.seq-aberto{ overflow:hidden; }
         })
         .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { d._status = r.status; return d; }); })
         .then(function (d) {
+            if (d._status === 409 && d.codigo === "conflito-operador" && !silencioso_juntou) return juntarOperador().then(function () { salvando = false; silencioso_juntou = true; salvar(silencioso); silencioso_juntou = false; return "junto"; });
             if (d._status !== 200) throw new Error(d.erro || "Erro " + d._status);
             estado.versao = d.versao;
+            if (d.recarregar || d.nada) recarregarOperador();
             estado.eventos.forEach(function (ev) { delete ev._novo; delete ev._ini; });
             sujo = false;
             mostrarBarra(typeof silencioso === "string" ? silencioso : silencioso ? "Convite marcado como enviado ✓" : "Tudo salvo ✓ O site atualiza em até 1 minuto.", false);
@@ -4396,7 +4644,8 @@ body.seq-aberto{ overflow:hidden; }
         .catch(function (err) {
             mostrarBarra("Não salvou: " + err.message, true);
         })
-        .then(function () {
+        .then(function (x) {
+            if (x === "junto") return;
             salvando = false; botao.disabled = false;
             if (salvarDeNovo) { var s = salvarDeNovo; salvarDeNovo = null; salvar(s); }
         });

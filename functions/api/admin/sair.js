@@ -2,8 +2,8 @@
 
 import { cookieSair, json } from "../../../lib/acesso.js";
 
-export async function onRequestPost() {
+export async function onRequestPost(context) {
     var r = json({ ok: true });
-    r.headers.append("Set-Cookie", cookieSair());
+    cookieSair(context.request).forEach(function (c) { r.headers.append("Set-Cookie", c); });
     return r;
 }
