@@ -313,6 +313,9 @@ body.seq-aberto{ overflow:hidden; }
 .aviso-cel ol{ margin:10px 0 8px 20px; padding:0; line-height:1.6; }
 .aviso-cel code{ display:inline-block; background:#fff; border:1px solid #BAE6FD; border-radius:6px; padding:2px 6px; font-size:13px; word-break:break-all; }
 .aviso-cel .acoes{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:6px; }
+.passos-aviso{ margin:6px 0 10px 20px; padding:0; line-height:1.6; }
+.passos-aviso code{ display:inline-block; background:#fff; border:1px solid #BAE6FD; border-radius:6px; padding:2px 6px; font-size:13px; word-break:break-all; }
+.st-aviso-tarefa{ font-size:13px; color:var(--texto-claro); }
 .aviso-cel .st{ font-size:13px; color:var(--texto-claro); }
 .add-tarefa{ display:grid; grid-template-columns:1.6fr 150px 105px 105px 160px auto; gap:8px; align-items:center;
     background:var(--fundo-suave); border:1px solid var(--borda); border-radius:12px; padding:12px; margin-top:14px; }
@@ -872,6 +875,7 @@ body.seq-aberto{ overflow:hidden; }
         estado.tarefasPadrao = Array.isArray(d.tarefasPadrao) ? d.tarefasPadrao : null;
         estado.tarefasPadraoSabado = Array.isArray(d.tarefasPadraoSabado) ? d.tarefasPadraoSabado : null;
         incluirSelecionarConvidados();
+        incluirNotificacaoNoPadrao();
         estado.versao = d.versao || "";
         var novas = aplicarRespostas(d.respostas || {});
         window.EVENTOS = estado.eventos;
@@ -1330,6 +1334,7 @@ body.seq-aberto{ overflow:hidden; }
     /* Cronograma padrão: [grupo, tarefa, dias em relação ao evento (-1 = véspera, 0 = dia da festa), início, fim].
        Com número no lugar do horário: início = minutos antes (-) do horário do evento e fim = duração em minutos. */
     var TAREFAS_PADRAO = [
+        ["Planejamento", "Criar notificação do evento", -30, "18:30", "19:00"],
         ["Planejamento", "Definir data, horário e local", -30, "19:00", "20:00"],
         ["Planejamento", "Definir tema", -30, "20:00", "21:00"],
         ["Convites", "Fazer novo convite", -28, "20:00", "21:30"],
@@ -1622,6 +1627,17 @@ body.seq-aberto{ overflow:hidden; }
         }
     }
 
+    /* "Criar notificação do evento" entra só nos PADRÕES guardados (domingo e sábado), como primeira tarefa.
+       Os eventos que já existem NÃO ganham a tarefa (o Farley pediu: vale só para os próximos eventos). */
+    function incluirNotificacaoNoPadrao() {
+        var nome = "Criar notificação do evento", re = /notificacao/;
+        [estado.tarefasPadrao, estado.tarefasPadraoSabado].forEach(function (pd) {
+            if (!Array.isArray(pd) || pd.some(function (x) { return re.test(chaveNome(x[1])); })) return;
+            var dia = pd.reduce(function (m, x) { return typeof x[2] === "number" && x[2] < m ? x[2] : m; }, -30);
+            pd.unshift(["Planejamento", nome, dia, "18:30", "19:00"]);
+        });
+    }
+
     /* Uma tarefa do evento no padrão: cada tarefa lembra de qual tarefa do padrão nasceu (t.p, o nome dela no padrão),
        mesmo que o nome, o dia ou o horário tenham mudado neste evento. */
     function indicePadrao(ev, t) {
@@ -1729,8 +1745,7 @@ body.seq-aberto{ overflow:hidden; }
     }
     function avisoCelStatus(t) {
         avisoCelSt = t;
-        var el = document.querySelector("#aviso-cel .st");
-        if (el) el.textContent = t;
+        document.querySelectorAll("#aviso-cel .st, .st-aviso-tarefa").forEach(function (el) { el.textContent = t; });
     }
     async function avisoCelTeste() {
         avisoCelStatus("Enviando…");
@@ -2709,8 +2724,27 @@ body.seq-aberto{ overflow:hidden; }
         }
         var lista = convidados(ev.id).filter(function (p) { return String(p.nome || "").trim(); });
 
+        /* ---- Criar notificação do evento: passo a passo do aviso no celular + botão de teste ---- */
+        if (/notificacao/.test(k)) {
+            var avOn = AVISO_CEL && AVISO_CEL.avisos;
+            botao = "🔔 Ver o passo a passo e testar"; resumo = !AVISO_CEL ? "Aviso no celular" : "Aviso no celular: " + (avOn ? "ligado" : "desligado");
+            partes.push('<p class="nota-info">Com o aviso ligado, o celular avisa na hora de <b>cada tarefa deste evento</b>, mesmo com o painel fechado. ' +
+                    'Se o celular já recebe os avisos (de outro evento), é só tocar em <b>📲 Mandar aviso de teste</b>, conferir que chegou e marcar esta tarefa como feita.</p>' +
+                '<div class="subtitulo-info">Passo a passo (só na primeira vez)</div>' +
+                '<ol class="passos-aviso">' +
+                    '<li>Instale o app gratuito <b>ntfy</b> no celular (Play Store ou App Store). Não precisa criar conta. Ele é o mesmo da piscina e da loja.</li>' +
+                    '<li>No app, toque em <b>+</b> e cole o tópico ' + (AVISO_CEL ? '<code>' + esc(AVISO_CEL.topico) + '</code> <button class="b pequeno" data-acao="aviso-cel-copiar">📋 Copiar</button>' : '(carregando…)') +
+                        '. Depois toque em <b>Inscrever</b>.</li>' +
+                    '<li>Volte aqui e toque em <b>📲 Mandar aviso de teste</b>. O aviso deve chegar na hora.</li>' +
+                    '<li>No iPhone, para o aviso aparecer mesmo no Foco: <b>Ajustes</b> → <b>Notificações</b> → <b>ntfy</b> → ligue <b>Notificações Sensíveis ao Tempo</b>.</li>' +
+                    '<li>Chegou? Marque esta tarefa como feita.</li></ol>' +
+                '<div class="acoes-info"><button class="b cheio pequeno" data-acao="aviso-cel-teste">📲 Mandar aviso de teste</button>' +
+                    (AVISO_CEL ? '<label class="check"><input type="checkbox" data-avisocel="ligar"' + (avOn ? " checked" : "") + '> Avisos ligados</label>' : '') +
+                    '<span class="st-aviso-tarefa" role="status">' + esc(avisoCelSt) + '</span></div>' +
+                (AVISO_CEL && !avOn ? '<p class="nota-info">⚠️ Os avisos estão <b>desligados</b>: marque <b>Avisos ligados</b> acima para eles chegarem.</p>' : ''));
+        }
         /* ---- O evento: tema, data/local, convite ---- */
-        if (/\btema\b/.test(k)) {
+        else if (/\btema\b/.test(k)) {
             var tm = EV.tema(ev), cor = ev.cores || {};
             var corI = function (c, rot) { return '<label>' + rot + '<input type="color" data-cor="' + c + '" value="' + esc(cor[c] || tm[c]) + '"></label>'; };
             botao = "🎨 Escolher o tema"; resumo = "Tema: " + (window.TEMAS[ev.tema] || window.TEMAS.padrao).emoji + " " + tm.nome;
