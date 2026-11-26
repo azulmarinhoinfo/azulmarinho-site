@@ -141,6 +141,17 @@ main, .rodape{ position:relative; z-index:1; }
 .rsvp .ev-botoes{ justify-content:center; margin-top:16px; }
 .rsvp .btn{ min-width:150px; justify-content:center; }
 .rsvp .trocar{ background:none; border:0; color:var(--t-destaque); font:inherit; cursor:pointer; text-decoration:underline; margin-top:12px; }
+.rsvp-fam{ list-style:none; margin:16px auto 0; padding:0; max-width:620px; text-align:left; }
+.rsvp-fam li{ display:flex; align-items:center; justify-content:space-between; gap:10px 14px; flex-wrap:wrap; padding:12px 14px; border-radius:14px; background:var(--t-cartao); margin-top:8px; }
+.rsvp-fam li.vai{ box-shadow:inset 4px 0 0 #2ecc71; }
+.rsvp-fam li.nao{ box-shadow:inset 4px 0 0 #e57373; }
+.rsvp-fam .quem b{ display:block; font-size:18px; color:var(--t-titulo); }
+.rsvp-fam .quem small{ font-size:13px; opacity:.75; }
+.rsvp-fam .escolha{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.rsvp-fam .escolha .btn{ min-width:0; padding:9px 16px; }
+.rsvp-fam .selo{ font-weight:600; }
+.rsvp-fam .por{ font-size:13px; opacity:.75; }
+.rsvp-fam .trocar{ margin-top:0; }
 
 /* Quantidades de respostas (só números; nomes ficam no painel) */
 .presencas{ text-align:center; }
@@ -341,11 +352,14 @@ main, .rodape{ position:relative; z-index:1; }
     }
     if (!previa) carregarTotais();
 
-    /* Confirmação de presença: só com o link pessoal do convite (&c=código) */
+    /* Confirmação de presença: só com o link pessoal do convite (&c=código).
+       Se o painel vinculou família (esposo(a)/parceiro(a), filhos), a pessoa responde por cada um.
+       Quem já respondeu aparece respondido para os outros da família. */
     var codigo = new URLSearchParams(location.search).get("c");
-    var rsvp = document.getElementById("rsvp"), nomeConv = "";
+    var rsvp = document.getElementById("rsvp"), nomeConv = "", pessoas = [], mudando = {};
     function caixaRsvp(resposta, erro) {
         rsvp.hidden = false;
+        if (pessoas.length > 1) return caixaFamilia(erro);
         if (resposta === "sim" || resposta === "nao") {
             rsvp.innerHTML = resposta === "sim"
                 ? '<h2>🎉 Presença confirmada!</h2><p>Obrigado, ' + esc(nomeConv) + '! Te esperamos lá.</p>'
@@ -359,22 +373,65 @@ main, .rodape{ position:relative; z-index:1; }
             '<button class="btn btn-tema-contorno" data-rsvp="nao">Não vou</button></div>' +
             (erro ? '<p class="suave" style="margin-top:12px">' + esc(erro) + '</p>' : "");
     }
+    function caixaFamilia(erro) {
+        var faltam = pessoas.filter(function (x) { return !x.resposta; }).length;
+        var vao = pessoas.filter(function (x) { return x.resposta === "sim"; }).length;
+        rsvp.innerHTML = (faltam
+                ? '<h2>💌 ' + esc(nomeConv) + ', quem vem?</h2>' +
+                  '<p class="suave">O convite é para você e sua família. Confirme a presença de cada um: quem não puder ir, é só tocar em <b>Não vai</b>.</p>'
+                : '<h2>' + (vao ? "🎉 Respostas enviadas!" : "😢 Que pena!") + '</h2>' +
+                  '<p>Obrigado, ' + esc(nomeConv) + '! ' + (vao ? (vao === 1 ? "1 pessoa confirmada." : vao + " pessoas confirmadas.") + " Te esperamos lá." : "Se mudar de ideia, é só voltar neste link.") + '</p>') +
+            '<ul class="rsvp-fam">' + pessoas.map(function (x, i) {
+                var eu = i === 0, aberto = !x.resposta || mudando[x.c];
+                var quem = '<span class="quem"><b>' + esc(x.nome) + '</b><small>' + esc(x.rel) + '</small></span>';
+                if (aberto) return '<li>' + quem + '<span class="escolha">' +
+                    '<button class="btn btn-tema" data-p="' + esc(x.c) + '" data-r="sim">✅ ' + (eu ? "Vou" : "Vai") + '</button>' +
+                    '<button class="btn btn-tema-contorno" data-p="' + esc(x.c) + '" data-r="nao">' + (eu ? "Não vou" : "Não vai") + '</button></span></li>';
+                return '<li class="' + (x.resposta === "sim" ? "vai" : "nao") + '">' + quem + '<span class="escolha">' +
+                    '<span class="selo">' + (x.resposta === "sim" ? "✅ Confirmado" : "❌ Não vai") + '</span>' +
+                    (x.por ? '<small class="por">' + esc(x.por) + ' já respondeu</small>' : '') +
+                    '<button class="trocar" data-mudar="' + esc(x.c) + '">mudar</button></span></li>';
+            }).join("") + '</ul>' +
+            (faltam > 1 ? '<div class="ev-botoes"><button class="btn btn-tema" data-todos="sim">🎉 Todos que faltam vão</button></div>' : '') +
+            (erro ? '<p class="suave" style="margin-top:12px">' + esc(erro) + '</p>' : "");
+    }
+    function receber(d) {
+        if (!d) return;
+        nomeConv = d.nome;
+        pessoas = Array.isArray(d.pessoas) && d.pessoas.length ? d.pessoas : [{ c: codigo, nome: d.nome, rel: "você", resposta: d.resposta }];
+        mudando = {};
+        caixaRsvp(d.resposta);
+    }
+    function responder(respostas) {
+        rsvp.querySelectorAll("button").forEach(function (x) { x.disabled = true; });
+        fetch("/eventos/confirmar", { method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ e: ev.id, c: codigo, respostas: respostas }) })
+            .then(function (r) { return r.json().then(function (d) { if (!r.ok) throw new Error(d.erro); return d; }); })
+            .then(function (d) { receber(d); carregarTotais(); })
+            .catch(function () { caixaRsvp("", "Não consegui enviar agora. Tente de novo em instantes."); });
+    }
     if (codigo && !passado && !previa) {
         fetch("/eventos/confirmar?e=" + encodeURIComponent(ev.id) + "&c=" + encodeURIComponent(codigo), { cache: "no-store" })
             .then(function (r) { return r.ok ? r.json() : null; })
-            .then(function (d) { if (d) { nomeConv = d.nome; caixaRsvp(d.resposta); } })
+            .then(receber)
             .catch(function () {});
         rsvp.addEventListener("click", function (e) {
+            var m = e.target.closest("[data-mudar]");
+            if (m) { mudando[m.getAttribute("data-mudar")] = true; return caixaFamilia(); }
+            var t = e.target.closest("[data-todos]");
+            if (t) {
+                var todos = {};
+                pessoas.forEach(function (x) { if (!x.resposta) todos[x.c] = "sim"; });
+                return responder(todos);
+            }
+            var bp = e.target.closest("[data-p]");
+            if (bp) { var uma = {}; uma[bp.getAttribute("data-p")] = bp.getAttribute("data-r"); return responder(uma); }
             var b = e.target.closest("[data-rsvp]");
             if (!b) return;
             var resposta = b.getAttribute("data-rsvp");
             if (!resposta) return caixaRsvp("");
-            rsvp.querySelectorAll("button").forEach(function (x) { x.disabled = true; });
-            fetch("/eventos/confirmar", { method: "POST", headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ e: ev.id, c: codigo, resposta: resposta }) })
-                .then(function (r) { return r.json().then(function (d) { if (!r.ok) throw new Error(d.erro); return d; }); })
-                .then(function (d) { caixaRsvp(d.resposta); carregarTotais(); })
-                .catch(function () { caixaRsvp("", "Não consegui enviar agora. Tente de novo em instantes."); });
+            var so = {}; so[codigo] = resposta;
+            responder(so);
         });
     }
 
