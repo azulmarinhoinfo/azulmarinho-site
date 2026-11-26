@@ -2478,10 +2478,26 @@ body.seq-aberto{ overflow:hidden; }
             (temAlmoco(ev) ? "🍖 Não esqueça: o almoço é *churrasco americano*, traga a sua carne e a sua bebida para partilhar!\n" : "") +
             "\nTodos os detalhes e a previsão do tempo:\n" + linkEvento(ev, p) + "\n\nTe espero lá! 🎉";
     }
+    /* Pedido de confirmação: só fala do que vai ter na festa (caixinhas "Vai ter na festa" em Compras).
+       Só bolo = "decido o tamanho do bolo"; com doces = "a quantidade de docinhos" etc. Cadeiras sempre entram. */
+    function oQueDependeDaResposta(ev) {
+        var tem = itensCompras(ev), it = [], qtd = [];
+        var junta = function (l) { return l.length > 1 ? l.slice(0, -1).join(", ") + " e " + l[l.length - 1] : l[0]; };
+        if (tem.bolo) it.push("o tamanho do bolo");
+        if (tem.salgados) qtd.push("salgadinhos");
+        if (tem.doces) qtd.push("docinhos");
+        if (tem.almoco) qtd.push("comida do almoço");
+        if (tem.refri || tem.suco) qtd.push("bebida");
+        if (qtd.length) it.push("a quantidade de " + junta(qtd));
+        if (tem.personalizados) it.push("quantos personalizados encomendar");
+        if (tem.lembrancinhas) it.push("quantas lembrancinhas encomendar");
+        it.push("quantas cadeiras arrumar");
+        return "decido " + junta(it);
+    }
     function textoCobranca(ev, p) {
         return "Oi, " + primeiroNome(p) + "! Tudo bem? 😊\n" +
             "Estou fechando os preparativos da *" + ev.titulo + "* (" + EV.dataLonga(ev) + (ev.hora ? ", às " + ev.hora : "") + ") e ainda não recebi a sua confirmação.\n\n" +
-            "Sua resposta é muito importante: é com ela que eu calculo comida, bebida, bolo, cadeiras e lembrancinhas, para não faltar nada para ninguém (e não sobrar também). 🙏\n\n" +
+            "Sua resposta é muito importante: é com ela que eu " + oQueDependeDaResposta(ev) + ", para não faltar nada para ninguém (e não sobrar também). 🙏\n\n" +
             "👉 É só tocar em *Vou* ou *Não vou* neste link (leva 5 segundos):\n" + linkEvento(ev, p) + "\n\nObrigado! Conto com você. 💙";
     }
     /* Agradecimento: com p = individual (nome e link do convidado); sem p = para o grupo */
