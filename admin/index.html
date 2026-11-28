@@ -2106,7 +2106,7 @@ body.seq-aberto{ overflow:hidden; }
         ["Bolo", "🎂", /\bbolo\b/],
         ["Doces", "🍬", /doce/],
         ["Salgados", "🥟", /salgad/],
-        ["Personalizados e lembrancinhas", "🎁", /lembrancinha|personalizad|topo/],
+        ["Personalizados e lembrancinhas", "🎁", /lembrancinha|personalizad|topo/, "inclui topo de bolo"],
         ["Açougue (carne)", "🥩", /carne/],
         ["Supermercado", "🛒", /supermercado|refri|\bsuco\b|descartave/],
         ["Refrigerante", "🥤", /refri/],
@@ -2150,10 +2150,13 @@ body.seq-aberto{ overflow:hidden; }
     }
     /* Marcou "Pago" no fornecedor: a tarefa "Pagar ..." do mesmo tipo fica feita quando todos os
        fornecedores daquele tipo estão pagos; desmarcou, ela volta para Pendentes. */
-    function tiposDaTarefaPagar(k) {
+    /* Tipos de fornecedor que aparecem numa tarefa. Topo de bolo é personalizado (ex.: a Michele),
+       não é bolo: "Pagar topo do bolo" mostra e paga só quem é de Personalizados e lembrancinhas. */
+    function tiposDaTarefa(k) {
         if (/topo/.test(k)) return ["Personalizados e lembrancinhas"];
         return TIPOS_FORNECEDOR.filter(function (x) { return x[2] && x[2].test(k); }).map(function (x) { return x[0]; });
     }
+    var tiposDaTarefaPagar = tiposDaTarefa;
     function pagoNasTarefas(ev, tipo) {
         var c = cronograma(ev);
         if (!c || !Array.isArray(c.itens)) return;
@@ -2900,7 +2903,7 @@ body.seq-aberto{ overflow:hidden; }
         }
 
         /* ---- Fornecedores do tipo certo ---- */
-        var tipos = TIPOS_FORNECEDOR.filter(function (x) { return x[2] && x[2].test(k); }).map(function (x) { return x[0]; });
+        var tipos = tiposDaTarefa(k);
         if (/convite|lembrete|lembrar|presenc|\btema\b|playlist|agradec/.test(k)) tipos = [];
         if (tipos.length) {
             var todosF = fornecedores(ev.id);
@@ -2929,7 +2932,7 @@ body.seq-aberto{ overflow:hidden; }
         var total = 0, pago = 0;
         lista.forEach(function (f) { var v = valorReais(f.valor); total += v; if (f.pago) pago += v; });
         function opcoesTipo(sel) {
-            return TIPOS_FORNECEDOR.map(function (x) { return '<option value="' + esc(x[0]) + '"' + (x[0] === sel ? " selected" : "") + '>' + x[1] + " " + esc(x[0]) + '</option>'; }).join("");
+            return TIPOS_FORNECEDOR.map(function (x) { return '<option value="' + esc(x[0]) + '"' + (x[0] === sel ? " selected" : "") + '>' + x[1] + " " + esc(x[0]) + (x[3] ? " (" + x[3] + ")" : "") + '</option>'; }).join("");
         }
         /* Agenda de fornecedores, para trazer com um toque (só quem ainda não está neste evento) */
         var jaTem = {};
@@ -2942,7 +2945,7 @@ body.seq-aberto{ overflow:hidden; }
         var porTipo = {};
         lista.forEach(function (f) { porTipo[f.tipo] = (porTipo[f.tipo] || 0) + 1; });
 
-        return '<p class="nota-info" style="margin-top:0">Cadastre quem vai fornecer cada coisa da festa. Eles aparecem sozinhos nas tarefas do mesmo tipo (ex.: o fornecedor de <b>Bolo</b> aparece em "Encomendar bolo", "Pagar bolo" e "Buscar bolo").</p>' +
+        return '<p class="nota-info" style="margin-top:0">Cadastre quem vai fornecer cada coisa da festa. Eles aparecem sozinhos nas tarefas do mesmo tipo (ex.: o fornecedor de <b>Bolo</b> aparece em "Encomendar bolo", "Pagar bolo" e "Buscar bolo"). <b>Topo de bolo</b> é de <b>Personalizados e lembrancinhas</b>: quem faz o topo (ex.: a Michele) entra nesse tipo, não em Bolo.</p>' +
             '<div class="add-forn">' +
                 '<select id="nf-tipo" aria-label="Tipo">' + opcoesTipo("Bolo") + '</select>' +
                 '<input id="nf-nome" placeholder="Nome do fornecedor" autocomplete="off" aria-label="Nome">' +
