@@ -511,6 +511,7 @@ body.seq-aberto{ overflow:hidden; }
 .linha-forn .obs{ grid-column:1 / 4; }
 .linha-forn .valor{ grid-column:4; width:130px; }
 .linha-forn .marca{ grid-column:5; justify-self:start; }
+.linha-forn .marca.faz-topo{ grid-column:1 / -1; }
 @media (max-width:760px){
     .info-tarefa{ margin-left:0; margin-right:0; padding:12px; }
     .add-forn{ grid-template-columns:1fr; }
@@ -521,6 +522,7 @@ body.seq-aberto{ overflow:hidden; }
     .linha-forn .obs{ grid-column:1 / -1; }
     .linha-forn .valor{ grid-column:1; width:100%; }
     .linha-forn .marca{ grid-column:2 / -1; }
+    .linha-forn .marca.faz-topo{ grid-column:1 / -1; }
 }
 
 /* Mensagens */
@@ -2157,6 +2159,14 @@ body.seq-aberto{ overflow:hidden; }
         return TIPOS_FORNECEDOR.filter(function (x) { return x[2] && x[2].test(k); }).map(function (x) { return x[0]; });
     }
     var tiposDaTarefaPagar = tiposDaTarefa;
+    /* Fornecedores de uma tarefa. No topo do bolo, se algum fornecedor de Personalizados estiver
+       marcado "🎂 Faz o topo do bolo", só ele entra (ex.: Michele faz o topo, a Shopee só as lembrancinhas). */
+    function fornDaTarefa(lista, k) {
+        var tipos = tiposDaTarefa(k);
+        var fs = lista.filter(function (f) { return tipos.indexOf(f.tipo) >= 0 && String(f.nome || "").trim(); });
+        if (/topo/.test(k) && fs.some(function (f) { return f.topo; })) fs = fs.filter(function (f) { return f.topo; });
+        return fs;
+    }
     function pagoNasTarefas(ev, tipo) {
         var c = cronograma(ev);
         if (!c || !Array.isArray(c.itens)) return;
@@ -2166,7 +2176,7 @@ body.seq-aberto{ overflow:hidden; }
             if (!/^pagar\b/.test(k)) return;
             var tipos = tiposDaTarefaPagar(k);
             if (tipos.indexOf(tipo) < 0) return;
-            var fs = lf.filter(function (f) { return tipos.indexOf(f.tipo) >= 0; });
+            var fs = fornDaTarefa(lf, k);
             if (!fs.length) return;
             if (fs.every(function (f) { return f.pago; })) t.feito = true;
             else delete t.feito;
@@ -2907,17 +2917,29 @@ body.seq-aberto{ overflow:hidden; }
         if (/convite|lembrete|lembrar|presenc|\btema\b|playlist|agradec/.test(k)) tipos = [];
         if (tipos.length) {
             var todosF = fornecedores(ev.id);
-            var fs = todosF.filter(function (f) { return tipos.indexOf(f.tipo) >= 0 && String(f.nome || "").trim(); });
+            var ehTopo = /topo/.test(k);
+            var fs = ehTopo ? todosF.filter(function (f) { return tipos.indexOf(f.tipo) >= 0 && String(f.nome || "").trim(); }) : fornDaTarefa(todosF, k);
+            var marcadoTopo = ehTopo && fs.some(function (f) { return f.topo; });
             if (!botao) botao = "📞 Ver fornecedores";
+            if (marcadoTopo) {
+                var fsTopo = fs.filter(function (f) { return f.topo; });
+                if (fs.length && !lc) resumo = fsTopo.map(function (f) { return emojiTipo(f.tipo) + " " + f.nome; }).join(" • ");
+            }
+            else
             if (fs.length && !lc) resumo = fs.map(function (f) { return emojiTipo(f.tipo) + " " + f.nome; }).join(" • ");
-            partes.push('<div class="subtitulo-info">Fornecedores (' + tipos.join(", ") + ')</div>' +
-                (fs.length ? '<ul class="pessoas-info">' + fs.map(function (f) {
+            var listaF = marcadoTopo ? fs.filter(function (f) { return f.topo; }) : fs;
+            var outrosTopo = marcadoTopo ? fs.filter(function (f) { return !f.topo; }) : [];
+            partes.push('<div class="subtitulo-info">' + (ehTopo ? 'Quem faz o topo do bolo' : 'Fornecedores (' + tipos.join(", ") + ')') + '</div>' +
+                (ehTopo && fs.length && !marcadoTopo ? '<p class="nota-info">Marque <b>🎂 Faz o topo</b> em quem faz o topo do bolo. Assim só essa pessoa aparece aqui e o <b>Pago</b> fica só para ela.</p>' : '') +
+                (fs.length ? '<ul class="pessoas-info">' + listaF.map(function (f) {
                     return '<li><span>' + emojiTipo(f.tipo) + ' <b>' + esc(f.nome) + '</b>' + (f.whats ? ' <small>' + esc(f.whats) + '</small>' : '') +
                         (f.obs ? '<small class="obs">' + esc(f.obs) + '</small>' : '') +
                         (f.valor ? '<small class="obs">' + esc(f.valor) + (f.pago ? " • pago ✓" : " • falta pagar") + '</small>' : '') + '</span>' +
-                        '<span class="forn-acoes">' + (/pagar|buscar|encomend/.test(k) ? '<label class="marca conf"><input type="checkbox" data-fo="pago" data-i="' + todosF.indexOf(f) + '"' + (f.pago ? " checked" : "") + '>Pago</label>' : '') +
+                        '<span class="forn-acoes">' + (ehTopo ? '<label class="marca"><input type="checkbox" data-fo="topo" data-i="' + todosF.indexOf(f) + '"' + (f.topo ? " checked" : "") + '>🎂 Faz o topo</label>' : '') + (/pagar|buscar|encomend/.test(k) ? '<label class="marca conf"><input type="checkbox" data-fo="pago" data-i="' + todosF.indexOf(f) + '"' + (f.pago ? " checked" : "") + '>Pago</label>' : '') +
                         (numero(f.whats) ? '<a class="convite" href="https://wa.me/' + numero(f.whats) + '" target="_blank" rel="noopener">' + I.whats + 'Chamar</a>' : '') + '</span></li>';
-                }).join("") + '</ul>' : '<p class="nota-info">Nenhum fornecedor de ' + tipos.join(" ou ") + ' cadastrado neste evento.</p>') +
+                }).join("") + '</ul>' + (outrosTopo.length ? '<p class="nota-info">Também em Personalizados e lembrancinhas, mas não fazem o topo: ' + outrosTopo.map(function (f) {
+                    return '<label class="marca"><input type="checkbox" data-fo="topo" data-i="' + todosF.indexOf(f) + '">' + esc(f.nome) + '</label>'; }).join(" ") + '</p>' : '')
+                    : '<p class="nota-info">Nenhum fornecedor de ' + tipos.join(" ou ") + ' cadastrado neste evento.' + (ehTopo ? ' Na aba <b>Fornecedores</b>, cadastre quem faz o topo (ex.: a Michele) com o tipo <b>🎁 Personalizados e lembrancinhas</b>.' : '') + '</p>') +
                 '<div class="acoes-info">' + irAba("fornecedores", fs.length ? "📞 Abrir Fornecedores" : "➕ Cadastrar fornecedor") + '</div>');
         }
 
@@ -2968,6 +2990,7 @@ body.seq-aberto{ overflow:hidden; }
                         '<input class="obs" data-fo="obs" data-i="' + i + '" value="' + esc(f.obs || "") + '" placeholder="O que pediu, sabor, quantidade, endereço, dia de buscar..." aria-label="Observação">' +
                         '<input class="valor" data-fo="valor" data-i="' + i + '" value="' + esc(f.valor || "") + '" placeholder="Valor (R$)" inputmode="decimal" aria-label="Valor">' +
                         '<label class="marca conf"><input type="checkbox" data-fo="pago" data-i="' + i + '"' + (f.pago ? " checked" : "") + '>Pago</label>' +
+                        (f.tipo === "Personalizados e lembrancinhas" ? '<label class="marca faz-topo"><input type="checkbox" data-fo="topo" data-i="' + i + '"' + (f.topo ? " checked" : "") + '>🎂 Faz o topo do bolo</label>' : '') +
                     '</li>';
                   }).join("") + '</ol>' +
                   '<div class="resumo-conv"><span id="resumo-forn">' + resumoForn(total, pago) + '</span></div>'
@@ -3620,7 +3643,7 @@ body.seq-aberto{ overflow:hidden; }
             if (!fo) return;
             if (el.type === "checkbox") { if (el.checked) fo[cf] = true; else delete fo[cf]; } else fo[cf] = el.value;
             marcarSujo();
-            if (cf === "pago") pagoNasTarefas(ev, fo.tipo);
+            if (cf === "pago" || cf === "topo") pagoNasTarefas(ev, fo.tipo);
             if (cf === "valor" || cf === "pago") {
                 var tot = 0, pg = 0;
                 fornecedores(ev.id).forEach(function (f) { var v = valorReais(f.valor); tot += v; if (f.pago) pg += v; });
@@ -3771,7 +3794,8 @@ body.seq-aberto{ overflow:hidden; }
             if (tf !== "t") tarefaMudou = true;
             return;
         }
-        if (aba === "tarefas" && el.getAttribute("data-fo") === "pago") { redesenharTarefas(); return; }
+        if (aba === "tarefas" && /^(pago|topo)$/.test(el.getAttribute("data-fo") || "")) { redesenharTarefas(); return; }
+        if (el.getAttribute("data-fo") === "topo") { var yt = window.scrollY; desenhar(); window.scrollTo(0, yt); return; }
         if (aba === "fornecedores" && el.getAttribute("data-fo") === "pago") { var yp = window.scrollY; desenhar(); window.scrollTo(0, yp); return; }
         if (el.hasAttribute("data-fo") && /^(nome|whats|tipo)$/.test(el.getAttribute("data-fo"))) guardarNaAgenda(fornecedores(ev.id)[+el.getAttribute("data-i")]);
         if (el.hasAttribute("data-fo") && el.getAttribute("data-fo") === "tipo") { var yf = window.scrollY; desenhar(); window.scrollTo(0, yf); return; }
